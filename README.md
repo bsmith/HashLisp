@@ -11,3 +11,6 @@
 HashLisp is a simple (toy) Lisp implementation using 'hash cons' as its primary
 primitive.  The dialect of Lisp is closer to lambda calculus or Haskell than
 Common Lisp or Scheme.  Values are immutable, and car/cdr are spelled fst/snd.
+
+* [Specification](docs/spec/spec.md)
+* [Brief for jproto](docs/jproto_brief.md)
