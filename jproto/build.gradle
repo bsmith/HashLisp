@@ -33,7 +33,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'uk.bs338.jproto.App'
+    mainClass = 'uk.bs338.hashLisp.jproto.App'
 }
 
 tasks.named('test') {
