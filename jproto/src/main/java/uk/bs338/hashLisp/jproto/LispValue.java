@@ -1,19 +1,24 @@
 package uk.bs338.hashLisp.jproto;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
 
-public class LispValue {
+public final class LispValue {
     /* 31-bit signed integers have the range [-(2**30-1)-1, 2**30-1] */
     private final static int int_min = -1073741823 - 1;
     private final static int int_max = 1073741823;
 
-    private int value;
+    /* We are a immutable object wrapping this primitive */
+    private final int value;
 
     private LispValue(int value) {
         this.value = value;
     }
+
+    /* nil is the object hash 0 */
+    public final static LispValue nil = new LispValue(1);
+    // public final static LispValue nil = LispValue.fromObjectHash(0);
 
     public static LispValue fromInteger(int num) {
         assert int_min < num && num < int_max;
@@ -47,26 +52,22 @@ public class LispValue {
         return (value & 1) == 1;
     }
 
-    /* XXX Are these two operations the best?  Most javaish? */
-    /* XXX Should these return nil? */
-    public static Optional<LispValue> applyIntegerOperation(Function<Integer, Integer> func,
-            LispValue val) {
-        var valOpt = val.toInteger();
-        if (valOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        var rvInt = func.apply(valOpt.get());
-        return Optional.of(LispValue.fromInteger(rvInt));
+    public boolean isNil() {
+        return value == 1;
     }
 
-    public static Optional<LispValue> applyIntegerOperation(BiFunction<Integer, Integer, Integer> func,
-            LispValue left, LispValue right) {
-        var leftOpt = left.toInteger();
-        var rightOpt = right.toInteger();
-        if (leftOpt.isEmpty() || rightOpt.isEmpty()) {
-            return Optional.empty();
+    /* XXX Are these two operations the best?  Most javaish? */
+    /* XXX using fromInteger does some checks for overflow, but not all? */
+    public static LispValue applyIntegerOperation(IntUnaryOperator func, LispValue val) {
+        var rvInt = func.applyAsInt(val.value >> 1);
+        return val.isInteger() ? LispValue.fromInteger(rvInt) : nil;
+    }
+
+    public static LispValue applyIntegerOperation(IntBinaryOperator func, LispValue left, LispValue right) {
+        if (!left.isInteger() || !right.isInteger()) {
+            return nil;
         }
-        var rvInt = func.apply(leftOpt.get(), rightOpt.get());
-        return Optional.of(LispValue.fromInteger(rvInt));
+        var rvInt = func.applyAsInt(left.value >> 1, right.value >> 1);
+        return LispValue.fromInteger(rvInt);
     }
 }
