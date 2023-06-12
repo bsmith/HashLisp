@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
@@ -32,18 +33,18 @@ public final class LispValue {
         return new LispValue((hash << 1) | 1);
     }
 
-    public Optional<Integer> toShortInt() {
+    public OptionalInt toShortInt() {
         if ((value & 1) == 0) {
-            return Optional.of(value >> 1);
+            return OptionalInt.of(value >> 1);
         }
-        return Optional.empty(); 
+        return OptionalInt.empty(); 
     }
 
-    public Optional<Integer> toObjectHash() {
+    public OptionalInt toObjectHash() {
         if ((value & 1) == 1) {
-            return Optional.of(value >> 1);
+            return OptionalInt.of(value >> 1);
         }
-        return Optional.empty();
+        return OptionalInt.empty();
     }
 
     public boolean isShortInt() {

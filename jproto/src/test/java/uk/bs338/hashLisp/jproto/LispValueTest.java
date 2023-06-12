@@ -3,7 +3,7 @@ package uk.bs338.hashLisp.jproto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
@@ -11,13 +11,13 @@ public class LispValueTest {
     @Test void integerValuesWork() {
         LispValue val = LispValue.fromShortInt(17);
         assertTrue(val.isShortInt());
-        assertEquals(Optional.of(17), val.toShortInt());
+        assertEquals(OptionalInt.of(17), val.toShortInt());
     }
 
     @Test void objectHashValuesWork() {
         LispValue val = LispValue.fromObjectHash(17);
         assertTrue(val.isObjectHash());
-        assertEquals(Optional.of(17), val.toObjectHash());
+        assertEquals(OptionalInt.of(17), val.toObjectHash());
     }
 
     @Test void canApplyUnaryIntegerOperation() {
@@ -25,7 +25,7 @@ public class LispValueTest {
         IntUnaryOperator operation = n -> -n;
         LispValue rv = LispValue.applyShortIntOperation(operation, val);
         assertTrue(rv.isShortInt());
-        assertEquals(Optional.of(-17), rv.toShortInt());
+        assertEquals(OptionalInt.of(-17), rv.toShortInt());
     }
 
     @Test void cannotApplyUnaryIntegerOperation() {
@@ -41,7 +41,7 @@ public class LispValueTest {
         IntBinaryOperator operation = (a, b) -> a + b;
         LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
         assertTrue(rv.isShortInt());
-        assertEquals(Optional.of(38), rv.toShortInt());
+        assertEquals(OptionalInt.of(38), rv.toShortInt());
     }
 
     @Test void cannotApplyBinaryIntegerOperation() {
