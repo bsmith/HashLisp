@@ -36,6 +36,18 @@ public class App {
         }
     }
 
+    public LispValue sumList(LispValue list) throws Exception {
+        if (list.isNil())
+            return LispValue.fromShortInt(0);
+        else if (list.isShortInt())
+            return list;
+        else {
+            LispValue head = sumList(heap.fst(list));
+            LispValue rest = sumList(heap.snd(list));
+            return LispValue.applyShortIntOperation((a, b) -> a + b, head, rest);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         App app = new App();
         System.out.println(app.getGreeting());
@@ -72,7 +84,10 @@ public class App {
         System.out.print("list: ");
         System.out.println(heap.valueToString(list));
         System.out.println();
-        
+
+        System.out.printf("sum: %s%n", app.sumList(list));
+        System.out.println();
+
         app.forceCollision();
 
         System.out.println();

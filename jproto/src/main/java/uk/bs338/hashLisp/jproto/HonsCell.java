@@ -61,10 +61,12 @@ public class HonsCell {
         return memoEval;
     }
 
+    @Nonnull
     public LispValue getFst() {
         return fst;
     }
 
+    @Nonnull
     public LispValue getSnd() {
         return snd;
     }

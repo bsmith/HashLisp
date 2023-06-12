@@ -80,4 +80,24 @@ public class HonsHeap {
             System.out.printf("%s%n  %s%n", cell, valueToString(cell.toValue()));
         }
     }
+
+    @Nonnull
+    public LispValue fst(LispValue val) throws Exception {
+        if (!val.isObjectHash())
+            return LispValue.nil;
+        var cell = heap.get(val.toObjectHash().getAsInt());
+        if (cell == null)
+            throw new Exception("Failed to find cell in heap: " + val);
+        return cell.getFst();
+    }
+
+    @Nonnull
+    public LispValue snd(LispValue val) throws Exception {
+        if (!val.isObjectHash())
+            return LispValue.nil;
+        var cell = heap.get(val.toObjectHash().getAsInt());
+        if (cell == null)
+            throw new Exception("Failed to find cell in heap: " + val);
+        return cell.getSnd();
+    }
 }
