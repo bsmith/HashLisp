@@ -25,6 +25,8 @@ public class App {
             if (test.getObjectHash() == cell.getObjectHash()) {
                 System.out.println(cell);
                 System.out.println(test);
+                System.out.println(new HonsCell(LispValue.fromShortInt(5+1), LispValue.nil));
+                System.out.println(new HonsCell(LispValue.fromShortInt(i+1), LispValue.nil));
 
                 var heaped = heap.hons(LispValue.fromShortInt(i), LispValue.nil);
                 System.out.println(heaped);
@@ -34,6 +36,15 @@ public class App {
                 break collision;
             }
         }
+    }
+
+    public LispValue intList(int nums[]) throws Exception {
+        LispValue list = LispValue.nil;
+        for (int index = nums.length - 1; index >= 0; index--) {
+            int num = nums[index];
+            list = heap.hons(LispValue.fromShortInt(num), list);
+        }
+        return list;
     }
 
     public LispValue sumList(LispValue list) throws Exception {
@@ -76,11 +87,7 @@ public class App {
                 LispValue.fromShortInt(LispValue.SHORTINT_MAX)
             )));
 
-        LispValue list = LispValue.nil;
-        int nums[] = {5, 4, 3, 2, 1};
-        for (var num : nums) {
-            list = heap.hons(LispValue.fromShortInt(num), list);
-        }
+        var list = app.intList(new int[]{1, 2, 3, 4, 5});
         System.out.print("list: ");
         System.out.println(heap.valueToString(list));
         System.out.println();
