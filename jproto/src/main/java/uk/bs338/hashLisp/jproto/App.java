@@ -4,12 +4,41 @@
 package uk.bs338.hashLisp.jproto;
 
 public class App {
+    private final HonsHeap heap;
+
+    public App() {
+        heap = new HonsHeap();
+    }
+
     public String getGreeting() {
         return "jproto --- prototype for HashLisp";
     }
 
+    public void forceCollision() throws Exception {
+        HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.println("Can we force a collision?");
+
+        collision:
+        for (int i = 0; i < LispValue.SHORTINT_MAX; i++) {
+            if (i == 5) continue collision;
+            HonsCell test = new HonsCell(LispValue.fromShortInt(i), LispValue.nil);
+            if (test.getObjectHash() == cell.getObjectHash()) {
+                System.out.println(cell);
+                System.out.println(test);
+
+                var heaped = heap.hons(LispValue.fromShortInt(i), LispValue.nil);
+                System.out.println(heaped);
+
+                System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+                System.out.println(heap.hons(LispValue.fromShortInt(i), LispValue.nil));
+                break collision;
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        System.out.println(new App().getGreeting());
+        App app = new App();
+        System.out.println(app.getGreeting());
 
         System.out.printf("nil:             %s%n", LispValue.nil);
         System.out.printf("short int -17:   %s%n", LispValue.fromShortInt(-17));
@@ -20,12 +49,16 @@ public class App {
         System.out.printf("cell: %s%n", cell);
         System.out.printf("nil:  %s%n", HonsCell.nil);
 
-        HonsHeap heap = new HonsHeap();
+        HonsHeap heap = app.heap;
         LispValue val = heap.hons(LispValue.fromShortInt(5), LispValue.nil);
-        System.out.println(val);
-        System.out.println(heap.valueToString(val));
+        System.out.printf("hons: %s%n", val);
+        System.out.printf("      %s%n", heap.valueToString(val));
 
+        System.out.print("again: ");
         System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+        System.out.println();
+
+        System.out.print("pair: ");
         System.out.println(heap.valueToString(heap.hons(
                 LispValue.fromShortInt(LispValue.SHORTINT_MIN),
                 LispValue.fromShortInt(LispValue.SHORTINT_MAX)
@@ -36,8 +69,13 @@ public class App {
         for (var num : nums) {
             list = heap.hons(LispValue.fromShortInt(num), list);
         }
+        System.out.print("list: ");
         System.out.println(heap.valueToString(list));
+        System.out.println();
+        
+        app.forceCollision();
 
+        System.out.println();
         heap.dumpHeap();
     }
 }

@@ -35,30 +35,39 @@ public class HonsHeap {
     }
 
     public String listToString(LispValue head, LispValue rest) {
-        var str = valueToString(head);
+        return listToString(head, rest, "");
+    }
+
+    public String listToString(LispValue head, LispValue rest, String accum) {
+        var str = valueToString(head, accum);
         
         if (rest.isNil())
             return str;
 
         if (!rest.isObjectHash())
-            return String.format("%s . %s", str, valueToString(rest));
+            // return accum + String.format("%s . %s", str, valueToString(rest));
+            return valueToString(rest, str + " . ");
 
         var restCell = heap.get(rest.toObjectHash().getAsInt());
         if (restCell == null)
-            return String.format("%s . %s", str, valueToString(rest));
+            return valueToString(rest, str + " . ");
         
-        return str + " " + listToString(restCell.getFst(), restCell.getSnd());
+        return listToString(restCell.getFst(), restCell.getSnd(), str + " ");
     }
 
     public String valueToString(LispValue val) {
+        return valueToString(val, "");
+    }
+
+    public String valueToString(LispValue val, String accum) {
         if (val.isObjectHash()) {
             int objectHash = val.toObjectHash().getAsInt();
             var cell = heap.get(objectHash);
             if (cell == null)
-                return val.toString();
-            return "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
+                return accum + val.toString();
+            return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
-            return val.toString();
+            return accum + val.toString();
         }
     }
 
