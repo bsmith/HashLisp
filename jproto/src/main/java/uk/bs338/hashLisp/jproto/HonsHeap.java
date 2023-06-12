@@ -34,17 +34,29 @@ public class HonsHeap {
         // throw new Exception("hash collision");
     }
 
+    public String listToString(LispValue head, LispValue rest) {
+        var str = valueToString(head);
+        
+        if (rest.isNil())
+            return str;
+
+        if (!rest.isObjectHash())
+            return String.format("%s . %s", str, valueToString(rest));
+
+        var restCell = heap.get(rest.toObjectHash().getAsInt());
+        if (restCell == null)
+            return String.format("%s . %s", str, valueToString(rest));
+        
+        return str + " " + listToString(restCell.getFst(), restCell.getSnd());
+    }
+
     public String valueToString(LispValue val) {
         if (val.isObjectHash()) {
             int objectHash = val.toObjectHash().getAsInt();
             var cell = heap.get(objectHash);
             if (cell == null)
                 return val.toString();
-            var fst = valueToString(cell.getFst());
-            if (cell.getSnd().isNil())
-                return String.format("(%s)", fst);
-            var snd = valueToString(cell.getSnd());
-            return String.format("(%s . %s)", fst, snd);
+            return "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
             return val.toString();
         }

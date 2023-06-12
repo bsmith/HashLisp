@@ -26,6 +26,10 @@ public class App {
         System.out.println(heap.valueToString(val));
 
         System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+        System.out.println(heap.valueToString(heap.hons(
+                LispValue.fromShortInt(LispValue.SHORTINT_MIN),
+                LispValue.fromShortInt(LispValue.SHORTINT_MAX)
+            )));
 
         LispValue list = LispValue.nil;
         int nums[] = {5, 4, 3, 2, 1};
