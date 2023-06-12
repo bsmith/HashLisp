@@ -54,4 +54,78 @@ public class LispValueTest {
         LispValue rv = LispValue.applyIntegerOperation(operation, left, right);
         assertTrue(rv.isNil());
     }
+
+    @Test void integerToString() {
+        LispValue val = LispValue.fromInteger(17);
+        assertEquals("17", val.toString());
+    }
+
+    @Test void objectHashToString() {
+        LispValue val = LispValue.fromObjectHash(17);
+        assertEquals("#17", val.toString());
+    }
+
+    /*
+     * hashCode contract
+     */
+    @Test void hashCodeHasEqualsConsistencyForInteger() {
+        LispValue val = LispValue.fromInteger(17);
+        LispValue similar = LispValue.fromInteger(17);
+        LispValue dissimilar = LispValue.fromInteger(-17);
+        assertTrue(val.hashCode() == similar.hashCode());
+        assertFalse(val.hashCode() == dissimilar.hashCode());
+    }
+
+    @Test void hashCodeHasEqualsConsistencyForObjectHash() {
+        LispValue val = LispValue.fromObjectHash(17);
+        LispValue similar = LispValue.fromObjectHash(17);
+        LispValue dissimilar = LispValue.fromObjectHash(-17);
+        assertTrue(val.hashCode() == similar.hashCode());
+        assertFalse(val.hashCode() == dissimilar.hashCode());
+    }
+
+    /* 
+     * equals contract
+     */
+    @Test void equalsHasConsistencyForInteger() {
+        LispValue val = LispValue.fromInteger(17);
+        LispValue similar = LispValue.fromInteger(17);
+        LispValue dissimilar = LispValue.fromInteger(-17);
+        assertTrue(val.equals(similar));
+        assertFalse(val.equals(dissimilar));
+    }
+
+    @Test void equalsHasConsistencyForObjectHash() {
+        LispValue val = LispValue.fromObjectHash(17);
+        LispValue similar = LispValue.fromObjectHash(17);
+        LispValue dissimilar = LispValue.fromObjectHash(-17);
+        assertTrue(val.equals(similar));
+        assertFalse(val.equals(dissimilar));
+    }
+
+    @Test void equalsHasSymmetryForInteger() {
+        LispValue val = LispValue.fromInteger(17);
+        LispValue similar = LispValue.fromInteger(17);
+        LispValue dissimilar = LispValue.fromInteger(-17);
+        assertTrue(val.equals(similar) == similar.equals(val));
+        assertTrue(val.equals(dissimilar) == dissimilar.equals(val));
+    }
+
+    @Test void equalsHasSymmetryForObjectHash() {
+        LispValue val = LispValue.fromObjectHash(17);
+        LispValue similar = LispValue.fromObjectHash(17);
+        LispValue dissimilar = LispValue.fromObjectHash(-17);
+        assertTrue(val.equals(similar) == similar.equals(val));
+        assertTrue(val.equals(dissimilar) == dissimilar.equals(val));
+    }
+
+    @Test void equalsIsReflexiveForInteger() {
+        LispValue val = LispValue.fromInteger(17);
+        assertTrue(val.equals(val));
+    }
+
+    @Test void equalsIsReflexiveForObjectHash() {
+        LispValue val = LispValue.fromObjectHash(17);
+        assertTrue(val.equals(val));
+    }
 }

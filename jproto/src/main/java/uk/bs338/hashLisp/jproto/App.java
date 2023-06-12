@@ -5,10 +5,13 @@ package uk.bs338.hashLisp.jproto;
 
 public class App {
     public String getGreeting() {
-        return "Hello World!";
+        return "jproto --- prototype for HashLisp";
     }
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
+
+        System.out.println(LispValue.fromInteger(-17));
+        System.out.println(LispValue.fromObjectHash(-19));
     }
 }

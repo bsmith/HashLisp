@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
@@ -69,5 +70,24 @@ public final class LispValue {
         }
         var rvInt = func.applyAsInt(left.value >> 1, right.value >> 1);
         return LispValue.fromInteger(rvInt);
+    }
+
+    /* this is an immutable record, ie the Object is equivalent to it's int value */
+    @Override
+    public String toString() {
+        return ((this.value & 1) == 1 ? "#" : "") + Integer.toString(this.value >> 1);
+    }
+
+    /* this is an immutable record, ie the Object is equivalent to it's int value */
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.value);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) return true;
+        if (!(other instanceof LispValue)) return false;
+        return this.value == ((LispValue)other).value;
     }
 }
