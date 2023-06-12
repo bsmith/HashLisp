@@ -8,10 +8,32 @@ public class App {
         return "jproto --- prototype for HashLisp";
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         System.out.println(new App().getGreeting());
 
-        System.out.println(LispValue.fromShortInt(-17));
-        System.out.println(LispValue.fromObjectHash(-19));
+        System.out.printf("nil:             %s%n", LispValue.nil);
+        System.out.printf("short int -17:   %s%n", LispValue.fromShortInt(-17));
+        System.out.printf("object hash -19: %s%n", LispValue.fromObjectHash(-19));
+        System.out.println();
+
+        HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.printf("cell: %s%n", cell);
+        System.out.printf("nil:  %s%n", HonsCell.nil);
+
+        HonsHeap heap = new HonsHeap();
+        LispValue val = heap.hons(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.println(val);
+        System.out.println(heap.valueToString(val));
+
+        System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+
+        LispValue list = LispValue.nil;
+        int nums[] = {5, 4, 3, 2, 1};
+        for (var num : nums) {
+            list = heap.hons(LispValue.fromShortInt(num), list);
+        }
+        System.out.println(heap.valueToString(list));
+
+        heap.dumpHeap();
     }
 }

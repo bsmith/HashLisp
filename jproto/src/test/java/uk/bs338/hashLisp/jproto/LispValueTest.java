@@ -11,13 +11,24 @@ public class LispValueTest {
     @Test void integerValuesWork() {
         LispValue val = LispValue.fromShortInt(17);
         assertTrue(val.isShortInt());
+        assertFalse(val.isObjectHash());
+        assertFalse(val.isNil());
         assertEquals(OptionalInt.of(17), val.toShortInt());
     }
 
     @Test void objectHashValuesWork() {
         LispValue val = LispValue.fromObjectHash(17);
         assertTrue(val.isObjectHash());
+        assertFalse(val.isShortInt());
+        assertFalse(val.isNil());
         assertEquals(OptionalInt.of(17), val.toObjectHash());
+    }
+
+    @Test void nilIsNil() {
+        var nil = LispValue.nil;
+        assertTrue(nil.isNil());
+        assertFalse(nil.isShortInt());
+        assertFalse(nil.isObjectHash());
     }
 
     @Test void canApplyUnaryIntegerOperation() {

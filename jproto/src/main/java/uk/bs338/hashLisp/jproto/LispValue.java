@@ -6,6 +6,8 @@ import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
+import javax.annotation.Nonnull;
+
 /* this is a value class */
 public final class LispValue {
     /* 31-bit signed integers have the range [-(2**30-1)-1, 2**30-1] */
@@ -20,14 +22,17 @@ public final class LispValue {
     }
 
     /* nil is the object hash 0 */
+    @Nonnull
     public final static LispValue nil = new LispValue(1);
     // public final static LispValue nil = LispValue.fromObjectHash(0);
 
+    @Nonnull
     public static LispValue fromShortInt(int num) {
         assert SHORTINT_MIN < num && num < SHORTINT_MAX;
         return new LispValue((num << 1) | 0);
     }
 
+    @Nonnull
     public static LispValue fromObjectHash(int hash) {
         assert SHORTINT_MIN < hash && hash < SHORTINT_MAX;
         return new LispValue((hash << 1) | 1);
@@ -52,7 +57,8 @@ public final class LispValue {
     }
 
     public boolean isObjectHash() {
-        return (value & 1) == 1;
+        /* nil is not an object hash */
+        return (value & 1) == 1 && value != 1;
     }
 
     public boolean isNil() {
@@ -77,6 +83,8 @@ public final class LispValue {
     /* this is an immutable record, ie the Object is equivalent to it's int value */
     @Override
     public String toString() {
+        if (this.isNil())
+            return "nil";
         return ((this.value & 1) == 1 ? "#" : "") + Integer.toString(this.value >> 1);
     }
 
