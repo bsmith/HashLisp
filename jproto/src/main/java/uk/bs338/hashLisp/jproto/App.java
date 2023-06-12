@@ -11,7 +11,7 @@ public class App {
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
 
-        System.out.println(LispValue.fromInteger(-17));
+        System.out.println(LispValue.fromShortInt(-17));
         System.out.println(LispValue.fromObjectHash(-19));
     }
 }

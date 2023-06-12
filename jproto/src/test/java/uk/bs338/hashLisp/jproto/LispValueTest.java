@@ -4,17 +4,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 
 public class LispValueTest {
     @Test void integerValuesWork() {
-        LispValue val = LispValue.fromInteger(17);
-        assertTrue(val.isInteger());
-        assertEquals(Optional.of(17), val.toInteger());
+        LispValue val = LispValue.fromShortInt(17);
+        assertTrue(val.isShortInt());
+        assertEquals(Optional.of(17), val.toShortInt());
     }
 
     @Test void objectHashValuesWork() {
@@ -24,39 +21,39 @@ public class LispValueTest {
     }
 
     @Test void canApplyUnaryIntegerOperation() {
-        LispValue val = LispValue.fromInteger(17);
+        LispValue val = LispValue.fromShortInt(17);
         IntUnaryOperator operation = n -> -n;
-        LispValue rv = LispValue.applyIntegerOperation(operation, val);
-        assertTrue(rv.isInteger());
-        assertEquals(Optional.of(-17), rv.toInteger());
+        LispValue rv = LispValue.applyShortIntOperation(operation, val);
+        assertTrue(rv.isShortInt());
+        assertEquals(Optional.of(-17), rv.toShortInt());
     }
 
     @Test void cannotApplyUnaryIntegerOperation() {
         LispValue val = LispValue.fromObjectHash(17);
         IntUnaryOperator operation = n -> -n;
-        LispValue rv = LispValue.applyIntegerOperation(operation, val);
+        LispValue rv = LispValue.applyShortIntOperation(operation, val);
         assertTrue(rv.isNil());
     }
 
     @Test void canApplyBinaryIntegerOperation() {
-        LispValue left = LispValue.fromInteger(17);
-        LispValue right = LispValue.fromInteger(21);
+        LispValue left = LispValue.fromShortInt(17);
+        LispValue right = LispValue.fromShortInt(21);
         IntBinaryOperator operation = (a, b) -> a + b;
-        LispValue rv = LispValue.applyIntegerOperation(operation, left, right);
-        assertTrue(rv.isInteger());
-        assertEquals(Optional.of(38), rv.toInteger());
+        LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
+        assertTrue(rv.isShortInt());
+        assertEquals(Optional.of(38), rv.toShortInt());
     }
 
     @Test void cannotApplyBinaryIntegerOperation() {
         LispValue left = LispValue.fromObjectHash(17);
-        LispValue right = LispValue.fromInteger(21);
+        LispValue right = LispValue.fromShortInt(21);
         IntBinaryOperator operation = (a, b) -> a + b;
-        LispValue rv = LispValue.applyIntegerOperation(operation, left, right);
+        LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
         assertTrue(rv.isNil());
     }
 
     @Test void integerToString() {
-        LispValue val = LispValue.fromInteger(17);
+        LispValue val = LispValue.fromShortInt(17);
         assertEquals("17", val.toString());
     }
 
@@ -69,9 +66,9 @@ public class LispValueTest {
      * hashCode contract
      */
     @Test void hashCodeHasEqualsConsistencyForInteger() {
-        LispValue val = LispValue.fromInteger(17);
-        LispValue similar = LispValue.fromInteger(17);
-        LispValue dissimilar = LispValue.fromInteger(-17);
+        LispValue val = LispValue.fromShortInt(17);
+        LispValue similar = LispValue.fromShortInt(17);
+        LispValue dissimilar = LispValue.fromShortInt(-17);
         assertTrue(val.hashCode() == similar.hashCode());
         assertFalse(val.hashCode() == dissimilar.hashCode());
     }
@@ -88,9 +85,9 @@ public class LispValueTest {
      * equals contract
      */
     @Test void equalsHasConsistencyForInteger() {
-        LispValue val = LispValue.fromInteger(17);
-        LispValue similar = LispValue.fromInteger(17);
-        LispValue dissimilar = LispValue.fromInteger(-17);
+        LispValue val = LispValue.fromShortInt(17);
+        LispValue similar = LispValue.fromShortInt(17);
+        LispValue dissimilar = LispValue.fromShortInt(-17);
         assertTrue(val.equals(similar));
         assertFalse(val.equals(dissimilar));
     }
@@ -104,9 +101,9 @@ public class LispValueTest {
     }
 
     @Test void equalsHasSymmetryForInteger() {
-        LispValue val = LispValue.fromInteger(17);
-        LispValue similar = LispValue.fromInteger(17);
-        LispValue dissimilar = LispValue.fromInteger(-17);
+        LispValue val = LispValue.fromShortInt(17);
+        LispValue similar = LispValue.fromShortInt(17);
+        LispValue dissimilar = LispValue.fromShortInt(-17);
         assertTrue(val.equals(similar) == similar.equals(val));
         assertTrue(val.equals(dissimilar) == dissimilar.equals(val));
     }
@@ -120,7 +117,7 @@ public class LispValueTest {
     }
 
     @Test void equalsIsReflexiveForInteger() {
-        LispValue val = LispValue.fromInteger(17);
+        LispValue val = LispValue.fromShortInt(17);
         assertTrue(val.equals(val));
     }
 
