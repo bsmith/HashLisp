@@ -38,15 +38,6 @@ public class App {
         }
     }
 
-    public LispValue intList(int nums[]) throws Exception {
-        LispValue list = LispValue.nil;
-        for (int index = nums.length - 1; index >= 0; index--) {
-            int num = nums[index];
-            list = heap.hons(LispValue.fromShortInt(num), list);
-        }
-        return list;
-    }
-
     public LispValue sumList(LispValue list) throws Exception {
         if (list.isNil())
             return LispValue.fromShortInt(0);
@@ -70,7 +61,7 @@ public class App {
 
         HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
         System.out.printf("cell: %s%n", cell);
-        System.out.printf("nil:  %s%n", HonsCell.nil);
+        System.out.printf("nil:  %s%n", HonsHeap.nil);
 
         HonsHeap heap = app.heap;
         LispValue val = heap.hons(LispValue.fromShortInt(5), LispValue.nil);
@@ -87,12 +78,15 @@ public class App {
                 LispValue.fromShortInt(LispValue.SHORTINT_MAX)
             )));
 
-        var list = app.intList(new int[]{1, 2, 3, 4, 5});
+        var list = heap.intList(new int[]{1, 2, 3, 4, 5});
         System.out.print("list: ");
         System.out.println(heap.valueToString(list));
         System.out.println();
 
         System.out.printf("sum: %s%n", app.sumList(list));
+        System.out.println();
+        
+        System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
         System.out.println();
 
         app.forceCollision();

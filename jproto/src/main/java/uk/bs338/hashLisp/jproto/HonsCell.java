@@ -16,11 +16,8 @@ public class HonsCell {
     private final String special;
     private int collision;
 
-    /* a special Cell where the objectHash does not match fst and snd */
-    public final static HonsCell nil = new HonsCell(0, "nil");
-
     /* for special values */
-    private HonsCell(int objectHash, String special) {
+    public HonsCell(int objectHash, String special) {
         this.objectHash = objectHash;
         this.fst = LispValue.nil;
         this.snd = LispValue.nil;

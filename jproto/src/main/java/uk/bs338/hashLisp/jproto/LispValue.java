@@ -1,8 +1,7 @@
 package uk.bs338.hashLisp.jproto;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
@@ -29,6 +28,7 @@ public final class LispValue {
     @Nonnull
     public static LispValue fromShortInt(int num) {
         assert SHORTINT_MIN < num && num < SHORTINT_MAX;
+        //noinspection PointlessBitwiseExpression
         return new LispValue((num << 1) | 0);
     }
 
@@ -38,18 +38,18 @@ public final class LispValue {
         return new LispValue((hash << 1) | 1);
     }
 
-    public OptionalInt toShortInt() {
+    public int toShortInt() throws NoSuchElementException {
         if ((value & 1) == 0) {
-            return OptionalInt.of(value >> 1);
+            return value >> 1;
         }
-        return OptionalInt.empty(); 
+        throw new NoSuchElementException(); 
     }
 
-    public OptionalInt toObjectHash() {
+    public int toObjectHash() throws NoSuchElementException {
         if ((value & 1) == 1) {
-            return OptionalInt.of(value >> 1);
+            return value >> 1;
         }
-        return OptionalInt.empty();
+        throw new NoSuchElementException();
     }
 
     public boolean isShortInt() {

@@ -13,7 +13,7 @@ public class LispValueTest {
         assertTrue(val.isShortInt());
         assertFalse(val.isObjectHash());
         assertFalse(val.isNil());
-        assertEquals(OptionalInt.of(17), val.toShortInt());
+        assertEquals(17, val.toShortInt());
     }
 
     @Test void objectHashValuesWork() {
@@ -21,7 +21,7 @@ public class LispValueTest {
         assertTrue(val.isObjectHash());
         assertFalse(val.isShortInt());
         assertFalse(val.isNil());
-        assertEquals(OptionalInt.of(17), val.toObjectHash());
+        assertEquals(17, val.toObjectHash());
     }
 
     @Test void nilIsNil() {
@@ -36,7 +36,7 @@ public class LispValueTest {
         IntUnaryOperator operation = n -> -n;
         LispValue rv = LispValue.applyShortIntOperation(operation, val);
         assertTrue(rv.isShortInt());
-        assertEquals(OptionalInt.of(-17), rv.toShortInt());
+        assertEquals(-17, rv.toShortInt());
     }
 
     @Test void cannotApplyUnaryIntegerOperation() {
@@ -52,7 +52,7 @@ public class LispValueTest {
         IntBinaryOperator operation = (a, b) -> a + b;
         LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
         assertTrue(rv.isShortInt());
-        assertEquals(OptionalInt.of(38), rv.toShortInt());
+        assertEquals(38, rv.toShortInt());
     }
 
     @Test void cannotApplyBinaryIntegerOperation() {
