@@ -3,7 +3,6 @@ package uk.bs338.hashLisp.jproto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
@@ -49,7 +48,7 @@ public class LispValueTest {
     @Test void canApplyBinaryIntegerOperation() {
         LispValue left = LispValue.fromShortInt(17);
         LispValue right = LispValue.fromShortInt(21);
-        IntBinaryOperator operation = (a, b) -> a + b;
+        IntBinaryOperator operation = Integer::sum;
         LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
         assertTrue(rv.isShortInt());
         assertEquals(38, rv.toShortInt());
@@ -58,7 +57,7 @@ public class LispValueTest {
     @Test void cannotApplyBinaryIntegerOperation() {
         LispValue left = LispValue.fromObjectHash(17);
         LispValue right = LispValue.fromShortInt(21);
-        IntBinaryOperator operation = (a, b) -> a + b;
+        IntBinaryOperator operation = Integer::sum;
         LispValue rv = LispValue.applyShortIntOperation(operation, left, right);
         assertTrue(rv.isNil());
     }
@@ -80,16 +79,16 @@ public class LispValueTest {
         LispValue val = LispValue.fromShortInt(17);
         LispValue similar = LispValue.fromShortInt(17);
         LispValue dissimilar = LispValue.fromShortInt(-17);
-        assertTrue(val.hashCode() == similar.hashCode());
-        assertFalse(val.hashCode() == dissimilar.hashCode());
+        assertEquals(val.hashCode(), similar.hashCode());
+        assertNotEquals(val.hashCode(), dissimilar.hashCode());
     }
 
     @Test void hashCodeHasEqualsConsistencyForObjectHash() {
         LispValue val = LispValue.fromObjectHash(17);
         LispValue similar = LispValue.fromObjectHash(17);
         LispValue dissimilar = LispValue.fromObjectHash(-17);
-        assertTrue(val.hashCode() == similar.hashCode());
-        assertFalse(val.hashCode() == dissimilar.hashCode());
+        assertEquals(val.hashCode(), similar.hashCode());
+        assertNotEquals(val.hashCode(), dissimilar.hashCode());
     }
 
     /* 
@@ -99,41 +98,41 @@ public class LispValueTest {
         LispValue val = LispValue.fromShortInt(17);
         LispValue similar = LispValue.fromShortInt(17);
         LispValue dissimilar = LispValue.fromShortInt(-17);
-        assertTrue(val.equals(similar));
-        assertFalse(val.equals(dissimilar));
+        assertEquals(val, similar);
+        assertNotEquals(val, dissimilar);
     }
 
     @Test void equalsHasConsistencyForObjectHash() {
         LispValue val = LispValue.fromObjectHash(17);
         LispValue similar = LispValue.fromObjectHash(17);
         LispValue dissimilar = LispValue.fromObjectHash(-17);
-        assertTrue(val.equals(similar));
-        assertFalse(val.equals(dissimilar));
+        assertEquals(val, similar);
+        assertNotEquals(val, dissimilar);
     }
 
     @Test void equalsHasSymmetryForInteger() {
         LispValue val = LispValue.fromShortInt(17);
         LispValue similar = LispValue.fromShortInt(17);
         LispValue dissimilar = LispValue.fromShortInt(-17);
-        assertTrue(val.equals(similar) == similar.equals(val));
-        assertTrue(val.equals(dissimilar) == dissimilar.equals(val));
+        assertEquals(val.equals(similar), similar.equals(val));
+        assertEquals(val.equals(dissimilar), dissimilar.equals(val));
     }
 
     @Test void equalsHasSymmetryForObjectHash() {
         LispValue val = LispValue.fromObjectHash(17);
         LispValue similar = LispValue.fromObjectHash(17);
         LispValue dissimilar = LispValue.fromObjectHash(-17);
-        assertTrue(val.equals(similar) == similar.equals(val));
-        assertTrue(val.equals(dissimilar) == dissimilar.equals(val));
+        assertEquals(val.equals(similar), similar.equals(val));
+        assertEquals(val.equals(dissimilar), dissimilar.equals(val));
     }
 
     @Test void equalsIsReflexiveForInteger() {
         LispValue val = LispValue.fromShortInt(17);
-        assertTrue(val.equals(val));
+        assertEquals(val, val);
     }
 
     @Test void equalsIsReflexiveForObjectHash() {
         LispValue val = LispValue.fromObjectHash(17);
-        assertTrue(val.equals(val));
+        assertEquals(val, val);
     }
 }

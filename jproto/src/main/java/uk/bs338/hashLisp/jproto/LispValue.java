@@ -14,7 +14,7 @@ public final class LispValue {
     public final static int SHORTINT_MIN = -1073741823 - 1;
     public final static int SHORTINT_MAX = 1073741823;
 
-    /* We are a immutable object wrapping this primitive */
+    /* We are an immutable object wrapping this primitive */
     private final int value;
 
     private LispValue(int value) {
@@ -28,13 +28,13 @@ public final class LispValue {
     private final static List<String> specialNames = List.of("nil", "symbol");
     
     public static Iterable<LispValue> getAllSpecials() {
-        return List.of(nil, tagSymbol);
+        return allSpecials;
     }
     
     public String getSpecialName() {
         int objectHash = this.value >> 1;
         if (objectHash >= 0 && objectHash < specialNames.size())
-            return specialNames.get(this.value >> 1);
+            return specialNames.get(objectHash);
         else
             return null;
     }
@@ -94,15 +94,15 @@ public final class LispValue {
         return LispValue.fromShortInt(rvInt);
     }
 
-    /* this is an immutable record, ie the Object is equivalent to it's int value */
+    /* this is an immutable record, ie the Object is equivalent to its int value */
     @Override
     public String toString() {
         if (this.isNil())
             return "nil";
-        return ((this.value & 1) == 1 ? "#" : "") + Integer.toString(this.value >> 1);
+        return ((this.value & 1) == 1 ? "#" : "") + (this.value >> 1);
     }
 
-    /* this is an immutable record, ie the Object is equivalent to it's int value */
+    /* this is an immutable record, ie the Object is equivalent to its int value */
     @Override
     public int hashCode() {
         return Objects.hash(this.value);

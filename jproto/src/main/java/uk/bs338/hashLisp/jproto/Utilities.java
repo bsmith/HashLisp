@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 @ParametersAreNonnullByDefault
 public final class Utilities {

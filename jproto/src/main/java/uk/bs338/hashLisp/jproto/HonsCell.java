@@ -15,16 +15,6 @@ public class HonsCell {
     private LispValue memoEval;
     private final String special;
     private int collision;
-
-    /* for special values */
-    public HonsCell(int objectHash, String special) {
-        this.objectHash = objectHash;
-        this.fst = LispValue.nil;
-        this.snd = LispValue.nil;
-        this.memoEval = null; /* XXX or nil? */
-        this.special = special;
-        this.collision = 0;
-    }
     
     /* for special values */
     public HonsCell(@Nonnull LispValue special)  {
@@ -53,10 +43,9 @@ public class HonsCell {
         this.objectHash = newHash;
     }
 
-    public int bumpObjectHash() {
+    public void bumpObjectHash() {
         collision++;
         calcObjectHash();
-        return this.objectHash;
     }
 
     public int getObjectHash() {
@@ -103,9 +92,7 @@ public class HonsCell {
             return false;
         if (!snd.equals(other.snd))
             return false;
-        if (objectHash != other.objectHash)
-            return false;
-        return true;
+        return objectHash == other.objectHash;
     }
 
     @Override

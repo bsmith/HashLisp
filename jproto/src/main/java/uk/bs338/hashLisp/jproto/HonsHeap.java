@@ -2,19 +2,13 @@ package uk.bs338.hashLisp.jproto;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 
 public class HonsHeap implements IHeap {
-    @Nonnull
     private final HashMap<Integer, HonsCell> heap;
-    
-    /* special Cells where the objectHash does not match fst and snd */
-    private final static HonsCell nil = new HonsCell(LispValue.nil.toObjectHash(), "nil");
-    private final static HonsCell tagSymbol = new HonsCell(LispValue.tagSymbol.toObjectHash(), "symbol");
     
     public HonsHeap() {
         heap = new HashMap<>();
@@ -89,7 +83,7 @@ public class HonsHeap implements IHeap {
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(tagSymbol.toValue())) {
+            if (cell.getFst().equals(LispValue.tagSymbol)) {
                 String symName = listAsString(cell.getSnd());
                 if (symName != null)
                     return accum + symName;
@@ -118,7 +112,7 @@ public class HonsHeap implements IHeap {
     public void dumpHeap(PrintStream stream) {
         stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
-        var sortedHeap = heap.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList();
+        var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         
         for (var entry : sortedHeap) {
             HonsCell cell = entry.getValue();
