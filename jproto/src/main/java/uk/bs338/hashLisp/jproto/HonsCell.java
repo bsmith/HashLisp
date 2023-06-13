@@ -25,6 +25,15 @@ public class HonsCell {
         this.special = special;
         this.collision = 0;
     }
+    
+    /* for special values */
+    public HonsCell(@Nonnull LispValue special)  {
+        this.objectHash = special.toObjectHash();
+        this.fst = this.snd = LispValue.nil;
+        this.memoEval = null; /* XXX or nil? */
+        this.special = special.getSpecialName();
+        this.collision = 0;
+    }
 
     public HonsCell(@Nonnull LispValue fst, @Nonnull LispValue snd) {
         this.fst = fst;

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
@@ -21,9 +22,22 @@ public final class LispValue {
     }
 
     /* nil is the object hash 0 */
-    @Nonnull
-    public final static LispValue nil = new LispValue(1);
-    // public final static LispValue nil = LispValue.fromObjectHash(0);
+    public final static LispValue nil = LispValue.fromObjectHash(0);
+    public final static LispValue tagSymbol = LispValue.fromObjectHash(1);
+    private final static List<LispValue> allSpecials = List.of(nil, tagSymbol);
+    private final static List<String> specialNames = List.of("nil", "symbol");
+    
+    public static Iterable<LispValue> getAllSpecials() {
+        return List.of(nil, tagSymbol);
+    }
+    
+    public String getSpecialName() {
+        int objectHash = this.value >> 1;
+        if (objectHash >= 0 && objectHash < specialNames.size())
+            return specialNames.get(this.value >> 1);
+        else
+            return null;
+    }
 
     @Nonnull
     public static LispValue fromShortInt(int num) {

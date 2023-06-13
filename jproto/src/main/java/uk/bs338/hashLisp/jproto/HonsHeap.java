@@ -1,22 +1,26 @@
 package uk.bs338.hashLisp.jproto;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-public class HonsHeap {
+public class HonsHeap implements IHeap {
     @Nonnull
     private final HashMap<Integer, HonsCell> heap;
     
     /* special Cells where the objectHash does not match fst and snd */
-    public final static HonsCell nil = new HonsCell(0, "nil");
-    public final static HonsCell tagSymbol = new HonsCell(1, "symbol");
-
+    private final static HonsCell nil = new HonsCell(LispValue.nil.toObjectHash(), "nil");
+    private final static HonsCell tagSymbol = new HonsCell(LispValue.tagSymbol.toObjectHash(), "symbol");
+    
     public HonsHeap() {
         heap = new HashMap<>();
-        putCell(nil);
-        putCell(tagSymbol);
+        for (LispValue special : LispValue.getAllSpecials()) {
+            putCell(new HonsCell(special));
+        }
     }
     
     private void putCell(@Nonnull HonsCell cell) {
@@ -111,13 +115,14 @@ public class HonsHeap {
         }
     }
 
-    public void dumpHeap() {
-        System.out.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
+    public void dumpHeap(PrintStream stream) {
+        stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
-        var sortedKeys = heap.keySet().stream().sorted().toArray();
-        for (var key : sortedKeys) {
-            HonsCell cell = heap.get(key);
-            System.out.printf("%s%n  %s%n", cell, valueToString(cell.toValue()));
+        var sortedHeap = heap.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList();
+        
+        for (var entry : sortedHeap) {
+            HonsCell cell = entry.getValue();
+            stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
         }
     }
 
@@ -139,19 +144,5 @@ public class HonsHeap {
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);
         return cell.getSnd();
-    }
-    
-    public LispValue intList(int nums[]) throws Exception {
-        LispValue list = LispValue.nil;
-        for (int index = nums.length - 1; index >= 0; index--) {
-            int num = nums[index];
-            list = hons(LispValue.fromShortInt(num), list);
-        }
-        return list;
-    }
-    
-    public LispValue makeSymbol(String name) throws Exception {
-//        var list = name.codePoints().mapToObj(ch -> LispValue.fromShortInt(ch)).toArray();
-        return hons(tagSymbol.toValue(), intList(name.codePoints().toArray()));
     }
 }

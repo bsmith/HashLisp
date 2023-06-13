@@ -3,6 +3,9 @@
  */
 package uk.bs338.hashLisp.jproto;
 
+import static uk.bs338.hashLisp.jproto.Symbols.makeSymbol;
+import static uk.bs338.hashLisp.jproto.Utilities.intList;
+
 public class App {
     private final HonsHeap heap;
 
@@ -61,7 +64,6 @@ public class App {
 
         HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
         System.out.printf("cell: %s%n", cell);
-        System.out.printf("nil:  %s%n", HonsHeap.nil);
 
         HonsHeap heap = app.heap;
         LispValue val = heap.hons(LispValue.fromShortInt(5), LispValue.nil);
@@ -78,7 +80,7 @@ public class App {
                 LispValue.fromShortInt(LispValue.SHORTINT_MAX)
             )));
 
-        var list = heap.intList(new int[]{1, 2, 3, 4, 5});
+        var list = intList(heap, new int[]{1, 2, 3, 4, 5});
         System.out.print("list: ");
         System.out.println(heap.valueToString(list));
         System.out.println();
@@ -86,12 +88,12 @@ public class App {
         System.out.printf("sum: %s%n", app.sumList(list));
         System.out.println();
         
-        System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
+        System.out.printf("symbol: %s%n", heap.valueToString(makeSymbol(heap, "example")));
         System.out.println();
 
         app.forceCollision();
 
         System.out.println();
-        heap.dumpHeap();
+        heap.dumpHeap(System.out);
     }
 }
