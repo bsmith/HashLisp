@@ -31,10 +31,14 @@ public final class LispValue {
         return allSpecials;
     }
     
-    public String getSpecialName() {
+    public boolean isSpecial() {
         int objectHash = this.value >> 1;
-        if (objectHash >= 0 && objectHash < specialNames.size())
-            return specialNames.get(objectHash);
+        return (this.value & 1) == 1 && objectHash >= 0 && objectHash < specialNames.size();
+    }
+    
+    public String getSpecialName() {
+        if (this.isSpecial())
+            return specialNames.get(this.value >> 1);
         else
             return null;
     }
@@ -99,7 +103,13 @@ public final class LispValue {
     public String toString() {
         if (this.isNil())
             return "nil";
-        return ((this.value & 1) == 1 ? "#" : "") + (this.value >> 1);
+        if ((this.value & 1) == 1) {
+            if (this.isSpecial())
+                return "#" + (this.value >> 1) + ":" + this.getSpecialName();
+            return "#" + (this.value >> 1);
+        } else {
+            return Integer.toString(this.value >> 1);
+        }
     }
 
     /* this is an immutable record, ie the Object is equivalent to its int value */

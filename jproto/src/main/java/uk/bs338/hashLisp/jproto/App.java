@@ -58,6 +58,7 @@ public class App {
         System.out.println(app.getGreeting());
 
         System.out.printf("nil:             %s%n", LispValue.nil);
+        System.out.printf("tagSymbol:       %s%n", LispValue.tagSymbol);
         System.out.printf("short int -17:   %s%n", LispValue.fromShortInt(-17));
         System.out.printf("object hash -19: %s%n", LispValue.fromObjectHash(-19));
         System.out.println();

@@ -1,11 +1,12 @@
 package uk.bs338.hashLisp.jproto;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+
+import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
 public class HonsHeap implements IHeap {
     private final HashMap<Integer, HonsCell> heap;
@@ -84,28 +85,13 @@ public class HonsHeap implements IHeap {
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
             if (cell.getFst().equals(LispValue.tagSymbol)) {
-                String symName = listAsString(cell.getSnd());
+                String symName = listAsString(this, cell.getSnd());
                 if (symName != null)
                     return accum + symName;
             }
             return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
             return accum + val.toString();
-        }
-    }
-    
-    public String listAsString(LispValue list) {
-        try {
-            ArrayList<Integer> codepoints = new ArrayList<>();
-            LispValue cur = list;
-            while (!cur.isNil()) {
-                int ch = fst(cur).toShortInt();
-                codepoints.add(ch);
-                cur = snd(cur);
-            }
-            return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
-        } catch (Exception e) {
-            return null;
         }
     }
 
