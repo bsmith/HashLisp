@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto;
+package uk.bs338.hashLisp.jproto.eval;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestReporter;
+import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Symbols.makeSymbol;
@@ -35,13 +37,13 @@ public class EvaluatorTest {
     }
     
     @Test void nilEvalsToNil() {
-        var nil = LispValue.nil;
+        var nil = HonsValue.nil;
         var rv = eval.eval(nil);
         assertEquals(nil, rv);
     }
     
     @Test void intEvalsToInt() {
-        var intval = LispValue.fromShortInt(17);
+        var intval = HonsValue.fromShortInt(17);
         var rv = eval.eval(intval);
         assertEquals(intval, rv);
     }
