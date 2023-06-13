@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.junit.jupiter.api.*;
+
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -10,8 +11,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 import static uk.bs338.hashLisp.jproto.Symbols.*;
-import static uk.bs338.hashLisp.jproto.Utilities.makeList;
-
+import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class ReaderTest {
     HonsHeap heap;
@@ -121,7 +121,7 @@ class ReaderTest {
     @Test
     void read(TestReporter testReporter) throws Exception {
         var input = "(add (add 1 2) 3 4)";
-        var addSym = makeSymbol(heap, "add");
+        var addSym = makeSymbol(heap,"add");
         var expected = makeList(heap,
             addSym,
             makeList(heap,

@@ -1,7 +1,5 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import static uk.bs338.hashLisp.jproto.Utilities.stringAsList;
@@ -12,7 +10,7 @@ public final class Symbols {
         throw new AssertionError("No Symbols instances for you!");
     }
     
-    public static HonsValue makeSymbol(IHeap heap, String name) throws Exception {
-        return heap.cons(HonsValue.tagSymbol, stringAsList(heap, name));
+    public static <V extends IValue> V makeSymbol(IHeap<V> heap, String name) throws Exception {
+        return heap.cons(heap.symbolTag(), stringAsList(heap, name));
     }
 }

@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class HonsHeap implements IHeap {
+public class HonsHeap implements IHeap<HonsValue> {
     private final HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
@@ -31,6 +31,21 @@ public class HonsHeap implements IHeap {
     
     private HonsCell getCell(@Nonnull HonsCell cell) {
         return heap.get(cell.getObjectHash());
+    }
+
+    @Override
+    public HonsValue nil() {
+        return HonsValue.nil;
+    }
+
+    @Override
+    public HonsValue makeShortInt(int num) {
+        return HonsValue.fromShortInt(num);
+    }
+
+    @Override
+    public HonsValue symbolTag() {
+        return HonsValue.symbolTag;
     }
 
     @Nonnull
@@ -85,7 +100,7 @@ public class HonsHeap implements IHeap {
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(HonsValue.tagSymbol)) {
+            if (cell.getFst().equals(HonsValue.symbolTag)) {
                 String symName = listAsString(this, cell.getSnd());
                 if (symName != null)
                     return accum + symName;

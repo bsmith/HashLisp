@@ -1,23 +1,21 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.Nonnull;
 
-public interface IHeap {
+public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
     @Nonnull
-    HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd);
+    Value cons(@Nonnull Value fst, @Nonnull Value snd);
     
     @Nonnull
-    Pair<HonsValue> uncons(@Nonnull HonsValue cons) throws Exception;
+    Pair<Value> uncons(@Nonnull Value cons) throws Exception;
 
     @Nonnull
-    default HonsValue fst(HonsValue val) throws Exception {
+    default Value fst(Value val) throws Exception {
         return uncons(val).fst;
     }
 
     @Nonnull
-    default HonsValue snd(HonsValue val) throws Exception {
+    default Value snd(Value val) throws Exception {
         return uncons(val).snd;
     }
 
