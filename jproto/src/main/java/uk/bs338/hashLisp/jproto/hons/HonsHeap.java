@@ -1,4 +1,6 @@
-package uk.bs338.hashLisp.jproto;
+package uk.bs338.hashLisp.jproto.hons;
+
+import uk.bs338.hashLisp.jproto.IHeap;
 
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ public class HonsHeap implements IHeap {
     
     public HonsHeap() {
         heap = new HashMap<>();
-        for (LispValue special : LispValue.getAllSpecials()) {
+        for (HonsValue special : HonsValue.getAllSpecials()) {
             putCell(new HonsCell(special));
         }
     }
@@ -22,7 +24,7 @@ public class HonsHeap implements IHeap {
         heap.put(cell.getObjectHash(), cell);
     }
     
-    private HonsCell getCell(@Nonnull LispValue obj) {
+    private HonsCell getCell(@Nonnull HonsValue obj) {
         return heap.get(obj.toObjectHash());
     }
     
@@ -31,7 +33,7 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public LispValue hons(@Nonnull LispValue fst, @Nonnull LispValue snd) throws Exception {
+    public HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -51,11 +53,11 @@ public class HonsHeap implements IHeap {
         // throw new Exception("hash collision");
     }
 
-    public String listToString(LispValue head, LispValue rest) {
+    public String listToString(HonsValue head, HonsValue rest) {
         return listToString(head, rest, "");
     }
 
-    public String listToString(LispValue head, LispValue rest, String accum) {
+    public String listToString(HonsValue head, HonsValue rest, String accum) {
         var str = valueToString(head, accum);
         
         if (rest.isNil())
@@ -72,11 +74,11 @@ public class HonsHeap implements IHeap {
         return listToString(restCell.getFst(), restCell.getSnd(), str + " ");
     }
 
-    public String valueToString(LispValue val) {
+    public String valueToString(HonsValue val) {
         return valueToString(val, "");
     }
 
-    public String valueToString(LispValue val, String accum) {
+    public String valueToString(HonsValue val, String accum) {
         if (val.isObjectHash()) {
             var cell = getCell(val);
             if (cell == null)
@@ -84,7 +86,7 @@ public class HonsHeap implements IHeap {
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(LispValue.tagSymbol)) {
+            if (cell.getFst().equals(HonsValue.tagSymbol)) {
                 String symName = listAsString(this, cell.getSnd());
                 if (symName != null)
                     return accum + symName;
@@ -107,9 +109,9 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public LispValue fst(LispValue val) throws Exception {
+    public HonsValue fst(HonsValue val) throws Exception {
         if (!val.isObjectHash())
-            return LispValue.nil;
+            return HonsValue.nil;
         var cell = getCell(val);
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);
@@ -117,9 +119,9 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public LispValue snd(LispValue val) throws Exception {
+    public HonsValue snd(HonsValue val) throws Exception {
         if (!val.isObjectHash())
-            return LispValue.nil;
+            return HonsValue.nil;
         var cell = getCell(val);
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);

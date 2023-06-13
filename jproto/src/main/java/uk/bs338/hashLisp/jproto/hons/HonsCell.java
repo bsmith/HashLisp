@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto;
+package uk.bs338.hashLisp.jproto.hons;
 
 import java.util.Objects;
 
@@ -9,23 +9,23 @@ import javax.annotation.Nullable;
 public class HonsCell {
     private int objectHash;
     @Nonnull
-    private final LispValue fst, snd;
+    private final HonsValue fst, snd;
     /* mutable */
     @Nullable
-    private LispValue memoEval;
+    private HonsValue memoEval;
     private final String special;
     private int collision;
     
     /* for special values */
-    public HonsCell(@Nonnull LispValue special)  {
+    public HonsCell(@Nonnull HonsValue special)  {
         this.objectHash = special.toObjectHash();
-        this.fst = this.snd = LispValue.nil;
+        this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
         this.special = special.getSpecialName();
         this.collision = 0;
     }
 
-    public HonsCell(@Nonnull LispValue fst, @Nonnull LispValue snd) {
+    public HonsCell(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
@@ -52,17 +52,17 @@ public class HonsCell {
         return objectHash;
     }
 
-    public LispValue getMemoEval() {
+    public HonsValue getMemoEval() {
         return memoEval;
     }
 
     @Nonnull
-    public LispValue getFst() {
+    public HonsValue getFst() {
         return fst;
     }
 
     @Nonnull
-    public LispValue getSnd() {
+    public HonsValue getSnd() {
         return snd;
     }
 
@@ -70,7 +70,7 @@ public class HonsCell {
         return special;
     }
 
-    public void setMemoEval(LispValue memoEval) {
+    public void setMemoEval(HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
@@ -103,7 +103,7 @@ public class HonsCell {
     }
 
     @Nonnull
-    public LispValue toValue() {
-        return LispValue.fromObjectHash(objectHash);
+    public HonsValue toValue() {
+        return HonsValue.fromObjectHash(objectHash);
     }
 }

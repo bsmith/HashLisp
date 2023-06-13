@@ -1,12 +1,17 @@
 package uk.bs338.hashLisp.jproto;
 
+import uk.bs338.hashLisp.jproto.hons.HonsValue;
+
 import javax.annotation.Nonnull;
 import java.io.PrintStream;
 
 public interface IHeap {
-    @Nonnull LispValue hons(@Nonnull LispValue fst, @Nonnull LispValue snd) throws Exception;
-    @Nonnull LispValue fst(LispValue val) throws Exception;
-    @Nonnull LispValue snd(LispValue val) throws Exception;
+    @Nonnull
+    HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception;
+    @Nonnull
+    HonsValue fst(HonsValue val) throws Exception;
+    @Nonnull
+    HonsValue snd(HonsValue val) throws Exception;
     
     void dumpHeap(PrintStream stream);
 }

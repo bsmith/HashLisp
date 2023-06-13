@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto;
+package uk.bs338.hashLisp.jproto.hons;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -9,7 +9,7 @@ import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnull;
 
 /* this is a value class */
-public final class LispValue {
+public final class HonsValue {
     /* 31-bit signed integers have the range [-(2**30-1)-1, 2**30-1] */
     public final static int SHORTINT_MIN = -1073741823 - 1;
     public final static int SHORTINT_MAX = 1073741823;
@@ -17,17 +17,17 @@ public final class LispValue {
     /* We are an immutable object wrapping this primitive */
     private final int value;
 
-    private LispValue(int value) {
+    private HonsValue(int value) {
         this.value = value;
     }
 
     /* nil is the object hash 0 */
-    public final static LispValue nil = LispValue.fromObjectHash(0);
-    public final static LispValue tagSymbol = LispValue.fromObjectHash(1);
-    private final static List<LispValue> allSpecials = List.of(nil, tagSymbol);
+    public final static HonsValue nil = HonsValue.fromObjectHash(0);
+    public final static HonsValue tagSymbol = HonsValue.fromObjectHash(1);
+    private final static List<HonsValue> allSpecials = List.of(nil, tagSymbol);
     private final static List<String> specialNames = List.of("nil", "symbol");
     
-    public static Iterable<LispValue> getAllSpecials() {
+    public static Iterable<HonsValue> getAllSpecials() {
         return allSpecials;
     }
     
@@ -44,16 +44,16 @@ public final class LispValue {
     }
 
     @Nonnull
-    public static LispValue fromShortInt(int num) {
+    public static HonsValue fromShortInt(int num) {
         assert SHORTINT_MIN < num && num < SHORTINT_MAX;
         //noinspection PointlessBitwiseExpression
-        return new LispValue((num << 1) | 0);
+        return new HonsValue((num << 1) | 0);
     }
 
     @Nonnull
-    public static LispValue fromObjectHash(int hash) {
+    public static HonsValue fromObjectHash(int hash) {
         assert SHORTINT_MIN < hash && hash < SHORTINT_MAX;
-        return new LispValue((hash << 1) | 1);
+        return new HonsValue((hash << 1) | 1);
     }
 
     public int toShortInt() throws NoSuchElementException {
@@ -85,17 +85,17 @@ public final class LispValue {
 
     /* XXX Are these two operations the best?  Most javaish? */
     /* XXX using fromInteger does some checks for overflow, but not all? */
-    public static LispValue applyShortIntOperation(IntUnaryOperator func, LispValue val) {
+    public static HonsValue applyShortIntOperation(IntUnaryOperator func, HonsValue val) {
         var rvInt = func.applyAsInt(val.value >> 1);
-        return val.isShortInt() ? LispValue.fromShortInt(rvInt) : nil;
+        return val.isShortInt() ? HonsValue.fromShortInt(rvInt) : nil;
     }
 
-    public static LispValue applyShortIntOperation(IntBinaryOperator func, LispValue left, LispValue right) {
+    public static HonsValue applyShortIntOperation(IntBinaryOperator func, HonsValue left, HonsValue right) {
         if (!left.isShortInt() || !right.isShortInt()) {
             return nil;
         }
         var rvInt = func.applyAsInt(left.value >> 1, right.value >> 1);
-        return LispValue.fromShortInt(rvInt);
+        return HonsValue.fromShortInt(rvInt);
     }
 
     /* this is an immutable record, ie the Object is equivalent to its int value */
@@ -121,7 +121,7 @@ public final class LispValue {
     @Override
     public boolean equals(Object other) {
         if (other == this) return true;
-        if (!(other instanceof LispValue)) return false;
-        return this.value == ((LispValue)other).value;
+        if (!(other instanceof HonsValue)) return false;
+        return this.value == ((HonsValue)other).value;
     }
 }
