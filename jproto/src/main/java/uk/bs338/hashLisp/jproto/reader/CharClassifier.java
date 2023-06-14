@@ -13,7 +13,7 @@ public class CharClassifier {
         SYMBOL_CHAR,
         DIGIT_CHAR,
         HASH_CHAR,
-        WHITESPACE;
+        WHITESPACE
     }
 
     EnumSet<CharClass> classifyChar(String ch)  {

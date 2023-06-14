@@ -19,7 +19,7 @@ public abstract class ReadResult {
     public abstract Optional<LispValue> getValue();
     public String getMessage() throws NoSuchElementException {
         throw new NoSuchElementException();
-    };
+    }
 
     public static ReadResult failedRead(String remaining, String message) {
         return new Failed(remaining, message);

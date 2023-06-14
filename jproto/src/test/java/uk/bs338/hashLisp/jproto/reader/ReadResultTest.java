@@ -49,7 +49,7 @@ class ReadResultTest {
         }
 
         @Test void getMessage() {
-            assertThrows(NoSuchElementException.class, () -> { result.getMessage(); });
+            assertThrows(NoSuchElementException.class, () -> result.getMessage());
         }
     }
 }
