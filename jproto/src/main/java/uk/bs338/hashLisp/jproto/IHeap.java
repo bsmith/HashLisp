@@ -7,11 +7,20 @@ import java.io.PrintStream;
 
 public interface IHeap {
     @Nonnull
-    HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception;
-    @Nonnull
-    HonsValue fst(HonsValue val) throws Exception;
-    @Nonnull
-    HonsValue snd(HonsValue val) throws Exception;
+    HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception;
     
-    void dumpHeap(PrintStream stream);
+    @Nonnull
+    Pair<HonsValue> uncons(@Nonnull HonsValue cons) throws Exception;
+
+    @Nonnull
+    default HonsValue fst(HonsValue val) throws Exception {
+        return uncons(val).fst;
+    }
+
+    @Nonnull
+    default HonsValue snd(HonsValue val) throws Exception {
+        return uncons(val).snd;
+    }
+
+    // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }

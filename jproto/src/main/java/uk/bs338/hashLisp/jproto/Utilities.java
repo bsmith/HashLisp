@@ -15,7 +15,7 @@ public final class Utilities {
         HonsValue list = HonsValue.nil;
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.hons(HonsValue.fromShortInt(num), list);
+            list = heap.cons(HonsValue.fromShortInt(num), list);
         }
         return list;
     }
