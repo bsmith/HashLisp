@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import uk.bs338.hashLisp.jproto.Pair;
+
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -65,6 +67,8 @@ public class HonsCell {
     public HonsValue getSnd() {
         return snd;
     }
+    
+    public Pair<HonsValue> getPair() { return Pair.of(fst, snd); }
 
     public String getSpecial() {
         return special;

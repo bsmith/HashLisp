@@ -13,6 +13,6 @@ public final class Symbols {
     }
     
     public static HonsValue makeSymbol(IHeap heap, String name) throws Exception {
-        return heap.hons(HonsValue.tagSymbol, stringAsList(heap, name));
+        return heap.cons(HonsValue.tagSymbol, stringAsList(heap, name));
     }
 }

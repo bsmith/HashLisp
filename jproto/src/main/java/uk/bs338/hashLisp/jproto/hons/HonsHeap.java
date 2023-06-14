@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.Pair;
 
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -107,22 +108,12 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public HonsValue fst(HonsValue val) throws Exception {
+    public Pair<HonsValue> uncons(HonsValue val) throws Exception {
         if (!val.isObjectHash())
-            return HonsValue.nil;
+            throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);
-        return cell.getFst();
-    }
-
-    @Nonnull
-    public HonsValue snd(HonsValue val) throws Exception {
-        if (!val.isObjectHash())
-            return HonsValue.nil;
-        var cell = getCell(val);
-        if (cell == null)
-            throw new Exception("Failed to find cell in heap: " + val);
-        return cell.getSnd();
+        return cell.getPair();
     }
 }

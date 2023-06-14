@@ -35,11 +35,11 @@ public class App {
                 System.out.println(new HonsCell(HonsValue.fromShortInt(5+1), HonsValue.nil));
                 System.out.println(new HonsCell(HonsValue.fromShortInt(i+1), HonsValue.nil));
 
-                var heaped = heap.hons(HonsValue.fromShortInt(i), HonsValue.nil);
+                var heaped = heap.cons(HonsValue.fromShortInt(i), HonsValue.nil);
                 System.out.println(heaped);
 
-                System.out.println(heap.hons(HonsValue.fromShortInt(5), HonsValue.nil));
-                System.out.println(heap.hons(HonsValue.fromShortInt(i), HonsValue.nil));
+                System.out.println(heap.cons(HonsValue.fromShortInt(5), HonsValue.nil));
+                System.out.println(heap.cons(HonsValue.fromShortInt(i), HonsValue.nil));
                 break collision;
             }
         }
@@ -71,16 +71,16 @@ public class App {
         System.out.printf("cell: %s%n", cell);
 
         HonsHeap heap = app.heap;
-        HonsValue val = heap.hons(HonsValue.fromShortInt(5), HonsValue.nil);
+        HonsValue val = heap.cons(HonsValue.fromShortInt(5), HonsValue.nil);
         System.out.printf("hons: %s%n", val);
         System.out.printf("      %s%n", heap.valueToString(val));
 
         System.out.print("again: ");
-        System.out.println(heap.hons(HonsValue.fromShortInt(5), HonsValue.nil));
+        System.out.println(heap.cons(HonsValue.fromShortInt(5), HonsValue.nil));
         System.out.println();
 
         System.out.print("pair: ");
-        System.out.println(heap.valueToString(heap.hons(
+        System.out.println(heap.valueToString(heap.cons(
                 HonsValue.fromShortInt(HonsValue.SHORTINT_MIN),
                 HonsValue.fromShortInt(HonsValue.SHORTINT_MAX)
             )));

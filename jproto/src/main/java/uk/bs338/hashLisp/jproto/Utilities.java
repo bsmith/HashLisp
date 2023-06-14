@@ -15,7 +15,7 @@ public final class Utilities {
         HonsValue list = HonsValue.nil;
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.hons(HonsValue.fromShortInt(num), list);
+            list = heap.cons(HonsValue.fromShortInt(num), list);
         }
         return list;
     }
@@ -43,7 +43,7 @@ public final class Utilities {
     public static HonsValue makeList(IHeap heap, HonsValue... elements) throws Exception {
         var list = HonsValue.nil;
         for (int index = elements.length - 1; index >= 0; index--) {
-            list = heap.hons(elements[index], list);
+            list = heap.cons(elements[index], list);
         }
         return list;
     }
@@ -52,7 +52,7 @@ public final class Utilities {
     public static HonsValue makeListWithDot(IHeap heap, HonsValue... elements) throws Exception {
         var list = elements[elements.length - 1];
         for (int index = elements.length - 2; index >= 0; index--) {
-            list = heap.hons(elements[index], list);
+            list = heap.cons(elements[index], list);
         }
         return list;
     }

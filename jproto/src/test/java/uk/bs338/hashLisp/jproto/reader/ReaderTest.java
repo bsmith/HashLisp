@@ -65,7 +65,7 @@ class ReaderTest {
         @Test void pairOfInts() throws Exception {
             var input = "(123 . 345)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.fromShortInt(345)
                 ));
@@ -76,7 +76,7 @@ class ReaderTest {
         @Test void oneElementList() throws Exception {
             var input = "(123)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.nil
                 ));
@@ -87,9 +87,9 @@ class ReaderTest {
         @Test void twoElementList() throws Exception {
             var input = "(123 456)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
-                    heap.hons(
+                    heap.cons(
                         HonsValue.fromShortInt(456),
                         HonsValue.nil
                     )
@@ -101,7 +101,7 @@ class ReaderTest {
         @Test void oneElementListWrittenAsPair() throws Exception {
             var input = "(123 . ())";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.nil
                 ));
