@@ -1,7 +1,5 @@
 package uk.bs338.hashLisp.jproto.reader;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.BitSet;
 import java.util.EnumSet;
 
 public class CharClassifier {

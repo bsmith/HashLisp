@@ -3,8 +3,6 @@ package uk.bs338.hashLisp.jproto.reader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Locale;
 

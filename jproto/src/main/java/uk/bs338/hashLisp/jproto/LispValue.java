@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
