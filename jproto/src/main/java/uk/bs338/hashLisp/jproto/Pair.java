@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto;
 
 import java.util.Objects;
 
-public final class Pair<V> {
+public final class Pair<V extends IValue> {
     public final V fst;
     public final V snd;
     
@@ -11,7 +11,7 @@ public final class Pair<V> {
         this.snd = snd;
     }
     
-    public static <V> Pair<V> of(V fst, V snd) {
+    public static <V extends IValue> Pair<V> of(V fst, V snd) {
         return new Pair<>(fst, snd);
     }
 
