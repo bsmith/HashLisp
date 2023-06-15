@@ -19,5 +19,11 @@ public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
         return uncons(val).snd;
     }
 
+    Value makeSymbol(Value name) throws Exception;
+
+    boolean isSymbol(Value symbol);
+
+    Value symbolName(Value symbol) throws Exception;
+
     // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }

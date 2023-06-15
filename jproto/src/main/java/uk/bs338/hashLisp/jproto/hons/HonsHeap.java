@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.Pair;
 
 import java.io.PrintStream;
@@ -11,7 +12,10 @@ import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class HonsHeap implements IHeap<HonsValue> {
+public class HonsHeap implements
+    IHeap<HonsValue>,
+    ISymbolMixin<HonsValue>
+{
     private final HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
