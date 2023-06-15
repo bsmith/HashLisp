@@ -100,7 +100,7 @@ public class HonsHeap implements
         if (val.isObjectHash()) {
             var cell = getCell(val);
             if (cell == null)
-                return accum + val.toString();
+                return accum + val;
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
@@ -111,7 +111,7 @@ public class HonsHeap implements
             }
             return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
-            return accum + val.toString();
+            return accum + val;
         }
     }
 

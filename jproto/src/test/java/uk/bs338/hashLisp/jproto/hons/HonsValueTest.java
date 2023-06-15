@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.junit.jupiter.api.Test;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 

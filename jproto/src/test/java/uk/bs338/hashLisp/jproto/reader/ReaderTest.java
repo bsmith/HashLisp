@@ -21,7 +21,8 @@ class ReaderTest {
 
     @BeforeEach
     void setUp() {
-        if (heap == null) /* reuse heap */
+        /* reuse heap */
+        if (heap == null)
             heap = new HonsHeap();
         if (charClassifier == null)
             charClassifier = new CharClassifier();
