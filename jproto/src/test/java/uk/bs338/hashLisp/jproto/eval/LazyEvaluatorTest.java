@@ -12,9 +12,9 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(Lifecycle.PER_CLASS)
-public class EvaluatorTest {
+public class LazyEvaluatorTest {
     HonsHeap heap;
-    Evaluator eval;
+    LazyEvaluator eval;
     
     /* share a heap with all tests */
     @BeforeAll void setUpHeap(TestReporter testReporter) {
@@ -24,7 +24,7 @@ public class EvaluatorTest {
 
     @BeforeEach void setUpEvaluator() throws Exception {
         System.out.println("setUpEvaluator");
-        eval = new Evaluator(heap);
+        eval = new LazyEvaluator(heap);
     }
     @AfterEach void tearDownEvaluator() {
         eval = null;

@@ -8,11 +8,11 @@ import java.util.Map;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
-public class Evaluator {
+public class LazyEvaluator {
     private final HonsHeap heap;
     private final Map<HonsValue, IPrimitive<HonsValue>> primitives;
 
-    public Evaluator(HonsHeap heap) throws Exception {
+    public LazyEvaluator(HonsHeap heap) throws Exception {
         this.heap = heap;
         primitives = new HashMap<>();
         
@@ -61,7 +61,7 @@ public class Evaluator {
     public static void demo(HonsHeap heap) throws Exception {
         System.out.println("Evaluator demo");
         
-        var evaluator = new Evaluator(heap);
+        var evaluator = new LazyEvaluator(heap);
         
         var add = heap.makeSymbol("add");
         var program = makeList(heap,

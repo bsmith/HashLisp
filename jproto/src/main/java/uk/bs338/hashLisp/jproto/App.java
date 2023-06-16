@@ -3,7 +3,7 @@
  */
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.eval.Evaluator;
+import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -99,7 +99,7 @@ public class App {
         app.forceCollision();
         System.out.println();
 
-        Evaluator.demo(heap);
+        LazyEvaluator.demo(heap);
         System.out.println();
         
         heap.dumpHeap(System.out);
