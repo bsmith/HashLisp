@@ -13,10 +13,20 @@ public class CharClassifier {
         SYMBOL_CHAR,
         DIGIT_CHAR,
         HASH_CHAR,
+        COLON_CHAR,
         WHITESPACE
     }
+    
+    /* XXX rewrite this so that this is the more efficient impl! */
+    public EnumSet<CharClass> classifyChar(int codepoint) {
+        return classifyChar(new String(new int[]{codepoint}, 0, 1));
+    }
+    
+    /* public EnumSet<CharClass> classifyChar(String ch) {
+           return classifyChar(ch.codepointAt(0));
+       } */
 
-    EnumSet<CharClass> classifyChar(String ch)  {
+    public EnumSet<CharClass> classifyChar(String ch)  {
         var set = EnumSet.noneOf(CharClass.class);
         if (ch.startsWith("("))
             set.add(CharClass.OPEN_PARENS);
@@ -28,6 +38,8 @@ public class CharClassifier {
             set.add(CharClass.DIGIT_CHAR);
         if (ch.startsWith("#"))
             set.add(CharClass.HASH_CHAR);
+        if (ch.startsWith(":"))
+            set.add(CharClass.COLON_CHAR);
         if (whitespace.contains(ch.substring(0, 1)))
             set.add(CharClass.WHITESPACE);
         return set;

@@ -50,6 +50,10 @@ class CharClassifierTest {
         assertEquals(EnumSet.of(HASH_CHAR), classifier.classifyChar("#"));
     }
     
+    @Test void colon() {
+        assertEquals(EnumSet.of(COLON_CHAR), classifier.classifyChar(":"));
+    }
+    
     @Test void whitespace() {
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar(" "));
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\n"));
