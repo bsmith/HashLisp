@@ -19,6 +19,13 @@ class TokeniserTest {
         charClassifier = new CharClassifier();
         tokeniser = new Tokeniser(source, charClassifier);
     }
+    
+    @Test void readAllTokens() {
+        while (tokeniser.hasNext()) {
+            Token token = tokeniser.next();
+            System.out.println(token);
+        }
+    }
 
     @Nested
     class InitialState {

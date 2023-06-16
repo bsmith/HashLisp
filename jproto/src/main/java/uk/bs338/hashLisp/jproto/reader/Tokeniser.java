@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import uk.bs338.hashLisp.jproto.reader.CharClassifier.CharClass;
+import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -80,36 +81,49 @@ public class Tokeniser implements Iterator<Token> {
         int tokenStartPos = startPos;
         int tokenStartOffset = curOffset;
         var charClass = classifyFirstChar();
+        var type = TokenType.UNKNOWN;
         
-        if (charClass.contains(CharClass.HASH_CHAR))
+        if (charClass.contains(CharClass.HASH_CHAR)) {
+            type = TokenType.HASH;
             advancePosition();
-        else if (charClass.contains(CharClass.COLON_CHAR))
+        }
+        else if (charClass.contains(CharClass.COLON_CHAR)) {
+            type = TokenType.COLON;
             advancePosition();
-        else if (charClass.contains(CharClass.OPEN_PARENS))
+        }
+        else if (charClass.contains(CharClass.OPEN_PARENS)) {
+            type = TokenType.OPEN_PARENS;
             advancePosition();
-        else if (charClass.contains(CharClass.CLOSE_PARENS))
+        }
+        else if (charClass.contains(CharClass.CLOSE_PARENS)) {
+            type = TokenType.CLOSE_PARENS;
             advancePosition();
+        }
         else if (charClass.contains(CharClass.DIGIT_CHAR)) {
+            type = TokenType.DIGITS;
             eatClass(CharClass.DIGIT_CHAR);
             /* must be followed by whitespace or parens or end */
             var permittedNext = EnumSet.of(CharClass.WHITESPACE, CharClass.OPEN_PARENS, CharClass.CLOSE_PARENS);
             if (!isAtEnd()) {
                 var nextCharClass = classifyFirstChar();
                 nextCharClass.retainAll(permittedNext);
-                if (!nextCharClass.isEmpty()) {
+                if (nextCharClass.isEmpty()) {
                     /* eat until we find a permitted character */
-                    /* XXX set token type to UNKNOWN */
+                    System.out.println(nextCharClass);
+                    type = TokenType.UNKNOWN;
                     eatClasses(EnumSet.complementOf(permittedNext));
                 }
             }
         }
-        else if (charClass.contains(CharClass.SYMBOL_CHAR))
+        else if (charClass.contains(CharClass.SYMBOL_CHAR)) {
+            type = TokenType.SYMBOL;
             eatClass(CharClass.SYMBOL_CHAR);
+        }
         else
             advancePosition();
         
         int tokenEndPos = startPos;
         String tokenStr = source.subSequence(tokenStartOffset, curOffset).toString();
-        return new Token(tokenStr, tokenStartPos, tokenEndPos);
+        return new Token(type, tokenStr, tokenStartPos, tokenEndPos);
     }
 }
