@@ -38,4 +38,13 @@ public final class Utilities {
             return null;
         }
     }
+
+    @SafeVarargs
+    public static HonsValue makeList(IHeap heap, HonsValue... elements) throws Exception {
+        var list = HonsValue.nil;
+        for (int index = elements.length - 1; index >= 0; index--) {
+            list = heap.hons(elements[index], list);
+        }
+        return list;
+    }
 }
