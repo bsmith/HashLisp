@@ -7,7 +7,7 @@ import java.io.PrintStream;
 
 public interface IHeap {
     @Nonnull
-    HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception;
+    HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd);
     @Nonnull
     HonsValue fst(HonsValue val) throws Exception;
     @Nonnull

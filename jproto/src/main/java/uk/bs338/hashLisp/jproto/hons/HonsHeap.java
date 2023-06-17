@@ -33,7 +33,7 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception {
+    public HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -49,8 +49,6 @@ public class HonsHeap implements IHeap {
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
         } while (true);
-        /* XXX loop back around to line 19 */
-        // throw new Exception("hash collision");
     }
 
     public String listToString(HonsValue head, HonsValue rest) {
