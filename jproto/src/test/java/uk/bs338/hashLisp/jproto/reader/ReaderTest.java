@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class ReaderTest {
@@ -41,7 +40,7 @@ class ReaderTest {
 
         @Test void symbol() throws Exception {
             var input = "abc";
-            var expected = ReadResult.successfulRead("", makeSymbol(heap, "abc"));
+            var expected = ReadResult.successfulRead("", heap.makeSymbol("abc"));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
@@ -122,7 +121,7 @@ class ReaderTest {
     @Test
     void read(TestReporter testReporter) throws Exception {
         var input = "(add (add 1 2) 3 4)";
-        var addSym = makeSymbol(heap, "add");
+        var addSym = heap.makeSymbol("add");
         var expected = makeList(heap,
             addSym,
             makeList(heap,

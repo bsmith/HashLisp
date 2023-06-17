@@ -10,7 +10,6 @@ import org.junit.jupiter.api.TestReporter;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static uk.bs338.hashLisp.jproto.Symbols.makeSymbol;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class EvaluatorTest {
@@ -48,7 +47,7 @@ public class EvaluatorTest {
     }
     
     @Test void symbolEvalsToSymbol() throws Exception {
-        var symval = makeSymbol(heap, "example");
+        var symval = heap.makeSymbol("example");
         var rv = eval.eval(symval);
         assertEquals(symval, rv);
     }

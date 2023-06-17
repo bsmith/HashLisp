@@ -6,7 +6,6 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import java.util.HashMap;
 import java.util.Map;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class Evaluator {
@@ -38,13 +37,13 @@ public class Evaluator {
 
     public HonsValue eval(HonsValue val) throws Exception {
         System.out.printf("eval: %s%n", heap.valueToString(val));
-        if (val.isNil() || val.isShortInt() || isSymbol(heap, val)) {
+        if (val.isNil() || val.isShortInt() || heap.isSymbol(val)) {
             return val;
         } else if (val.isConsRef()) {
             /* cons */
             var head = eval(heap.fst(val));
             var args = heap.snd(val);
-            if (isSymbol(heap, head)) {
+            if (heap.isSymbol(head)) {
                 var prim = primitives.get(heap.snd(head));
                 if (prim != null) {
                     return prim.apply(args);
@@ -64,7 +63,7 @@ public class Evaluator {
         
         var evaluator = new Evaluator(heap);
         
-        var add = makeSymbol(heap, "add");
+        var add = heap.makeSymbol("add");
         var program = makeList(heap,
             add,
             heap.makeShortInt(5),

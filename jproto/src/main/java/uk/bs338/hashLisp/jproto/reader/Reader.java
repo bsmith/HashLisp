@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class Reader {
@@ -28,7 +27,7 @@ public class Reader {
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromShortInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
-            return Optional.of(makeSymbol(heap, token.getToken()));
+            return Optional.of(heap.makeSymbol(token.getToken()));
         } else if (token.getType() == TokenType.HASH) {
             Token token2 = tokeniser.next();
             if (token2.getType() == TokenType.DIGITS && token2.getTokenAsInt() == 0) {
