@@ -87,7 +87,7 @@ public final class HonsValue implements IValue {
     }
     
     public boolean isConsRef() {
-        return isObjectHash();
+        return isObjectHash() && !isSpecial();
     }
 
     public boolean isNil() {
