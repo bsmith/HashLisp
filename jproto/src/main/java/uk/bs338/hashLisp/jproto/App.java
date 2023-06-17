@@ -4,14 +4,100 @@
 package uk.bs338.hashLisp.jproto;
 
 public class App {
+    private final HonsHeap heap;
+
+    public App() {
+        heap = new HonsHeap();
+    }
+
     public String getGreeting() {
         return "jproto --- prototype for HashLisp";
     }
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+    public void forceCollision() throws Exception {
+        HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.println("Can we force a collision?");
 
-        System.out.println(LispValue.fromShortInt(-17));
-        System.out.println(LispValue.fromObjectHash(-19));
+        collision:
+        for (int i = 0; i < LispValue.SHORTINT_MAX; i++) {
+            if (i == 5) continue collision;
+            HonsCell test = new HonsCell(LispValue.fromShortInt(i), LispValue.nil);
+            if (test.getObjectHash() == cell.getObjectHash()) {
+                System.out.println(cell);
+                System.out.println(test);
+                System.out.println(new HonsCell(LispValue.fromShortInt(5+1), LispValue.nil));
+                System.out.println(new HonsCell(LispValue.fromShortInt(i+1), LispValue.nil));
+
+                var heaped = heap.hons(LispValue.fromShortInt(i), LispValue.nil);
+                System.out.println(heaped);
+
+                System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+                System.out.println(heap.hons(LispValue.fromShortInt(i), LispValue.nil));
+                break collision;
+            }
+        }
+    }
+
+    public LispValue intList(int nums[]) throws Exception {
+        LispValue list = LispValue.nil;
+        for (int index = nums.length - 1; index >= 0; index--) {
+            int num = nums[index];
+            list = heap.hons(LispValue.fromShortInt(num), list);
+        }
+        return list;
+    }
+
+    public LispValue sumList(LispValue list) throws Exception {
+        if (list.isNil())
+            return LispValue.fromShortInt(0);
+        else if (list.isShortInt())
+            return list;
+        else {
+            LispValue head = sumList(heap.fst(list));
+            LispValue rest = sumList(heap.snd(list));
+            return LispValue.applyShortIntOperation((a, b) -> a + b, head, rest);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        App app = new App();
+        System.out.println(app.getGreeting());
+
+        System.out.printf("nil:             %s%n", LispValue.nil);
+        System.out.printf("short int -17:   %s%n", LispValue.fromShortInt(-17));
+        System.out.printf("object hash -19: %s%n", LispValue.fromObjectHash(-19));
+        System.out.println();
+
+        HonsCell cell = new HonsCell(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.printf("cell: %s%n", cell);
+        System.out.printf("nil:  %s%n", HonsCell.nil);
+
+        HonsHeap heap = app.heap;
+        LispValue val = heap.hons(LispValue.fromShortInt(5), LispValue.nil);
+        System.out.printf("hons: %s%n", val);
+        System.out.printf("      %s%n", heap.valueToString(val));
+
+        System.out.print("again: ");
+        System.out.println(heap.hons(LispValue.fromShortInt(5), LispValue.nil));
+        System.out.println();
+
+        System.out.print("pair: ");
+        System.out.println(heap.valueToString(heap.hons(
+                LispValue.fromShortInt(LispValue.SHORTINT_MIN),
+                LispValue.fromShortInt(LispValue.SHORTINT_MAX)
+            )));
+
+        var list = app.intList(new int[]{1, 2, 3, 4, 5});
+        System.out.print("list: ");
+        System.out.println(heap.valueToString(list));
+        System.out.println();
+
+        System.out.printf("sum: %s%n", app.sumList(list));
+        System.out.println();
+
+        app.forceCollision();
+
+        System.out.println();
+        heap.dumpHeap();
     }
 }
