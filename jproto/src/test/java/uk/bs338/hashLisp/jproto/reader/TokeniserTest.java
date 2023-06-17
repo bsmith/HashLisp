@@ -203,5 +203,15 @@ class TokeniserTest {
             assertEquals(":", token.getToken());
             assertEquals("0-1", token.getPositionAsString());
         }
+
+        @Test void dot() {
+            source = ".";
+            tokeniser = new Tokeniser(source, charClassifier);
+            Token token = tokeniser.next();
+            assertFalse(tokeniser.hasNext());
+            assertEquals(source.length(), tokeniser.getStartPos());
+            assertEquals(".", token.getToken());
+            assertEquals("0-1", token.getPositionAsString());
+        }
     }
 }

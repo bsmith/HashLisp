@@ -14,6 +14,7 @@ public class CharClassifier {
         DIGIT_CHAR,
         HASH_CHAR,
         COLON_CHAR,
+        DOT_CHAR,
         WHITESPACE
     }
     
@@ -40,6 +41,8 @@ public class CharClassifier {
             set.add(CharClass.HASH_CHAR);
         if (ch.startsWith(":"))
             set.add(CharClass.COLON_CHAR);
+        if (ch.startsWith("."))
+            set.add(CharClass.DOT_CHAR);
         if (whitespace.contains(ch.substring(0, 1)))
             set.add(CharClass.WHITESPACE);
         return set;

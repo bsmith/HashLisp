@@ -8,8 +8,8 @@ import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import static uk.bs338.hashLisp.jproto.Symbols.makeSymbol;
-import static uk.bs338.hashLisp.jproto.Utilities.intList;
+import static uk.bs338.hashLisp.jproto.Symbols.*;
+import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class App {
     private final HonsHeap heap;
@@ -63,7 +63,7 @@ public class App {
         System.out.println(app.getGreeting());
 
         System.out.printf("nil:             %s%n", HonsValue.nil);
-        System.out.printf("tagSymbol:       %s%n", HonsValue.symbolTag);
+        System.out.printf("symbolTag:       %s%n", HonsValue.symbolTag);
         System.out.printf("short int -17:   %s%n", HonsValue.fromShortInt(-17));
         System.out.printf("object hash -19: %s%n", HonsValue.fromObjectHash(-19));
         System.out.println();

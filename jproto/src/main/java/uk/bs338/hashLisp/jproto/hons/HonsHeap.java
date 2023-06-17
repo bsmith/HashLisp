@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.Pair;
 
 import java.io.PrintStream;
@@ -11,7 +12,10 @@ import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class HonsHeap implements IHeap<HonsValue> {
+public class HonsHeap implements
+    IHeap<HonsValue>,
+    ISymbolMixin<HonsValue>
+{
     private final HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
@@ -49,7 +53,7 @@ public class HonsHeap implements IHeap<HonsValue> {
     }
 
     @Nonnull
-    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception {
+    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -96,7 +100,7 @@ public class HonsHeap implements IHeap<HonsValue> {
         if (val.isObjectHash()) {
             var cell = getCell(val);
             if (cell == null)
-                return accum + val.toString();
+                return accum + val;
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
@@ -107,7 +111,7 @@ public class HonsHeap implements IHeap<HonsValue> {
             }
             return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
-            return accum + val.toString();
+            return accum + val;
         }
     }
 

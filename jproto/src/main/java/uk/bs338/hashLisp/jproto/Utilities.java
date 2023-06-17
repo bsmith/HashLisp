@@ -1,9 +1,9 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+
+/* Utilities to interop between Java and IValue */
 
 @ParametersAreNonnullByDefault
 public final class Utilities {
@@ -29,9 +29,10 @@ public final class Utilities {
             ArrayList<Integer> codepoints = new ArrayList<>();
             var cur = list;
             while (!cur.isNil()) {
-                int ch = heap.fst(cur).toShortInt();
+                Pair<V> pair = heap.uncons(cur);
+                int ch = pair.fst.toShortInt();
                 codepoints.add(ch);
-                cur = heap.snd(cur);
+                cur = pair.snd;
             }
             return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
         } catch (Exception e) {
@@ -43,6 +44,15 @@ public final class Utilities {
     public static <V extends IValue> V makeList(IHeap<V> heap, V... elements) throws Exception {
         var list = heap.nil();
         for (int index = elements.length - 1; index >= 0; index--) {
+            list = heap.cons(elements[index], list);
+        }
+        return list;
+    }
+
+    @SafeVarargs
+    public static <V extends IValue> V makeListWithDot(IHeap<V> heap, V... elements) throws Exception {
+        var list = elements[elements.length - 1];
+        for (int index = elements.length - 2; index >= 0; index--) {
             list = heap.cons(elements[index], list);
         }
         return list;
