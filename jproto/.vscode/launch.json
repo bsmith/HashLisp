@@ -6,16 +6,16 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Current File",
+            "name": "App",
             "request": "launch",
-            "mainClass": "${file}"
+            "mainClass": "uk.bs338.hashLisp.jproto.App",
+            "projectName": "jproto"
         },
         {
             "type": "java",
-            "name": "App",
+            "name": "Current File",
             "request": "launch",
-            "mainClass": "uk.bs338.jproto.App",
-            "projectName": "jproto"
+            "mainClass": "${file}"
         }
     ]
 }
