@@ -53,6 +53,10 @@ class CharClassifierTest {
     @Test void colon() {
         assertEquals(EnumSet.of(COLON_CHAR), classifier.classifyChar(":"));
     }
+
+    @Test void dot() {
+        assertEquals(EnumSet.of(DOT_CHAR), classifier.classifyChar("."));
+    }
     
     @Test void whitespace() {
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar(" "));

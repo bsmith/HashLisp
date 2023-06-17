@@ -91,6 +91,10 @@ public class Tokeniser implements Iterator<Token> {
             type = TokenType.COLON;
             advancePosition();
         }
+        else if (charClass.contains(CharClass.DOT_CHAR)) {
+            type = TokenType.DOT;
+            advancePosition();
+        }
         else if (charClass.contains(CharClass.OPEN_PARENS)) {
             type = TokenType.OPEN_PARENS;
             advancePosition();

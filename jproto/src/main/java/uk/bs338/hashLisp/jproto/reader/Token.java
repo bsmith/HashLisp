@@ -5,6 +5,7 @@ public /*abstract*/ class Token {
         UNKNOWN,
         HASH,
         COLON,
+        DOT,
         OPEN_PARENS,
         CLOSE_PARENS,
         DIGITS,
