@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import uk.bs338.hashLisp.jproto.IValue;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -9,7 +11,7 @@ import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnull;
 
 /* this is a value class */
-public final class HonsValue {
+public final class HonsValue implements IValue {
     /* 31-bit signed integers have the range [-(2**30-1)-1, 2**30-1] */
     public final static int SHORTINT_MIN = -1073741823 - 1;
     public final static int SHORTINT_MAX = 1073741823;
@@ -23,8 +25,8 @@ public final class HonsValue {
 
     /* nil is the object hash 0 */
     public final static HonsValue nil = HonsValue.fromObjectHash(0);
-    public final static HonsValue tagSymbol = HonsValue.fromObjectHash(1);
-    private final static List<HonsValue> allSpecials = List.of(nil, tagSymbol);
+    public final static HonsValue symbolTag = HonsValue.fromObjectHash(1);
+    private final static List<HonsValue> allSpecials = List.of(nil, symbolTag);
     private final static List<String> specialNames = List.of("nil", "symbol");
     
     public static Iterable<HonsValue> getAllSpecials() {
@@ -41,6 +43,11 @@ public final class HonsValue {
             return specialNames.get(this.value >> 1);
         else
             return null;
+    }
+
+    @Override
+    public boolean isSymbolTag() {
+        return this.value == symbolTag.value;
     }
 
     @Nonnull
@@ -77,6 +84,10 @@ public final class HonsValue {
     public boolean isObjectHash() {
         /* nil is not an object hash */
         return (value & 1) == 1 && value != 1;
+    }
+    
+    public boolean isConsRef() {
+        return isObjectHash();
     }
 
     public boolean isNil() {

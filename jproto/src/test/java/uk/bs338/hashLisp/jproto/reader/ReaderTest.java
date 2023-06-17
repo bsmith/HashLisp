@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.junit.jupiter.api.*;
+
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -10,8 +11,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 import static uk.bs338.hashLisp.jproto.Symbols.*;
-import static uk.bs338.hashLisp.jproto.Utilities.makeList;
-
+import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class ReaderTest {
     HonsHeap heap;
@@ -40,7 +40,7 @@ class ReaderTest {
 
         @Test void symbol() throws Exception {
             var input = "abc";
-            var expected = ReadResult.successfulRead("", makeSymbol(heap,"abc"));
+            var expected = ReadResult.successfulRead("", makeSymbol(heap, "abc"));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
@@ -65,7 +65,7 @@ class ReaderTest {
         @Test void pairOfInts() throws Exception {
             var input = "(123 . 345)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.fromShortInt(345)
                 ));
@@ -76,7 +76,7 @@ class ReaderTest {
         @Test void oneElementList() throws Exception {
             var input = "(123)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.nil
                 ));
@@ -87,9 +87,9 @@ class ReaderTest {
         @Test void twoElementList() throws Exception {
             var input = "(123 456)";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
-                    heap.hons(
+                    heap.cons(
                         HonsValue.fromShortInt(456),
                         HonsValue.nil
                     )
@@ -101,7 +101,7 @@ class ReaderTest {
         @Test void oneElementListWrittenAsPair() throws Exception {
             var input = "(123 . ())";
             var expected = ReadResult.successfulRead("",
-                heap.hons(
+                heap.cons(
                     HonsValue.fromShortInt(123),
                     HonsValue.nil
                 ));

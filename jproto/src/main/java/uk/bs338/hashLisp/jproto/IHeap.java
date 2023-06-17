@@ -1,17 +1,29 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.Nonnull;
-import java.io.PrintStream;
 
-public interface IHeap {
+public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
     @Nonnull
-    HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd);
-    @Nonnull
-    HonsValue fst(HonsValue val) throws Exception;
-    @Nonnull
-    HonsValue snd(HonsValue val) throws Exception;
+    Value cons(@Nonnull Value fst, @Nonnull Value snd);
     
-    void dumpHeap(PrintStream stream);
+    @Nonnull
+    Pair<Value> uncons(@Nonnull Value cons) throws Exception;
+
+    @Nonnull
+    default Value fst(Value val) throws Exception {
+        return uncons(val).fst;
+    }
+
+    @Nonnull
+    default Value snd(Value val) throws Exception {
+        return uncons(val).snd;
+    }
+
+    Value makeSymbol(Value name) throws Exception;
+
+    boolean isSymbol(Value symbol);
+
+    Value symbolName(Value symbol) throws Exception;
+
+    // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }

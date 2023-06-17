@@ -1,6 +1,8 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.ISymbolMixin;
+import uk.bs338.hashLisp.jproto.Pair;
 
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -10,7 +12,10 @@ import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class HonsHeap implements IHeap {
+public class HonsHeap implements
+    IHeap<HonsValue>,
+    ISymbolMixin<HonsValue>
+{
     private final HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
@@ -32,8 +37,23 @@ public class HonsHeap implements IHeap {
         return heap.get(cell.getObjectHash());
     }
 
+    @Override
+    public HonsValue nil() {
+        return HonsValue.nil;
+    }
+
+    @Override
+    public HonsValue makeShortInt(int num) {
+        return HonsValue.fromShortInt(num);
+    }
+
+    @Override
+    public HonsValue symbolTag() {
+        return HonsValue.symbolTag;
+    }
+
     @Nonnull
-    public HonsValue hons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -84,7 +104,7 @@ public class HonsHeap implements IHeap {
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(HonsValue.tagSymbol)) {
+            if (cell.getFst().equals(HonsValue.symbolTag)) {
                 String symName = listAsString(this, cell.getSnd());
                 if (symName != null)
                     return accum + symName;
@@ -107,22 +127,12 @@ public class HonsHeap implements IHeap {
     }
 
     @Nonnull
-    public HonsValue fst(HonsValue val) throws Exception {
+    public Pair<HonsValue> uncons(HonsValue val) throws Exception {
         if (!val.isObjectHash())
-            return HonsValue.nil;
+            throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);
-        return cell.getFst();
-    }
-
-    @Nonnull
-    public HonsValue snd(HonsValue val) throws Exception {
-        if (!val.isObjectHash())
-            return HonsValue.nil;
-        var cell = getCell(val);
-        if (cell == null)
-            throw new Exception("Failed to find cell in heap: " + val);
-        return cell.getSnd();
+        return cell.getPair();
     }
 }

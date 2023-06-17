@@ -1,9 +1,9 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+
+/* Utilities to interop between Java and ILispValue */
 
 @ParametersAreNonnullByDefault
 public final class Utilities {
@@ -11,27 +11,28 @@ public final class Utilities {
         throw new AssertionError("No Utilities instances for you!");
     }
 
-    public static HonsValue intList(IHeap heap, int[] nums) throws Exception {
-        HonsValue list = HonsValue.nil;
+    public static <V extends IValue> V intList(IHeap<V> heap, int[] nums) throws Exception {
+        V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.hons(HonsValue.fromShortInt(num), list);
+            list = heap.cons(heap.makeShortInt(num), list);
         }
         return list;
     }
 
-    public static HonsValue stringAsList(IHeap heap, String str) throws Exception {
+    public static <V extends IValue> V stringAsList(IHeap<V> heap, String str) throws Exception {
         return intList(heap, str.codePoints().toArray());
     }
     
-    public static String listAsString(IHeap heap, HonsValue list) {
+    public static <V extends IValue> String listAsString(IHeap<V> heap, V list) {
         try {
             ArrayList<Integer> codepoints = new ArrayList<>();
-            HonsValue cur = list;
+            var cur = list;
             while (!cur.isNil()) {
-                int ch = heap.fst(cur).toShortInt();
+                Pair<V> pair = heap.uncons(cur);
+                int ch = pair.fst.toShortInt();
                 codepoints.add(ch);
-                cur = heap.snd(cur);
+                cur = pair.snd;
             }
             return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
         } catch (Exception e) {
@@ -40,19 +41,19 @@ public final class Utilities {
     }
 
     @SafeVarargs
-    public static HonsValue makeList(IHeap heap, HonsValue... elements) throws Exception {
-        var list = HonsValue.nil;
+    public static <V extends IValue> V makeList(IHeap<V> heap, V... elements) throws Exception {
+        var list = heap.nil();
         for (int index = elements.length - 1; index >= 0; index--) {
-            list = heap.hons(elements[index], list);
+            list = heap.cons(elements[index], list);
         }
         return list;
     }
 
     @SafeVarargs
-    public static HonsValue makeListWithDot(IHeap heap, HonsValue... elements) throws Exception {
+    public static <V extends IValue> V makeListWithDot(IHeap<V> heap, V... elements) throws Exception {
         var list = elements[elements.length - 1];
         for (int index = elements.length - 2; index >= 0; index--) {
-            list = heap.hons(elements[index], list);
+            list = heap.cons(elements[index], list);
         }
         return list;
     }
