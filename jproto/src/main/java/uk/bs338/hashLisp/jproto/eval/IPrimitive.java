@@ -1,8 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.IValue;
 
-public interface IPrimitive {
-    HonsValue apply(IHeap heap, HonsValue args);
+public interface IPrimitive<T extends IValue>  {
+    T apply(T args) throws Exception;
 }

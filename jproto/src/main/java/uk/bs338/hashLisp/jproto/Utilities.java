@@ -11,23 +11,23 @@ public final class Utilities {
         throw new AssertionError("No Utilities instances for you!");
     }
 
-    public static HonsValue intList(IHeap heap, int[] nums) throws Exception {
-        HonsValue list = HonsValue.nil;
+    public static <V extends IValue> V intList(IHeap<V> heap, int[] nums) throws Exception {
+        V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.cons(HonsValue.fromShortInt(num), list);
+            list = heap.cons(heap.makeShortInt(num), list);
         }
         return list;
     }
 
-    public static HonsValue stringAsList(IHeap heap, String str) throws Exception {
+    public static <V extends IValue> V stringAsList(IHeap<V> heap, String str) throws Exception {
         return intList(heap, str.codePoints().toArray());
     }
     
-    public static String listAsString(IHeap heap, HonsValue list) {
+    public static <V extends IValue> String listAsString(IHeap<V> heap, V list) {
         try {
             ArrayList<Integer> codepoints = new ArrayList<>();
-            HonsValue cur = list;
+            var cur = list;
             while (!cur.isNil()) {
                 int ch = heap.fst(cur).toShortInt();
                 codepoints.add(ch);
@@ -37,5 +37,14 @@ public final class Utilities {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @SafeVarargs
+    public static <V extends IValue> V makeList(IHeap<V> heap, V... elements) throws Exception {
+        var list = heap.nil();
+        for (int index = elements.length - 1; index >= 0; index--) {
+            list = heap.cons(elements[index], list);
+        }
+        return list;
     }
 }

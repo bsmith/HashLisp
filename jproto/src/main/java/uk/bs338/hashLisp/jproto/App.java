@@ -3,6 +3,7 @@
  */
 package uk.bs338.hashLisp.jproto;
 
+import uk.bs338.hashLisp.jproto.eval.Evaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -62,7 +63,7 @@ public class App {
         System.out.println(app.getGreeting());
 
         System.out.printf("nil:             %s%n", HonsValue.nil);
-        System.out.printf("tagSymbol:       %s%n", HonsValue.tagSymbol);
+        System.out.printf("tagSymbol:       %s%n", HonsValue.symbolTag);
         System.out.printf("short int -17:   %s%n", HonsValue.fromShortInt(-17));
         System.out.printf("object hash -19: %s%n", HonsValue.fromObjectHash(-19));
         System.out.println();
@@ -97,8 +98,11 @@ public class App {
         System.out.println();
 
         app.forceCollision();
-
         System.out.println();
+
+        Evaluator.demo(heap);
+        System.out.println();
+        
         heap.dumpHeap(System.out);
     }
 }

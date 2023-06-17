@@ -8,7 +8,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestReporter;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Symbols.makeSymbol;
@@ -24,7 +23,7 @@ public class EvaluatorTest {
         heap = new HonsHeap();
     }
 
-    @BeforeEach void setUpEvaluator() {
+    @BeforeEach void setUpEvaluator() throws Exception {
         System.out.println("setUpEvaluator");
         eval = new Evaluator(heap);
     }
@@ -36,14 +35,14 @@ public class EvaluatorTest {
         testReporter.publishEntry("testEval says Hello");
     }
     
-    @Test void nilEvalsToNil() {
-        var nil = HonsValue.nil;
+    @Test void nilEvalsToNil() throws Exception {
+        var nil = heap.nil();
         var rv = eval.eval(nil);
         assertEquals(nil, rv);
     }
     
-    @Test void intEvalsToInt() {
-        var intval = HonsValue.fromShortInt(17);
+    @Test void intEvalsToInt() throws Exception {
+        var intval = heap.makeShortInt(17);
         var rv = eval.eval(intval);
         assertEquals(intval, rv);
     }

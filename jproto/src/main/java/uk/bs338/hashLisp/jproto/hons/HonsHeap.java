@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class HonsHeap implements IHeap {
+public class HonsHeap implements IHeap<HonsValue> {
     private final HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
@@ -33,6 +33,21 @@ public class HonsHeap implements IHeap {
         return heap.get(cell.getObjectHash());
     }
 
+    @Override
+    public HonsValue nil() {
+        return HonsValue.nil;
+    }
+
+    @Override
+    public HonsValue makeShortInt(int num) {
+        return HonsValue.fromShortInt(num);
+    }
+
+    @Override
+    public HonsValue symbolTag() {
+        return HonsValue.symbolTag;
+    }
+
     @Nonnull
     public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) throws Exception {
         HonsCell cell = new HonsCell(fst, snd);
@@ -50,10 +65,8 @@ public class HonsHeap implements IHeap {
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
         } while (true);
-        /* XXX loop back around to line 19 */
-        // throw new Exception("hash collision");
     }
-
+    
     public String listToString(HonsValue head, HonsValue rest) {
         return listToString(head, rest, "");
     }
@@ -87,7 +100,7 @@ public class HonsHeap implements IHeap {
             var special = cell.getSpecial();
             if (special != null)
                 return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(HonsValue.tagSymbol)) {
+            if (cell.getFst().equals(HonsValue.symbolTag)) {
                 String symName = listAsString(this, cell.getSnd());
                 if (symName != null)
                     return accum + symName;
