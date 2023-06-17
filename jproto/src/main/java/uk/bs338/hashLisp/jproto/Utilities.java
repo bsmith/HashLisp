@@ -47,4 +47,13 @@ public final class Utilities {
         }
         return list;
     }
+
+    @SafeVarargs
+    public static HonsValue makeListWithDot(IHeap heap, HonsValue... elements) throws Exception {
+        var list = elements[elements.length - 1];
+        for (int index = elements.length - 2; index >= 0; index--) {
+            list = heap.hons(elements[index], list);
+        }
+        return list;
+    }
 }

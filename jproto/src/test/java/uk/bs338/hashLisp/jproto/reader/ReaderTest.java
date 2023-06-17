@@ -1,13 +1,11 @@
 package uk.bs338.hashLisp.jproto.reader;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,19 +15,23 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
 class ReaderTest {
     HonsHeap heap;
+    CharClassifier charClassifier;
+    Function<String, Tokeniser> tokeniserFactory;
     Reader reader;
-    
+
     @BeforeEach
     void setUp() {
         if (heap == null) /* reuse heap */
             heap = new HonsHeap();
-        reader = new Reader(heap);
+        if (charClassifier == null)
+            charClassifier = new CharClassifier();
+        tokeniserFactory = (String str) -> new Tokeniser(str, charClassifier); 
+        reader = new Reader(heap, tokeniserFactory);
     }
     
     @Nested
-    @Disabled(value="Unimplemented")
     class SimpleValues {
-        @Test void shortInt() {
+        @Test void shortInt() throws Exception {
             var input = "123";
             var expected = ReadResult.successfulRead("", HonsValue.fromShortInt(123));
             var actual = reader.read(input);
@@ -43,7 +45,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
         
-        @Test void nilAsHash() {
+        @Test void nilAsHash() throws Exception {
             var input = "#0";
             var expected = ReadResult.successfulRead("", HonsValue.nil);
             var actual = reader.read(input);
@@ -52,9 +54,8 @@ class ReaderTest {
     }
     
     @Nested
-    @Disabled(value="Unimplemented")
     class ConsValues {
-        @Test void emptyListIsNil() {
+        @Test void emptyListIsNil() throws Exception {
             var input = "()";
             var expected = ReadResult.successfulRead("", HonsValue.nil);
             var actual = reader.read(input);
@@ -107,25 +108,33 @@ class ReaderTest {
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
+        
+        @Test void dotCannotAppearAtStartOfList(TestReporter testReporter) throws Exception {
+            var input = "( . 123)";
+            var actual = reader.read(input);
+            assertTrue(actual.getValue().isEmpty());
+            testReporter.publishEntry(actual.getMessage());
+            assertEquals(input, actual.getRemaining());
+        }
     }
     
     @Test
-    @Disabled(value="Unimplemented")
-    void read() throws Exception {
+    void read(TestReporter testReporter) throws Exception {
         var input = "(add (add 1 2) 3 4)";
         var addSym = makeSymbol(heap, "add");
         var expected = makeList(heap,
             addSym,
             makeList(heap,
                 addSym,
-                HonsValue.fromShortInt(2),
-                HonsValue.fromShortInt(3)
+                HonsValue.fromShortInt(1),
+                HonsValue.fromShortInt(2)
             ),
             HonsValue.fromShortInt(3),
             HonsValue.fromShortInt(4)
             );
         ReadResult rv = reader.read(input);
         assertEquals(Optional.of(expected), rv.getValue());
+        testReporter.publishEntry(rv.toString());
         assertEquals("", rv.getRemaining());
     }
 
