@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto;
+package uk.bs338.hashLisp.jproto.hons;
 
 import org.junit.jupiter.api.Test;
 
