@@ -33,7 +33,7 @@ jobs:
         java-version: ${{ matrix.Java }}
         distribution: 'temurin'
         cache: 'gradle'
-    - run: '(cd jproto && ./gradlew --no-daemon --profile clean test build run installDist'
+    - run: '(cd jproto && ./gradlew --no-daemon --profile clean test build run installDist)'
     - run: '(cd jproto && build/install/jproto/bin/jproto)'
     
 #    - name: Build with Gradle
