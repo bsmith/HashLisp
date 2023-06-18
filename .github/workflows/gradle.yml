@@ -32,11 +32,18 @@ jobs:
       with:
         java-version: ${{ matrix.Java }}
         distribution: 'temurin'
-        cache: 'gradle'
-    - run: '(cd jproto && ./gradlew --no-daemon --profile clean test build run installDist)'
-    - run: '(cd jproto && build/install/jproto/bin/jproto)'
+        
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: current
+        
+    - name: Test jproto
+      run: 'cd jproto && ./gradlew test'
+      
+    - name: Build/install distribution
+      run: 'cd jproto && ./gradlew --profile clean test build installDist'
     
-#    - name: Build with Gradle
-#      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-#      with:
-#        arguments: build
+    - name: Run installed version
+      run: 'cd jproto && build/install/jproto/bin/jproto'
+  
