@@ -48,3 +48,13 @@ You can combine targets on the command line, for example `installDist` doesn't r
 ```
 ./gradlew build installDist && build/install/jproto/bin/jproto example.lisp
 ```
+
+### Build profile reporting
+
+You can get a profile report of the build without using the gradle scan service.
+
+```
+./gradlew --profile clean test build run installDist
+```
+
+This leaves output in: `build/reports/profile/`.
