@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.Pair;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -24,13 +25,13 @@ public class HonsHeap implements
             putCell(new HonsCell(special));
         }
     }
-    
-    private void putCell(@Nonnull HonsCell cell) {
-        heap.put(cell.getObjectHash(), cell);
-    }
-    
+
     private HonsCell getCell(@Nonnull HonsValue obj) {
         return heap.get(obj.toObjectHash());
+    }
+
+    private void putCell(@Nonnull HonsCell cell) {
+        heap.put(cell.getObjectHash(), cell);
     }
     
     private HonsCell getCell(@Nonnull HonsCell cell) {
@@ -134,5 +135,17 @@ public class HonsHeap implements
         if (cell == null)
             throw new Exception("Failed to find cell in heap: " + val);
         return cell.getPair();
+    }
+    
+    /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
+    public Optional<HonsValue> getMemoEval(HonsValue val) {
+        var cell = getCell(val);
+        return Optional.ofNullable(cell.getMemoEval());
+    }
+    
+    /* XXX what if the cell doesn't exist? */
+    public void setMemoEval(HonsValue val, HonsValue evalResult) {
+        var cell = getCell(val);
+        cell.setMemoEval(evalResult);
     }
 }
