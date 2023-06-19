@@ -15,7 +15,6 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 class ReaderTest {
     HonsHeap heap;
     CharClassifier charClassifier;
-    Function<String, Tokeniser> tokeniserFactory;
     Reader reader;
 
     @BeforeEach
@@ -25,7 +24,7 @@ class ReaderTest {
             heap = new HonsHeap();
         if (charClassifier == null)
             charClassifier = new CharClassifier();
-        tokeniserFactory = (String str) -> new Tokeniser(str, charClassifier); 
+        var tokeniserFactory = Tokeniser.getFactory(charClassifier); 
         reader = new Reader(heap, tokeniserFactory);
     }
     

@@ -14,10 +14,10 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class Reader {
     private final HonsHeap heap;
-    private final Function<String, Tokeniser> tokeniserFactory;
+    private final ITokeniserFactory tokeniserFactory;
     private List<String> errors;
 
-    Reader(HonsHeap heap, Function<String, Tokeniser> tokeniserFactory) {
+    public Reader(HonsHeap heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = null;
@@ -98,7 +98,7 @@ public class Reader {
     }
     
     public ReadResult read(String str) throws Exception {
-        Tokeniser tokeniser = tokeniserFactory.apply(str);
+        Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
         /* XXX something nicer */
         var oldErrors = this.errors;
