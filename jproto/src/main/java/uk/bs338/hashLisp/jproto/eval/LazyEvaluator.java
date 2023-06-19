@@ -11,16 +11,22 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 public class LazyEvaluator {
     private final HonsHeap heap;
     private final Map<HonsValue, IPrimitive<HonsValue>> primitives;
+    private boolean debug;
 
     public LazyEvaluator(HonsHeap heap) throws Exception {
         this.heap = heap;
         primitives = new HashMap<>();
+        debug = false;
 
         primitives.put(stringAsList(heap, "fst"), this::fst);
         primitives.put(stringAsList(heap, "snd"), this::snd);
         primitives.put(stringAsList(heap, "add"), this::add);
         primitives.put(stringAsList(heap, "lambda"), this::lambda);
         primitives.put(stringAsList(heap, "eval"), this::eval);
+    }
+    
+    public void setDebug(boolean flag) {
+        debug = flag;
     }
     
     public HonsValue fst(HonsValue args) throws Exception {
@@ -85,9 +91,11 @@ public class LazyEvaluator {
     static String evalIndent = "";
     public HonsValue eval(HonsValue val) throws Exception {
         HonsValue result = null;
-        System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
         var savedIndent = evalIndent;
-        evalIndent += "  ";
+        if (debug) {
+            System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
+            evalIndent += "  ";
+        }
         
         if (val.isNil() || val.isShortInt() || heap.isSymbol(val)) {
             result = val;
@@ -102,8 +110,10 @@ public class LazyEvaluator {
             }
         }
         
-        evalIndent = savedIndent;
-        System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
+        if (debug) {
+            evalIndent = savedIndent;
+            System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
+        }
         return result;
     }
     

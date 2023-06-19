@@ -20,6 +20,7 @@ public class LispExamplesTest {
         if (reader == null)
             reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
         evaluator = new LazyEvaluator(heap);
+        evaluator.setDebug(true);
     }
     
     void assertEval(String expectedStr, String programStr) throws Exception {
