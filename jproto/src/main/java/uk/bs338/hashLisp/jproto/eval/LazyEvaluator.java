@@ -3,7 +3,9 @@ package uk.bs338.hashLisp.jproto.eval;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
@@ -20,6 +22,7 @@ public class LazyEvaluator {
 
         primitives.put(stringAsList(heap, "fst"), this::fst);
         primitives.put(stringAsList(heap, "snd"), this::snd);
+        primitives.put(stringAsList(heap, "cons"), this::cons);
         primitives.put(stringAsList(heap, "add"), this::add);
         primitives.put(stringAsList(heap, "lambda"), this::lambda);
         primitives.put(stringAsList(heap, "eval"), this::eval);
@@ -30,7 +33,7 @@ public class LazyEvaluator {
     }
     
     public HonsValue fst(HonsValue args) throws Exception {
-        var arg = heap.fst(args);
+        var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
@@ -38,11 +41,17 @@ public class LazyEvaluator {
     }
 
     public HonsValue snd(HonsValue args) throws Exception {
-        var arg = heap.fst(args);
+        var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
             return heap.snd(arg);
+    }
+    
+    public HonsValue cons(HonsValue args) throws Exception {
+        var fst = eval(heap.fst(args));
+        var snd = eval(heap.fst(heap.snd(args)));
+        return heap.cons(fst, snd);
     }
     
     public HonsValue add(HonsValue args) throws Exception {
@@ -59,16 +68,35 @@ public class LazyEvaluator {
         return heap.makeShortInt(sum);
     }
 
-    public HonsValue lambda(HonsValue args) {
-        return HonsValue.nil;
+    public HonsValue lambda(HonsValue args) throws Exception {
+        System.out.printf("lambda: %s%n", heap.valueToString(args));
+        var argSpec = heap.fst(args);
+        var body = heap.fst(heap.snd(args));
+        return heap.cons(heap.makeSymbol("lambda"), heap.cons(argSpec, heap.cons(body, heap.nil())));
     }
 
-    public boolean isLambda(HonsValue args) {
-        return false;
+    public boolean isLambda(HonsValue value) throws Exception {
+        if (!value.isConsRef())
+            return false;
+        var head = heap.fst(value);
+        return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
+    }
+    
+    public List<HonsValue> getLambdaArgSpec(HonsValue lambda) throws Exception {
+        ArrayList<HonsValue> argSpec = new ArrayList<>();
+        unmakeList(heap, heap.fst(heap.snd(lambda)), argSpec);
+        return argSpec;
     }
 
-    public HonsValue applyLambda(HonsValue head, HonsValue args) {
-        return HonsValue.nil;
+    public HonsValue getLambdaBody(HonsValue lambda) throws Exception {
+        return heap.fst(heap.snd(heap.snd(lambda)));
+    }
+
+    public HonsValue applyLambda(HonsValue lambda, HonsValue args) throws Exception {
+        List<HonsValue> argSpec = getLambdaArgSpec(lambda);
+        HonsValue body = getLambdaBody(lambda);
+        System.out.printf("argSpec=%s%nbody=%s%n", argSpec.stream().map(heap::valueToString).toList(), heap.valueToString(body));
+        return heap.cons(heap.makeSymbol("lambdaResult"), heap.cons(body, heap.nil()));
     }
 
     public HonsValue apply(HonsValue args) throws Exception {

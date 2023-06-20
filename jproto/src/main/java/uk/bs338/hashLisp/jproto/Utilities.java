@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.List;
 
 /* Utilities to interop between Java and IValue */
 
@@ -56,5 +57,20 @@ public final class Utilities {
             list = heap.cons(elements[index], list);
         }
         return list;
+    }
+    
+    public static <V extends IValue> void unmakeList(IHeap<V> heap, V list, List<V> dst) throws Exception {
+        V cur = list;
+        while (cur != null) {
+            if (cur.isNil())
+                return;
+            if (!cur.isConsRef()) {
+                dst.add(cur);
+                return;
+            }
+            var pair = heap.uncons(cur);
+            dst.add(pair.fst);
+            cur = pair.snd;
+        }
     }
 }
