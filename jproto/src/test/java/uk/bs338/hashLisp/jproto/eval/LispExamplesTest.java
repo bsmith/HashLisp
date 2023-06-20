@@ -39,7 +39,6 @@ public class LispExamplesTest {
         assertEval("2", "(snd (cons 1 2))");
     }
     
-    @Disabled
     @Test void lambda() throws Exception {
         assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
         assertEval("1", "((lambda (x) (add 1 x)) 0)");

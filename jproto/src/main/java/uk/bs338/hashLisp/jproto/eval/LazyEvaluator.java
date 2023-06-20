@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -19,12 +20,13 @@ public class LazyEvaluator {
         this.heap = heap;
         primitives = new HashMap<>();
         debug = false;
-
+        
         primitives.put(stringAsList(heap, "fst"), this::fst);
         primitives.put(stringAsList(heap, "snd"), this::snd);
         primitives.put(stringAsList(heap, "cons"), this::cons);
         primitives.put(stringAsList(heap, "add"), this::add);
         primitives.put(stringAsList(heap, "lambda"), this::lambda);
+        primitives.put(stringAsList(heap, "lambdaAssignments"), this::lambdaAssignments);
         primitives.put(stringAsList(heap, "eval"), this::eval);
     }
     
@@ -82,10 +84,11 @@ public class LazyEvaluator {
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
     
-    public List<HonsValue> getLambdaArgSpec(HonsValue lambda) throws Exception {
-        ArrayList<HonsValue> argSpec = new ArrayList<>();
-        unmakeList(heap, heap.fst(heap.snd(lambda)), argSpec);
-        return argSpec;
+    public HonsValue getLambdaArgSpec(HonsValue lambda) throws Exception {
+//        ArrayList<HonsValue> argSpec = new ArrayList<>();
+//        unmakeList(heap, heap.fst(heap.snd(lambda)), argSpec);
+//        return argSpec;
+        return heap.fst(heap.snd(lambda));
     }
 
     public HonsValue getLambdaBody(HonsValue lambda) throws Exception {
@@ -93,10 +96,52 @@ public class LazyEvaluator {
     }
 
     public HonsValue applyLambda(HonsValue lambda, HonsValue args) throws Exception {
-        List<HonsValue> argSpec = getLambdaArgSpec(lambda);
+        HonsValue argSpec = getLambdaArgSpec(lambda);
         HonsValue body = getLambdaBody(lambda);
-        System.out.printf("argSpec=%s%nbody=%s%n", argSpec.stream().map(heap::valueToString).toList(), heap.valueToString(body));
-        return heap.cons(heap.makeSymbol("lambdaResult"), heap.cons(body, heap.nil()));
+//        System.out.printf("argSpec=%s%nbody=%s%n", argSpec.stream().map(heap::valueToString).toList(), heap.valueToString(body));
+        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
+        
+        if (heap.isSymbol(argSpec)) {
+            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
+        }
+        else if (argSpec.isConsRef()) {
+            var assignments = new HashMap<HonsValue, HonsValue>();
+            var curSpec = argSpec;
+            var curArg = args;
+            while (!curSpec.isNil()) {
+                assignments.put(heap.fst(curSpec), heap.fst(curArg));
+                curSpec = heap.snd(curSpec);
+                curArg = heap.snd(curArg);
+            }
+            var assignmentsList = HonsValue.nil;
+            for (var assignment : assignments.entrySet()) {
+                assignmentsList = heap.cons(heap.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
+            }
+            System.out.printf("assignmentsList=%s%n", assignmentsList);
+            return lambdaAssignments(assignmentsList, body); //makeList(heap, heap.makeSymbol("lambdaAssignments"), assignmentsList, body);
+        }
+
+        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
+    }
+    
+    public HonsValue lambdaAssignments(HonsValue args) throws Exception {
+        return lambdaAssignments(heap.fst(args), heap.fst(heap.snd(args)));
+    }
+    
+    public HonsValue lambdaAssignments(HonsValue assignmentsList, HonsValue body) throws Exception {
+        if (heap.isSymbol(body)) {
+            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("unimpl: lambdaAssignments 1"));
+        }
+        else if (body.isConsRef()) {
+            Function<HonsValue, HonsValue> wrapInLambdaAssignments = val -> {
+                try {
+                    return makeList(heap, heap.makeSymbol("lambdaAssignments"), assignmentsList, val);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+        return HonsValue.nil;
     }
 
     public HonsValue apply(HonsValue args) throws Exception {
@@ -120,14 +165,17 @@ public class LazyEvaluator {
     public HonsValue eval(HonsValue val) throws Exception {
         HonsValue result = null;
         var savedIndent = evalIndent;
+
+        if (val.isNil() || val.isShortInt() || heap.isSymbol(val)) {
+            return val;
+        }
+        
         if (debug) {
             System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
             evalIndent += "  ";
         }
         
-        if (val.isNil() || val.isShortInt() || heap.isSymbol(val)) {
-            result = val;
-        } else if (val.isConsRef()) {
+        if (val.isConsRef()) {
             var memoEval = heap.getMemoEval(val);
             if (memoEval.isPresent()) {
                 result = memoEval.get();
