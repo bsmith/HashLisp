@@ -6,7 +6,6 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,21 +29,21 @@ class ReaderTest {
     
     @Nested
     class SimpleValues {
-        @Test void shortInt() throws Exception {
+        @Test void shortInt() {
             var input = "123";
             var expected = ReadResult.successfulRead("", HonsValue.fromShortInt(123));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
 
-        @Test void symbol() throws Exception {
+        @Test void symbol() {
             var input = "abc";
             var expected = ReadResult.successfulRead("", heap.makeSymbol("abc"));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
         
-        @Test void nilAsHash() throws Exception {
+        @Test void nilAsHash() {
             var input = "#0";
             var expected = ReadResult.successfulRead("", HonsValue.nil);
             var actual = reader.read(input);
@@ -54,14 +53,14 @@ class ReaderTest {
     
     @Nested
     class ConsValues {
-        @Test void emptyListIsNil() throws Exception {
+        @Test void emptyListIsNil() {
             var input = "()";
             var expected = ReadResult.successfulRead("", HonsValue.nil);
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
         
-        @Test void pairOfInts() throws Exception {
+        @Test void pairOfInts() {
             var input = "(123 . 345)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
@@ -72,7 +71,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
         
-        @Test void oneElementList() throws Exception {
+        @Test void oneElementList() {
             var input = "(123)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
@@ -83,7 +82,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
         
-        @Test void twoElementList() throws Exception {
+        @Test void twoElementList() {
             var input = "(123 456)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
@@ -97,7 +96,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
 
-        @Test void oneElementListWrittenAsPair() throws Exception {
+        @Test void oneElementListWrittenAsPair() {
             var input = "(123 . ())";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
@@ -108,7 +107,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
         
-        @Test void dotCannotAppearAtStartOfList(TestReporter testReporter) throws Exception {
+        @Test void dotCannotAppearAtStartOfList(TestReporter testReporter) {
             var input = "( . 123)";
             var actual = reader.read(input);
             assertTrue(actual.getValue().isEmpty());
@@ -118,7 +117,7 @@ class ReaderTest {
     }
     
     @Test
-    void read(TestReporter testReporter) throws Exception {
+    void read(TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";
         var addSym = heap.makeSymbol("add");
         var expected = makeList(heap,

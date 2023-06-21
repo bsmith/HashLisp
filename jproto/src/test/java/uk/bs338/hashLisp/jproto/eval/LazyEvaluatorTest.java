@@ -22,7 +22,7 @@ public class LazyEvaluatorTest {
         heap = new HonsHeap();
     }
 
-    @BeforeEach void setUpEvaluator() throws Exception {
+    @BeforeEach void setUpEvaluator() {
         System.out.println("setUpEvaluator");
         eval = new LazyEvaluator(heap);
     }
@@ -34,19 +34,19 @@ public class LazyEvaluatorTest {
         testReporter.publishEntry("testEval says Hello");
     }
     
-    @Test void nilEvalsToNil() throws Exception {
+    @Test void nilEvalsToNil() {
         var nil = heap.nil();
         var rv = eval.eval(nil);
         assertEquals(nil, rv);
     }
     
-    @Test void intEvalsToInt() throws Exception {
+    @Test void intEvalsToInt() {
         var intval = heap.makeShortInt(17);
         var rv = eval.eval(intval);
         assertEquals(intval, rv);
     }
     
-    @Test void symbolEvalsToSymbol() throws Exception {
+    @Test void symbolEvalsToSymbol() {
         var symval = heap.makeSymbol("example");
         var rv = eval.eval(symval);
         assertEquals(symval, rv);

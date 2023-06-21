@@ -1,16 +1,11 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import org.checkerframework.checker.units.qual.A;
-import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -19,7 +14,7 @@ public class LazyEvaluator {
     private final Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private boolean debug;
 
-    public LazyEvaluator(HonsHeap heap) throws Exception {
+    public LazyEvaluator(HonsHeap heap) {
         this.heap = heap;
         primitives = new HashMap<>();
         debug = false;
@@ -36,7 +31,7 @@ public class LazyEvaluator {
         debug = flag;
     }
     
-    public HonsValue fst(HonsValue args) throws Exception {
+    public HonsValue fst(HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -44,7 +39,7 @@ public class LazyEvaluator {
             return heap.fst(arg);
     }
 
-    public HonsValue snd(HonsValue args) throws Exception {
+    public HonsValue snd(HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -52,13 +47,13 @@ public class LazyEvaluator {
             return heap.snd(arg);
     }
     
-    public HonsValue cons(HonsValue args) throws Exception {
+    public HonsValue cons(HonsValue args) {
         var fst = eval(heap.fst(args));
         var snd = eval(heap.fst(heap.snd(args)));
         return heap.cons(fst, snd);
     }
     
-    public HonsValue add(HonsValue args) throws Exception {
+    public HonsValue add(HonsValue args) {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
@@ -73,14 +68,14 @@ public class LazyEvaluator {
     }
 
     /* XXX this does validation stuff? */
-    public HonsValue lambda(HonsValue args) throws Exception {
+    public HonsValue lambda(HonsValue args) {
         System.out.printf("lambda: %s%n", heap.valueToString(args));
         var argSpec = heap.fst(args);
         var body = heap.fst(heap.snd(args));
         return heap.cons(heap.makeSymbol("lambda"), heap.cons(argSpec, heap.cons(body, heap.nil())));
     }
 
-    public boolean isLambda(HonsValue value) throws Exception {
+    public boolean isLambda(HonsValue value) {
         if (!value.isConsRef())
             return false;
         var head = heap.fst(value);
@@ -111,7 +106,7 @@ public class LazyEvaluator {
             return assignmentsAsValue = assignmentsList;
         }
         
-        public HonsValue substitute(HonsValue body) throws Exception {
+        public HonsValue substitute(HonsValue body) {
             /* XXX Java can be bad sometimes */
             assert this.visitResult == null;
             heap.visitValue(body, this);
@@ -138,7 +133,7 @@ public class LazyEvaluator {
         }
 
         @Override
-        public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) throws Exception {
+        public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
             this.visitResult = heap.cons(
                 makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), fst),
                 makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), snd)
@@ -146,7 +141,7 @@ public class LazyEvaluator {
         }
     }
     
-    public Assignments matchArgSpec(HonsValue argSpec, HonsValue args) throws Exception {
+    public Assignments matchArgSpec(HonsValue argSpec, HonsValue args) {
         if (heap.isSymbol(argSpec)) {
 //            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
             throw new RuntimeException("Not implemented");
@@ -168,7 +163,7 @@ public class LazyEvaluator {
             throw new RuntimeException("Not implemented");
     }
 
-    public HonsValue applyLambda(HonsValue lambda, HonsValue args) throws Exception {
+    public HonsValue applyLambda(HonsValue lambda, HonsValue args) {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
         System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
@@ -182,7 +177,7 @@ public class LazyEvaluator {
 //        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
 
-    public HonsValue apply(HonsValue args) throws Exception {
+    public HonsValue apply(HonsValue args) {
         /* cons */
         var uncons = heap.uncons(args);
         var head = eval(uncons.fst());
@@ -200,7 +195,7 @@ public class LazyEvaluator {
     }
 
     static String evalIndent = "";
-    public HonsValue eval(HonsValue val) throws Exception {
+    public HonsValue eval(HonsValue val) {
         var visitor = new IHeapVisitor<HonsValue>() {
             public HonsValue result = null;
 
@@ -251,7 +246,7 @@ public class LazyEvaluator {
         return visitor.result;
     }
     
-    public static void demo(HonsHeap heap) throws Exception {
+    public static void demo(HonsHeap heap) {
         System.out.println("Evaluator demo");
         
         var evaluator = new LazyEvaluator(heap);

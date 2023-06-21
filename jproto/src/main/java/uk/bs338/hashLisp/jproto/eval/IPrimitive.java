@@ -4,5 +4,5 @@ import uk.bs338.hashLisp.jproto.IValue;
 
 @FunctionalInterface
 public interface IPrimitive<T extends IValue>  {
-    T apply(T args) throws Exception;
+    T apply(T args);
 }

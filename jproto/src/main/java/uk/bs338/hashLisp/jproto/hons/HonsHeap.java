@@ -150,7 +150,7 @@ public class HonsHeap implements
         cell.setMemoEval(evalResult);
     }
     
-    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) throws Exception {
+    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) {
         if (val.isNil())
             visitor.visitNil(val);
         else if (val.isShortInt())

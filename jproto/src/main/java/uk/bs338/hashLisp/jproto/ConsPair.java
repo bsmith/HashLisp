@@ -1,7 +1,5 @@
 package uk.bs338.hashLisp.jproto;
 
-import java.util.Objects;
-
 public record ConsPair<V extends IValue> (
     V fst,
     V snd

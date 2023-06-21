@@ -2,15 +2,13 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import com.opencsv.CSVReaderBuilder;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.function.ThrowingConsumer;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
 import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.Iterator;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +19,7 @@ public class LispExamplesTest {
     Reader reader;
     LazyEvaluator evaluator;
     
-    @BeforeEach void setUp() throws Exception {
+    @BeforeEach void setUp() {
         if (heap == null)
             heap = new HonsHeap();
         if (reader == null)
@@ -34,19 +32,20 @@ public class LispExamplesTest {
         heap.dumpHeap(System.out);
     }
     
-    void assertEval(String expectedStr, String programStr) throws Exception {
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    void assertEval(String expectedStr, String programStr) {
         var expected = reader.read(expectedStr).getValue().get();
         var program = reader.read(programStr).getValue().get();
         var actual = evaluator.eval(program);
         assertEquals(expected, actual);
     }
     
-    @Test void fstSndCons() throws Exception {
+    @Test void fstSndCons() {
         assertEval("1", "(fst (cons 1 2))");
         assertEval("2", "(snd (cons 1 2))");
     }
     
-    @Test void lambda() throws Exception {
+    @Test void lambda() {
         try {
             assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
             assertEval("1", "((lambda (x) (add 1 x)) 0)");
@@ -60,14 +59,16 @@ public class LispExamplesTest {
     }
     
     @TestFactory
-    Stream<DynamicTest> csvTestCases() throws Exception {
+    Stream<DynamicTest> csvTestCases() throws IOException {
         var resource = getClass().getClassLoader().getResourceAsStream("lispExamples.csv");
-        var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build();
-        return DynamicTest.stream(reader.iterator(),
-            (String[] fields) -> fields[0],
-            (String[] fields) -> {
-                assertEval(fields[2], fields[1]);
-            }
-        );
+        assert resource != null;
+        try (var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build()) {
+            return DynamicTest.stream(reader.iterator(),
+                (String[] fields) -> fields[0],
+                (String[] fields) -> {
+                    assertEval(fields[2], fields[1]);
+                }
+            );
+        }
     }
 }

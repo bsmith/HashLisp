@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConsPairTest {
-    class MockValue implements IValue {
-        int value;
+    static class MockValue implements IValue {
+        final int value;
         
         public MockValue(int value) {
             this.value = value;
