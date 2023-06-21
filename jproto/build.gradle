@@ -19,10 +19,10 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    testImplementation 'com.opencsv:opencsv:5.7.1'
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.1-jre'
-    implementation 'com.opencsv:opencsv:5.7.1'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
