@@ -1,10 +1,17 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import com.opencsv.CSVReaderBuilder;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.function.ThrowingConsumer;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
 import uk.bs338.hashLisp.jproto.reader.Tokeniser;
+
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,5 +50,17 @@ public class LispExamplesTest {
         assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
         assertEval("1", "((lambda (x) (add 1 x)) 0)");
         assertEval("2", "((lambda (f) (f 1)) (lambda (x) (add 1 x))");
+    }
+    
+    @TestFactory
+    Stream<DynamicTest> csvTestCases() throws Exception {
+        var resource = getClass().getClassLoader().getResourceAsStream("lispExamples.csv");
+        var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build();
+        return DynamicTest.stream(reader.iterator(),
+            (String[] fields) -> fields[0],
+            (String[] fields) -> {
+                assertEval(fields[1], fields[0]);
+            }
+        );
     }
 }
