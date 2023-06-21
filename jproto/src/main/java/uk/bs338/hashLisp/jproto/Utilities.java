@@ -29,10 +29,10 @@ public final class Utilities {
             ArrayList<Integer> codepoints = new ArrayList<>();
             var cur = list;
             while (!cur.isNil()) {
-                Pair<V> pair = heap.uncons(cur);
-                int ch = pair.fst.toShortInt();
+                ConsPair<V> pair = heap.uncons(cur);
+                int ch = pair.fst().toShortInt();
                 codepoints.add(ch);
-                cur = pair.snd;
+                cur = pair.snd();
             }
             return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
         } catch (Exception e) {

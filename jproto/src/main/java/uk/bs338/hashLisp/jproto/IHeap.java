@@ -7,16 +7,16 @@ public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
     Value cons(@Nonnull Value fst, @Nonnull Value snd);
     
     @Nonnull
-    Pair<Value> uncons(@Nonnull Value cons) throws Exception;
+    ConsPair<Value> uncons(@Nonnull Value cons) throws Exception;
 
     @Nonnull
     default Value fst(Value val) throws Exception {
-        return uncons(val).fst;
+        return uncons(val).fst();
     }
 
     @Nonnull
     default Value snd(Value val) throws Exception {
-        return uncons(val).snd;
+        return uncons(val).snd();
     }
 
     Value makeSymbol(Value name) throws Exception;
