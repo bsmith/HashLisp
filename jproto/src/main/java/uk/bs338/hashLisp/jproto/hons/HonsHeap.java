@@ -45,8 +45,8 @@ public class HonsHeap implements
     }
 
     @Override
-    public HonsValue makeShortInt(int num) {
-        return HonsValue.fromShortInt(num);
+    public HonsValue makeSmallInt(int num) {
+        return HonsValue.fromSmallInt(num);
     }
 
     @Override
@@ -153,8 +153,8 @@ public class HonsHeap implements
     public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) {
         if (val.isNil())
             visitor.visitNil(val);
-        else if (val.isShortInt())
-            visitor.visitShortInt(val, val.toShortInt());
+        else if (val.isSmallInt())
+            visitor.visitSmallInt(val, val.toSmallInt());
         else if (this.isSymbol(val))
             visitor.visitSymbol(val, this.symbolName(val));
         else if (val.isConsRef()) {

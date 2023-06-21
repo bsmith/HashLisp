@@ -16,7 +16,7 @@ public final class Utilities {
         V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.cons(heap.makeShortInt(num), list);
+            list = heap.cons(heap.makeSmallInt(num), list);
         }
         return list;
     }
@@ -33,7 +33,7 @@ public final class Utilities {
                 /* XXX record patterns is a Java 19 feature */
 //                if (heap.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
                 ConsPair<V> uncons = heap.uncons(cur);
-                int ch = uncons.fst().toShortInt();
+                int ch = uncons.fst().toSmallInt();
                 codepoints.add(ch);
                 cur = uncons.snd();
             }

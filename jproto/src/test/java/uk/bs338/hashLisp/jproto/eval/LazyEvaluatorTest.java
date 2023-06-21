@@ -41,7 +41,7 @@ public class LazyEvaluatorTest {
     }
     
     @Test void intEvalsToInt() {
-        var intval = heap.makeShortInt(17);
+        var intval = heap.makeSmallInt(17);
         var rv = eval.eval(intval);
         assertEquals(intval, rv);
     }

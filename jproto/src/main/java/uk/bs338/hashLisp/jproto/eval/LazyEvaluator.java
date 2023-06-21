@@ -58,13 +58,13 @@ public class LazyEvaluator {
         var cur = args;
         while (cur.isConsRef()) {
             var fst = eval(heap.fst(cur));
-            if (fst.isShortInt())
-                sum += fst.toShortInt();
+            if (fst.isSmallInt())
+                sum += fst.toSmallInt();
             cur = heap.snd(cur);
         }
-        if (cur.isShortInt())
-            sum += cur.toShortInt();
-        return heap.makeShortInt(sum);
+        if (cur.isSmallInt())
+            sum += cur.toSmallInt();
+        return heap.makeSmallInt(sum);
     }
 
     /* XXX this does validation stuff? */
@@ -113,7 +113,7 @@ public class LazyEvaluator {
             }
 
             @Override
-            public void visitShortInt(HonsValue visited, int num) {
+            public void visitSmallInt(HonsValue visited, int num) {
                 this.result = visited;
             }
 
@@ -203,7 +203,7 @@ public class LazyEvaluator {
             }
 
             @Override
-            public void visitShortInt(HonsValue visited, int num) {
+            public void visitSmallInt(HonsValue visited, int num) {
                 result = visited;
             }
             
@@ -249,11 +249,11 @@ public class LazyEvaluator {
         var add = heap.makeSymbol("add");
         var program = makeList(heap,
             add,
-            heap.makeShortInt(5),
+            heap.makeSmallInt(5),
             makeList(heap,
                 add,
-                heap.makeShortInt(2),
-                heap.makeShortInt(3)
+                heap.makeSmallInt(2),
+                heap.makeSmallInt(3)
             )
         );
         System.out.println(heap.valueToString(program));

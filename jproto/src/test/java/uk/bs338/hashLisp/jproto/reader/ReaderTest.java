@@ -29,9 +29,9 @@ class ReaderTest {
     
     @Nested
     class SimpleValues {
-        @Test void shortInt() {
+        @Test void smallInt() {
             var input = "123";
-            var expected = ReadResult.successfulRead("", HonsValue.fromShortInt(123));
+            var expected = ReadResult.successfulRead("", HonsValue.fromSmallInt(123));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
@@ -64,8 +64,8 @@ class ReaderTest {
             var input = "(123 . 345)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
-                    HonsValue.fromShortInt(123),
-                    HonsValue.fromShortInt(345)
+                    HonsValue.fromSmallInt(123),
+                    HonsValue.fromSmallInt(345)
                 ));
             var actual = reader.read(input);
             assertEquals(expected, actual);
@@ -75,7 +75,7 @@ class ReaderTest {
             var input = "(123)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
-                    HonsValue.fromShortInt(123),
+                    HonsValue.fromSmallInt(123),
                     HonsValue.nil
                 ));
             var actual = reader.read(input);
@@ -86,9 +86,9 @@ class ReaderTest {
             var input = "(123 456)";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
-                    HonsValue.fromShortInt(123),
+                    HonsValue.fromSmallInt(123),
                     heap.cons(
-                        HonsValue.fromShortInt(456),
+                        HonsValue.fromSmallInt(456),
                         HonsValue.nil
                     )
                 ));
@@ -100,7 +100,7 @@ class ReaderTest {
             var input = "(123 . ())";
             var expected = ReadResult.successfulRead("",
                 heap.cons(
-                    HonsValue.fromShortInt(123),
+                    HonsValue.fromSmallInt(123),
                     HonsValue.nil
                 ));
             var actual = reader.read(input);
@@ -124,11 +124,11 @@ class ReaderTest {
             addSym,
             makeList(heap,
                 addSym,
-                HonsValue.fromShortInt(1),
-                HonsValue.fromShortInt(2)
+                HonsValue.fromSmallInt(1),
+                HonsValue.fromSmallInt(2)
             ),
-            HonsValue.fromShortInt(3),
-            HonsValue.fromShortInt(4)
+            HonsValue.fromSmallInt(3),
+            HonsValue.fromSmallInt(4)
             );
         ReadResult rv = reader.read(input);
         assertEquals(Optional.of(expected), rv.getValue());
