@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -163,34 +165,55 @@ public class LazyEvaluator {
 
     static String evalIndent = "";
     public HonsValue eval(HonsValue val) throws Exception {
-        HonsValue result = null;
+        var visitor = new IHeapVisitor<HonsValue>() {
+            public HonsValue result = null;
+
+            @Override
+            public void visitNil(HonsValue visited) {
+                result = visited;
+            }
+
+            @Override
+            public void visitShortInt(HonsValue visited, int num) {
+                result = visited;
+            }
+
+
+            @Override
+            public void visitSymbol(HonsValue visited, HonsValue val) {
+                result = visited;
+            }
+
+            @Override
+            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+                var memoEval = heap.getMemoEval(val);
+                if (memoEval.isPresent()) {
+                    result = memoEval.get();
+                } else {
+                    try {
+                        result = apply(val);
+                        heap.setMemoEval(val, result);
+                    } catch (Exception e) {
+                        /* XXX */
+                    }
+                }
+            }
+        };
+
         var savedIndent = evalIndent;
 
-        if (val.isNil() || val.isShortInt() || heap.isSymbol(val)) {
-            return val;
-        }
-        
         if (debug) {
             System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
             evalIndent += "  ";
         }
         
-        if (val.isConsRef()) {
-            var memoEval = heap.getMemoEval(val);
-            if (memoEval.isPresent()) {
-                result = memoEval.get();
-            }
-            else {
-                result = apply(val);
-                heap.setMemoEval(val, result);
-            }
-        }
+        heap.visitValue(val, visitor);
         
         if (debug) {
             evalIndent = savedIndent;
-            System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
+            System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(visitor.result));
         }
-        return result;
+        return visitor.result;
     }
     
     public static void demo(HonsHeap heap) throws Exception {

@@ -1,9 +1,11 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.Pair;
 
+import java.io.InvalidObjectException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,5 +149,21 @@ public class HonsHeap implements
     public void setMemoEval(HonsValue val, HonsValue evalResult) {
         var cell = getCell(val);
         cell.setMemoEval(evalResult);
+    }
+    
+    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) throws Exception {
+        if (val.isNil())
+            visitor.visitNil(val);
+        else if (val.isShortInt())
+            visitor.visitShortInt(val, val.toShortInt());
+        else if (this.isSymbol(val))
+            visitor.visitSymbol(val, this.symbolName(val));
+        else if (val.isConsRef()) {
+            var uncons = this.uncons(val);
+            visitor.visitCons(val, uncons.fst, uncons.snd);
+        }
+        else {
+            throw new IllegalArgumentException("couldn't identify value: " + val);
+        }
     }
 }
