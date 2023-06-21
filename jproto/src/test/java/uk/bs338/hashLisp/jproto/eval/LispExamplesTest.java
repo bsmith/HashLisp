@@ -59,7 +59,7 @@ public class LispExamplesTest {
         return DynamicTest.stream(reader.iterator(),
             (String[] fields) -> fields[0],
             (String[] fields) -> {
-                assertEval(fields[1], fields[0]);
+                assertEval(fields[2], fields[1]);
             }
         );
     }
