@@ -6,37 +6,38 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConsPairTest {
-    static class MockValue implements IValue {
-        final int value;
-        
-        public MockValue(int value) {
-            this.value = value;
-        }
-        
-        @Override public boolean isNil() {
-            return false;
-        }
+    record MockValue(int value) implements IValue {
 
-        @Override public boolean isSymbolTag() {
-            return false;
-        }
+        @Override
+        public boolean isNil() {
+                return false;
+            }
+    
+            @Override
+            public boolean isSymbolTag() {
+                return false;
+            }
+    
+            @Override
+            public boolean isSmallInt() {
+                return true;
+            }
+    
+            @Override
+            public boolean isConsRef() {
+                return false;
+            }
+    
+            @Override
+            public int toSmallInt() {
+                return 123;
+            }
 
-        @Override public boolean isSmallInt() {
-            return true;
+        @Override
+        public String toString() {
+                return String.format("MockValue{%d}", toSmallInt());
+            }
         }
-
-        @Override public boolean isConsRef() {
-            return false;
-        }
-
-        @Override public int toSmallInt() {
-            return 123;
-        }
-        
-        @Override public String toString() {
-            return String.format("MockValue{%d}", toSmallInt());
-        }
-    }
     
     MockValue fstMock;
     MockValue sndMock;

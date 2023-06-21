@@ -58,9 +58,7 @@ public class LispExamplesTest {
         try (var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build()) {
             return DynamicTest.stream(reader.iterator(),
                 (String[] fields) -> fields[0],
-                (String[] fields) -> {
-                    assertEval(fields[2], fields[1]);
-                }
+                (String[] fields) -> assertEval(fields[2], fields[1])
             );
         }
     }

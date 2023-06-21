@@ -19,12 +19,12 @@ public class LazyEvaluator {
         primitives = new HashMap<>();
         debug = false;
         
-        primitives.put(stringAsList(heap, "fst"), this::fst);
-        primitives.put(stringAsList(heap, "snd"), this::snd);
-        primitives.put(stringAsList(heap, "cons"), this::cons);
-        primitives.put(stringAsList(heap, "add"), this::add);
-        primitives.put(stringAsList(heap, "lambda"), this::lambda);
-        primitives.put(stringAsList(heap, "eval"), this::eval);
+        primitives.put(heap.makeSymbol("fst"), this::fst);
+        primitives.put(heap.makeSymbol( "snd"), this::snd);
+        primitives.put(heap.makeSymbol( "cons"), this::cons);
+        primitives.put(heap.makeSymbol( "add"), this::add);
+        primitives.put(heap.makeSymbol( "lambda"), this::lambda);
+        primitives.put(heap.makeSymbol( "eval"), this::eval);
     }
     
     public void setDebug(boolean flag) {
@@ -68,6 +68,7 @@ public class LazyEvaluator {
     }
 
     /* XXX this does validation stuff? */
+    /* XXX alpha convert early? */
     public HonsValue lambda(HonsValue args) {
         System.out.printf("lambda: %s%n", heap.valueToString(args));
         var argSpec = heap.fst(args);
@@ -104,38 +105,38 @@ public class LazyEvaluator {
             return assignmentsAsValue = assignmentsList;
         }
         
-        private class SubstituteVisitor implements IHeapVisitor<HonsValue> {
-            public HonsValue result = null;
-
+        private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
             @Override
-            public void visitNil(HonsValue visited) {
-                this.result = visited;
+            public HonsValue visitConstant(HonsValue visited) {
+                return visited;
             }
 
             @Override
-            public void visitSmallInt(HonsValue visited, int num) {
-                this.result = visited;
-            }
-
-            @Override
-            public void visitSymbol(HonsValue visited, HonsValue val) {
+            public HonsValue visitSymbol(HonsValue visited) {
                 var assignedValue = assignments.get(visited);
-                this.result = assignedValue == null ? visited : assignedValue;
+                return assignedValue == null ? visited : assignedValue;
             }
 
             @Override
-            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
-                this.result = heap.cons(
-                    substitute(fst),
-                    substitute(snd)
+            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
+                return heap.cons(
+                    substitute(head),
+                    substitute(args)
                 );
+            }
+
+            @Override
+            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) {
+                /* we want to remove from our assignments map any var mentioned in argSpec */
+                /* if our assignments map becomes empty, just return visited */
+                /* otherwise, apply the reduced assignments map to the body */
+                throw new RuntimeException("Unimplemented");
             }
         }
         
         public HonsValue substitute(HonsValue body) {
             var visitor = new SubstituteVisitor();
-            heap.visitValue(body, visitor);
-            return visitor.result;
+            return visitExpr(body, visitor);
         }
     }
     
@@ -181,7 +182,7 @@ public class LazyEvaluator {
         var head = eval(uncons.fst());
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
-            var prim = primitives.get(heap.snd(head));
+            var prim = primitives.get(head);
             if (prim != null) {
                 return prim.apply(rest);
             }
@@ -194,27 +195,24 @@ public class LazyEvaluator {
 
     static String evalIndent = "";
     public HonsValue eval(HonsValue val) {
-        var visitor = new IHeapVisitor<HonsValue>() {
-            public HonsValue result = null;
-
+        var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
-            public void visitNil(HonsValue visited) {
-                result = visited;
-            }
-
-            @Override
-            public void visitSmallInt(HonsValue visited, int num) {
-                result = visited;
+            public HonsValue visitConstant(HonsValue visited) {
+                return visited;
             }
             
             @Override
-            public void visitSymbol(HonsValue visited, HonsValue val) {
-                result = visited;
+            public HonsValue visitSymbol(HonsValue visited) {
+                return visited;
             }
+            
+            @Override
+            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) { return visited; }
 
             @Override
-            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
                 var savedIndent = evalIndent;
+                var result = (HonsValue)null;
 
                 if (debug) {
                     System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
@@ -233,12 +231,48 @@ public class LazyEvaluator {
                     evalIndent = savedIndent;
                     System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
                 }
+                
+                return result;
             }
         };
         
-        heap.visitValue(val, visitor);
-        
-        return visitor.result;
+        return visitExpr(val, visitor);
+    }
+    
+    public <R> R visitExpr(HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
+        var heapVisitor = new IHeapVisitor<HonsValue>() {
+            public R result = null;
+            
+            @Override
+            public void visitNil(HonsValue visited) {
+                result = exprVisitor.visitConstant(visited);
+            }
+
+            @Override
+            public void visitSmallInt(HonsValue visited, int num) {
+                result = exprVisitor.visitConstant(visited);
+            }
+
+            @Override
+            public void visitSymbol(HonsValue visited, HonsValue val) {
+                result = exprVisitor.visitSymbol(visited);
+            }
+
+            @Override
+            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+                if (heap.isSymbol(fst)) {
+                    String symbolName = heap.symbolNameAsString(fst);
+                    if (symbolName.equals("lambda")) {
+                        result = exprVisitor.visitLambda(visited, heap.fst(snd), heap.fst(heap.snd(snd)));
+                        return;
+                    }
+                }
+                /* should be an application */
+                result = exprVisitor.visitApply(visited, fst, snd);
+            }
+        };
+        heap.visitValue(value, heapVisitor);
+        return heapVisitor.result;
     }
     
     public static void demo(HonsHeap heap) {
