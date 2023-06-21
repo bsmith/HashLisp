@@ -46,16 +46,9 @@ public class LispExamplesTest {
     }
     
     @Test void lambda() {
-        try {
-            assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
-            assertEval("1", "((lambda (x) (add 1 x)) 0)");
-            assertEval("2", "((lambda (f) (f 1)) (lambda (x) (add 1 x))");
-        }
-        catch (AssertionError e) {
-            /* expected error */
-            return;
-        }
-        throw new AssertionError("Expected failure failed to occur");
+        assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
+        assertEval("1", "((lambda (x) (add 1 x)) 0)");
+        assertEval("2", "((lambda (f) (f 1)) (lambda (x) (add 1 x)))");
     }
     
     @TestFactory

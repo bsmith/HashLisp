@@ -85,15 +85,13 @@ public class LazyEvaluator {
 //    HonsValue assignmentsCacheValue = null;
 //    Map<HonsValue, HonsValue> assignmentsCacheMap = null;
     
-    private class Assignments implements IHeapVisitor<HonsValue> {
+    private class Assignments {
         private HonsValue assignmentsAsValue;
         private final Map<HonsValue, HonsValue> assignments;
-        private HonsValue visitResult;
         
         public Assignments(Map<HonsValue, HonsValue> assignments) {
             this.assignmentsAsValue = null;
             this.assignments = assignments;
-            this.visitResult = null;
         }
         
         public HonsValue getAssignmentsAsValue() {
@@ -106,38 +104,38 @@ public class LazyEvaluator {
             return assignmentsAsValue = assignmentsList;
         }
         
-        public HonsValue substitute(HonsValue body) {
-            /* XXX Java can be bad sometimes */
-            assert this.visitResult == null;
-            heap.visitValue(body, this);
-            assert this.visitResult != null;
-            var result = this.visitResult;
-            this.visitResult = null;
-            return result;
-        }
+        private class SubstituteVisitor implements IHeapVisitor<HonsValue> {
+            public HonsValue result = null;
 
-        @Override
-        public void visitNil(HonsValue visited) {
-            this.visitResult = visited;
-        }
+            @Override
+            public void visitNil(HonsValue visited) {
+                this.result = visited;
+            }
 
-        @Override
-        public void visitShortInt(HonsValue visited, int num) {
-            this.visitResult = visited;
-        }
+            @Override
+            public void visitShortInt(HonsValue visited, int num) {
+                this.result = visited;
+            }
 
-        @Override
-        public void visitSymbol(HonsValue visited, HonsValue val) {
-            var assignedValue = assignments.get(visited);
-            this.visitResult = assignedValue == null ? visited : assignedValue;
-        }
+            @Override
+            public void visitSymbol(HonsValue visited, HonsValue val) {
+                var assignedValue = assignments.get(visited);
+                this.result = assignedValue == null ? visited : assignedValue;
+            }
 
-        @Override
-        public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
-            this.visitResult = heap.cons(
-                makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), fst),
-                makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), snd)
+            @Override
+            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+                this.result = heap.cons(
+                    substitute(fst),
+                    substitute(snd)
                 );
+            }
+        }
+        
+        public HonsValue substitute(HonsValue body) {
+            var visitor = new SubstituteVisitor();
+            heap.visitValue(body, visitor);
+            return visitor.result;
         }
     }
     
@@ -216,33 +214,30 @@ public class LazyEvaluator {
 
             @Override
             public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+                var savedIndent = evalIndent;
+
+                if (debug) {
+                    System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
+                    evalIndent += "  ";
+                }
+                
                 var memoEval = heap.getMemoEval(val);
                 if (memoEval.isPresent()) {
                     result = memoEval.get();
                 } else {
-                    try {
-                        result = apply(val);
-                        heap.setMemoEval(val, result);
-                    } catch (Exception e) {
-                        /* XXX */
-                    }
+                    result = apply(val);
+                    heap.setMemoEval(val, result);
+                }
+
+                if (debug) {
+                    evalIndent = savedIndent;
+                    System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
                 }
             }
         };
-
-        var savedIndent = evalIndent;
-
-        if (debug) {
-            System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
-            evalIndent += "  ";
-        }
         
         heap.visitValue(val, visitor);
         
-        if (debug) {
-            evalIndent = savedIndent;
-            System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(visitor.result));
-        }
         return visitor.result;
     }
     
