@@ -148,9 +148,9 @@ public class LazyEvaluator {
 
     public HonsValue apply(HonsValue args) throws Exception {
         /* cons */
-        var pair = heap.uncons(args);
-        var head = eval(pair.fst);
-        var rest = pair.snd;
+        var uncons = heap.uncons(args);
+        var head = eval(uncons.fst());
+        var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(heap.snd(head));
             if (prim != null) {
@@ -158,7 +158,7 @@ public class LazyEvaluator {
             }
         }
         else if (isLambda(head)) {
-            return applyLambda(head, pair.snd);
+            return applyLambda(head, uncons.snd());
         }
         return heap.cons(head, rest);
     }
@@ -177,8 +177,7 @@ public class LazyEvaluator {
             public void visitShortInt(HonsValue visited, int num) {
                 result = visited;
             }
-
-
+            
             @Override
             public void visitSymbol(HonsValue visited, HonsValue val) {
                 result = visited;

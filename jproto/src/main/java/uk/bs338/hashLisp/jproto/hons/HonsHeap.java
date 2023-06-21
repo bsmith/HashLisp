@@ -3,9 +3,8 @@ package uk.bs338.hashLisp.jproto.hons;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
-import uk.bs338.hashLisp.jproto.Pair;
+import uk.bs338.hashLisp.jproto.ConsPair;
 
-import java.io.InvalidObjectException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -130,12 +129,12 @@ public class HonsHeap implements
     }
 
     @Nonnull
-    public Pair<HonsValue> uncons(HonsValue val) throws Exception {
+    public ConsPair<HonsValue> uncons(HonsValue val) {
         if (!val.isObjectHash())
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
-            throw new Exception("Failed to find cell in heap: " + val);
+            throw new IllegalStateException("Failed to find cell in heap: " + val);
         return cell.getPair();
     }
     
@@ -160,7 +159,7 @@ public class HonsHeap implements
             visitor.visitSymbol(val, this.symbolName(val));
         else if (val.isConsRef()) {
             var uncons = this.uncons(val);
-            visitor.visitCons(val, uncons.fst, uncons.snd);
+            visitor.visitCons(val, uncons.fst(), uncons.snd());
         }
         else {
             throw new IllegalArgumentException("couldn't identify value: " + val);

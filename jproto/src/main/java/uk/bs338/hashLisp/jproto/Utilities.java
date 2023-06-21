@@ -30,10 +30,12 @@ public final class Utilities {
             ArrayList<Integer> codepoints = new ArrayList<>();
             var cur = list;
             while (!cur.isNil()) {
-                Pair<V> pair = heap.uncons(cur);
-                int ch = pair.fst.toShortInt();
+                /* XXX record patterns is a Java 19 feature */
+//                if (heap.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
+                ConsPair<V> uncons = heap.uncons(cur);
+                int ch = uncons.fst().toShortInt();
                 codepoints.add(ch);
-                cur = pair.snd;
+                cur = uncons.snd();
             }
             return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
         } catch (Exception e) {
@@ -68,9 +70,9 @@ public final class Utilities {
                 dst.add(cur);
                 return;
             }
-            var pair = heap.uncons(cur);
-            dst.add(pair.fst);
-            cur = pair.snd;
+            var uncons = heap.uncons(cur);
+            dst.add(uncons.fst());
+            cur = uncons.snd();
         }
     }
 }

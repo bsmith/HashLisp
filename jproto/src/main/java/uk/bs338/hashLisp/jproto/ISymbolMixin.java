@@ -23,10 +23,10 @@ public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
     }
 
     default V symbolName(V symbol) throws Exception {
-        Pair<V> pair = uncons(symbol);
-        if (!pair.fst.isSymbolTag())
+        ConsPair<V> uncons = uncons(symbol);
+        if (!uncons.fst().isSymbolTag())
             throw new InvalidParameterException("Cannot get symbolName of non-symbol");
-        return pair.snd;
+        return uncons.snd();
     }
 
     default String symbolNameAsString(V symbol) throws Exception {
