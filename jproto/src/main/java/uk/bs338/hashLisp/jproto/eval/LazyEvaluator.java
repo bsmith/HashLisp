@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.checkerframework.checker.units.qual.A;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -28,7 +29,6 @@ public class LazyEvaluator {
         primitives.put(stringAsList(heap, "cons"), this::cons);
         primitives.put(stringAsList(heap, "add"), this::add);
         primitives.put(stringAsList(heap, "lambda"), this::lambda);
-        primitives.put(stringAsList(heap, "lambdaAssignments"), this::lambdaAssignments);
         primitives.put(stringAsList(heap, "eval"), this::eval);
     }
     
@@ -72,6 +72,7 @@ public class LazyEvaluator {
         return heap.makeShortInt(sum);
     }
 
+    /* XXX this does validation stuff? */
     public HonsValue lambda(HonsValue args) throws Exception {
         System.out.printf("lambda: %s%n", heap.valueToString(args));
         var argSpec = heap.fst(args);
@@ -86,64 +87,99 @@ public class LazyEvaluator {
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
     
-    public HonsValue getLambdaArgSpec(HonsValue lambda) throws Exception {
-//        ArrayList<HonsValue> argSpec = new ArrayList<>();
-//        unmakeList(heap, heap.fst(heap.snd(lambda)), argSpec);
-//        return argSpec;
-        return heap.fst(heap.snd(lambda));
-    }
-
-    public HonsValue getLambdaBody(HonsValue lambda) throws Exception {
-        return heap.fst(heap.snd(heap.snd(lambda)));
-    }
-
-    public HonsValue applyLambda(HonsValue lambda, HonsValue args) throws Exception {
-        HonsValue argSpec = getLambdaArgSpec(lambda);
-        HonsValue body = getLambdaBody(lambda);
-//        System.out.printf("argSpec=%s%nbody=%s%n", argSpec.stream().map(heap::valueToString).toList(), heap.valueToString(body));
-        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
+//    HonsValue assignmentsCacheValue = null;
+//    Map<HonsValue, HonsValue> assignmentsCacheMap = null;
+    
+    private class Assignments implements IHeapVisitor<HonsValue> {
+        private HonsValue assignmentsAsValue;
+        private final Map<HonsValue, HonsValue> assignments;
+        private HonsValue visitResult;
         
-        if (heap.isSymbol(argSpec)) {
-            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
+        public Assignments(Map<HonsValue, HonsValue> assignments) {
+            this.assignmentsAsValue = null;
+            this.assignments = assignments;
+            this.visitResult = null;
         }
-        else if (argSpec.isConsRef()) {
-            var assignments = new HashMap<HonsValue, HonsValue>();
-            var curSpec = argSpec;
-            var curArg = args;
-            while (!curSpec.isNil()) {
-                assignments.put(heap.fst(curSpec), heap.fst(curArg));
-                curSpec = heap.snd(curSpec);
-                curArg = heap.snd(curArg);
-            }
+        
+        public HonsValue getAssignmentsAsValue() {
+            if (assignmentsAsValue != null)
+                return assignmentsAsValue;
             var assignmentsList = HonsValue.nil;
             for (var assignment : assignments.entrySet()) {
                 assignmentsList = heap.cons(heap.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
             }
-            System.out.printf("assignmentsList=%s%n", assignmentsList);
-            return lambdaAssignments(assignmentsList, body); //makeList(heap, heap.makeSymbol("lambdaAssignments"), assignmentsList, body);
+            return assignmentsAsValue = assignmentsList;
+        }
+        
+        public HonsValue substitute(HonsValue body) throws Exception {
+            /* XXX Java can be bad sometimes */
+            assert this.visitResult == null;
+            heap.visitValue(body, this);
+            assert this.visitResult != null;
+            var result = this.visitResult;
+            this.visitResult = null;
+            return result;
         }
 
-        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
+        @Override
+        public void visitNil(HonsValue visited) {
+            this.visitResult = visited;
+        }
+
+        @Override
+        public void visitShortInt(HonsValue visited, int num) {
+            this.visitResult = visited;
+        }
+
+        @Override
+        public void visitSymbol(HonsValue visited, HonsValue val) {
+            var assignedValue = assignments.get(visited);
+            this.visitResult = assignedValue == null ? visited : assignedValue;
+        }
+
+        @Override
+        public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) throws Exception {
+            this.visitResult = heap.cons(
+                makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), fst),
+                makeList(heap, heap.makeSymbol("let"), getAssignmentsAsValue(), snd)
+                );
+        }
     }
     
-    public HonsValue lambdaAssignments(HonsValue args) throws Exception {
-        return lambdaAssignments(heap.fst(args), heap.fst(heap.snd(args)));
+    public Assignments matchArgSpec(HonsValue argSpec, HonsValue args) throws Exception {
+        if (heap.isSymbol(argSpec)) {
+//            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
+            throw new RuntimeException("Not implemented");
+        }
+        else if (argSpec.isConsRef()) {
+            var assignmentsMap = new HashMap<HonsValue, HonsValue>();
+            var curSpec = argSpec;
+            var curArg = args;
+            while (!curSpec.isNil()) {
+                assignmentsMap.put(heap.fst(curSpec), heap.fst(curArg));
+                curSpec = heap.snd(curSpec);
+                curArg = heap.snd(curArg);
+            }
+            var assignments = new Assignments(assignmentsMap);
+            System.out.printf("assignmentsList=%s%n", assignments.getAssignmentsAsValue());
+            return assignments;
+        }
+        else
+            throw new RuntimeException("Not implemented");
     }
-    
-    public HonsValue lambdaAssignments(HonsValue assignmentsList, HonsValue body) throws Exception {
-        if (heap.isSymbol(body)) {
-            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("unimpl: lambdaAssignments 1"));
-        }
-        else if (body.isConsRef()) {
-            Function<HonsValue, HonsValue> wrapInLambdaAssignments = val -> {
-                try {
-                    return makeList(heap, heap.makeSymbol("lambdaAssignments"), assignmentsList, val);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            };
-        }
-        return HonsValue.nil;
+
+    public HonsValue applyLambda(HonsValue lambda, HonsValue args) throws Exception {
+        HonsValue argSpec = heap.fst(heap.snd(lambda));
+        HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
+        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
+        
+        var assignments = matchArgSpec(argSpec, args);
+        
+        var result = assignments.substitute(body);
+        System.out.printf("result=%s%n", heap.valueToString(result));
+        return eval(result);
+
+//        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
 
     public HonsValue apply(HonsValue args) throws Exception {
