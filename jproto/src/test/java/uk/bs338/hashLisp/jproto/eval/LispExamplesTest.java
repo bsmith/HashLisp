@@ -9,9 +9,11 @@ import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class LispExamplesTest {
@@ -67,14 +69,22 @@ public class LispExamplesTest {
     }
     
     @TestFactory
-    Stream<DynamicTest> csvTestCases() throws IOException {
+    Collection<DynamicTest> csvTestCases() throws IOException {
         var resource = getClass().getClassLoader().getResourceAsStream("lispExamples.csv");
         assert resource != null;
         try (var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build()) {
-            return DynamicTest.stream(reader.iterator(),
-                (String[] fields) -> fields[0],
-                (String[] fields) -> assertEval(fields[2], fields[1])
-            );
+            List<DynamicTest> tests = new ArrayList<>();
+            for (var fields : reader) {
+                tests.add(DynamicTest.dynamicTest(fields[0], () -> {
+                    System.out.printf("fields: %s--%s--%s%n", fields[0], fields[1], fields[2]);
+                    assertEval(fields[2], fields[1]);
+                }));
+            }
+            return tests;
+//            return DynamicTest.stream(reader.iterator(),
+//                (String[] fields) -> fields[0],
+//                (String[] fields) -> assertEval(fields[2], fields[1])
+//            );
         }
     }
 }
