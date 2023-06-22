@@ -1,9 +1,10 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import uk.bs338.hashLisp.jproto.IHeapVisitor;
+import com.google.common.collect.Maps;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,6 +106,10 @@ public class LazyEvaluator {
             return assignmentsAsValue = assignmentsList;
         }
         
+        public String toString() {
+            return "Assignments{" + heap.valueToString(getAssignmentsAsValue()) + "}";
+        }
+        
         private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
             @Override
             public HonsValue visitConstant(HonsValue visited) {
@@ -130,7 +135,18 @@ public class LazyEvaluator {
                 /* we want to remove from our assignments map any var mentioned in argSpec */
                 /* if our assignments map becomes empty, just return visited */
                 /* otherwise, apply the reduced assignments map to the body */
-                throw new RuntimeException("Unimplemented");
+                var reducedAssignments = new HashMap<>(assignments);
+                var argsList = new ArrayList<HonsValue>();
+                unmakeList(heap, argSpec, argsList);
+                for (var arg : argsList) {
+                    reducedAssignments.remove(arg);
+                }
+                if (argsList.isEmpty())
+                    return visited;
+                var newAssignments = new Assignments(reducedAssignments);
+                var newBody = newAssignments.substitute(body);
+//                throw new RuntimeException("Unimplemented");
+                return makeList(heap, heap.makeSymbol("lambda"), argSpec, newBody);
             }
         }
         
@@ -155,7 +171,7 @@ public class LazyEvaluator {
                 curArg = heap.snd(curArg);
             }
             var assignments = new Assignments(assignmentsMap);
-            System.out.printf("assignmentsList=%s%n", assignments.getAssignmentsAsValue());
+            System.out.printf("assignmentsList=%s%n", assignments);
             return assignments;
         }
         else
@@ -240,37 +256,7 @@ public class LazyEvaluator {
     }
     
     public <R> R visitExpr(HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
-        var heapVisitor = new IHeapVisitor<HonsValue>() {
-            public R result = null;
-            
-            @Override
-            public void visitNil(HonsValue visited) {
-                result = exprVisitor.visitConstant(visited);
-            }
-
-            @Override
-            public void visitSmallInt(HonsValue visited, int num) {
-                result = exprVisitor.visitConstant(visited);
-            }
-
-            @Override
-            public void visitSymbol(HonsValue visited, HonsValue val) {
-                result = exprVisitor.visitSymbol(visited);
-            }
-
-            @Override
-            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
-                if (heap.isSymbol(fst)) {
-                    String symbolName = heap.symbolNameAsString(fst);
-                    if (symbolName.equals("lambda")) {
-                        result = exprVisitor.visitLambda(visited, heap.fst(snd), heap.fst(heap.snd(snd)));
-                        return;
-                    }
-                }
-                /* should be an application */
-                result = exprVisitor.visitApply(visited, fst, snd);
-            }
-        };
+        var heapVisitor = new ExprToHeapVisitorAdapter<>(heap, exprVisitor);
         heap.visitValue(value, heapVisitor);
         return heapVisitor.result;
     }

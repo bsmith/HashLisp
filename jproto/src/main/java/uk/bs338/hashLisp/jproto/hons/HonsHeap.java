@@ -118,13 +118,18 @@ public class HonsHeap implements
     }
 
     public void dumpHeap(PrintStream stream) {
+        dumpHeap(stream, false);
+    }
+    
+    public void dumpHeap(PrintStream stream, boolean onlyWithMemoValues) {
         stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
         var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         
         for (var entry : sortedHeap) {
             HonsCell cell = entry.getValue();
-            stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
+            if (!onlyWithMemoValues || cell.getMemoEval() != null)
+                stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
         }
     }
 

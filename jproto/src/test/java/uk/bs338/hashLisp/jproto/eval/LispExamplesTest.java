@@ -29,7 +29,7 @@ public class LispExamplesTest {
     }
     
     @AfterAll void dumpHeap() {
-        heap.dumpHeap(System.out);
+        heap.dumpHeap(System.out, true);
     }
     
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -49,6 +49,21 @@ public class LispExamplesTest {
         assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
         assertEval("1", "((lambda (x) (add 1 x)) 0)");
         assertEval("2", "((lambda (f) (f 1)) (lambda (x) (add 1 x)))");
+    }
+    
+    @Test void nestedLambdas() {
+        assertEval(
+            "(1 . 2)",
+            "((lambda (x) (cons ((lambda (x) x) 1) x)) 2)"
+        );
+    }
+    
+    /* XXX not actually lazy! */
+    @Test void laziness() {
+        assertEval(
+            "7",
+            "((lambda (x y) y) (add 1 2) (add 3 4))"
+        );
     }
     
     @TestFactory

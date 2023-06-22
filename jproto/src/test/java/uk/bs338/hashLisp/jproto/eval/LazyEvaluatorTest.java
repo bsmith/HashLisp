@@ -17,21 +17,16 @@ public class LazyEvaluatorTest {
     LazyEvaluator eval;
     
     /* share a heap with all tests */
-    @BeforeAll void setUpHeap(TestReporter testReporter) {
-        testReporter.publishEntry("setUpHeap");
+    @BeforeAll void setUpHeap() {
         heap = new HonsHeap();
     }
 
     @BeforeEach void setUpEvaluator() {
-        System.out.println("setUpEvaluator");
         eval = new LazyEvaluator(heap);
     }
+    
     @AfterEach void tearDownEvaluator() {
         eval = null;
-    }
-
-    @Test void testEval(TestReporter testReporter) {
-        testReporter.publishEntry("testEval says Hello");
     }
     
     @Test void nilEvalsToNil() {
