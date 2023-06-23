@@ -21,7 +21,7 @@ class ConsPairTest {
             return false;
         }
 
-        @Override public boolean isShortInt() {
+        @Override public boolean isSmallInt() {
             return true;
         }
 
@@ -29,12 +29,12 @@ class ConsPairTest {
             return false;
         }
 
-        @Override public int toShortInt() {
+        @Override public int toSmallInt() {
             return 123;
         }
         
         @Override public String toString() {
-            return String.format("MockValue{%d}", toShortInt());
+            return String.format("MockValue{%d}", toSmallInt());
         }
     }
     

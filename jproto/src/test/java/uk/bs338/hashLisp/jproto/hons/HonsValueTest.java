@@ -9,17 +9,17 @@ import java.util.function.IntUnaryOperator;
 
 public class HonsValueTest {
     @Test void integerValuesWork() {
-        HonsValue val = HonsValue.fromShortInt(17);
-        assertTrue(val.isShortInt());
+        HonsValue val = HonsValue.fromSmallInt(17);
+        assertTrue(val.isSmallInt());
         assertFalse(val.isObjectHash());
         assertFalse(val.isNil());
-        assertEquals(17, val.toShortInt());
+        assertEquals(17, val.toSmallInt());
     }
 
     @Test void objectHashValuesWork() {
         HonsValue val = HonsValue.fromObjectHash(17);
         assertTrue(val.isObjectHash());
-        assertFalse(val.isShortInt());
+        assertFalse(val.isSmallInt());
         assertFalse(val.isNil());
         assertEquals(17, val.toObjectHash());
     }
@@ -27,44 +27,44 @@ public class HonsValueTest {
     @Test void nilIsNil() {
         var nil = HonsValue.nil;
         assertTrue(nil.isNil());
-        assertFalse(nil.isShortInt());
+        assertFalse(nil.isSmallInt());
         assertFalse(nil.isObjectHash());
     }
 
     @Test void canApplyUnaryIntegerOperation() {
-        HonsValue val = HonsValue.fromShortInt(17);
+        HonsValue val = HonsValue.fromSmallInt(17);
         IntUnaryOperator operation = n -> -n;
-        HonsValue rv = HonsValue.applyShortIntOperation(operation, val);
-        assertTrue(rv.isShortInt());
-        assertEquals(-17, rv.toShortInt());
+        HonsValue rv = HonsValue.applySmallIntOperation(operation, val);
+        assertTrue(rv.isSmallInt());
+        assertEquals(-17, rv.toSmallInt());
     }
 
     @Test void cannotApplyUnaryIntegerOperation() {
         HonsValue val = HonsValue.fromObjectHash(17);
         IntUnaryOperator operation = n -> -n;
-        HonsValue rv = HonsValue.applyShortIntOperation(operation, val);
+        HonsValue rv = HonsValue.applySmallIntOperation(operation, val);
         assertTrue(rv.isNil());
     }
 
     @Test void canApplyBinaryIntegerOperation() {
-        HonsValue left = HonsValue.fromShortInt(17);
-        HonsValue right = HonsValue.fromShortInt(21);
+        HonsValue left = HonsValue.fromSmallInt(17);
+        HonsValue right = HonsValue.fromSmallInt(21);
         IntBinaryOperator operation = Integer::sum;
-        HonsValue rv = HonsValue.applyShortIntOperation(operation, left, right);
-        assertTrue(rv.isShortInt());
-        assertEquals(38, rv.toShortInt());
+        HonsValue rv = HonsValue.applySmallIntOperation(operation, left, right);
+        assertTrue(rv.isSmallInt());
+        assertEquals(38, rv.toSmallInt());
     }
 
     @Test void cannotApplyBinaryIntegerOperation() {
         HonsValue left = HonsValue.fromObjectHash(17);
-        HonsValue right = HonsValue.fromShortInt(21);
+        HonsValue right = HonsValue.fromSmallInt(21);
         IntBinaryOperator operation = Integer::sum;
-        HonsValue rv = HonsValue.applyShortIntOperation(operation, left, right);
+        HonsValue rv = HonsValue.applySmallIntOperation(operation, left, right);
         assertTrue(rv.isNil());
     }
 
     @Test void integerToString() {
-        HonsValue val = HonsValue.fromShortInt(17);
+        HonsValue val = HonsValue.fromSmallInt(17);
         assertEquals("17", val.toString());
     }
 
@@ -77,9 +77,9 @@ public class HonsValueTest {
      * hashCode contract
      */
     @Test void hashCodeHasEqualsConsistencyForInteger() {
-        HonsValue val = HonsValue.fromShortInt(17);
-        HonsValue similar = HonsValue.fromShortInt(17);
-        HonsValue dissimilar = HonsValue.fromShortInt(-17);
+        HonsValue val = HonsValue.fromSmallInt(17);
+        HonsValue similar = HonsValue.fromSmallInt(17);
+        HonsValue dissimilar = HonsValue.fromSmallInt(-17);
         assertEquals(val.hashCode(), similar.hashCode());
         assertNotEquals(val.hashCode(), dissimilar.hashCode());
     }
@@ -96,9 +96,9 @@ public class HonsValueTest {
      * equals contract
      */
     @Test void equalsHasConsistencyForInteger() {
-        HonsValue val = HonsValue.fromShortInt(17);
-        HonsValue similar = HonsValue.fromShortInt(17);
-        HonsValue dissimilar = HonsValue.fromShortInt(-17);
+        HonsValue val = HonsValue.fromSmallInt(17);
+        HonsValue similar = HonsValue.fromSmallInt(17);
+        HonsValue dissimilar = HonsValue.fromSmallInt(-17);
         assertEquals(val, similar);
         assertNotEquals(val, dissimilar);
     }
@@ -112,9 +112,9 @@ public class HonsValueTest {
     }
 
     @Test void equalsHasSymmetryForInteger() {
-        HonsValue val = HonsValue.fromShortInt(17);
-        HonsValue similar = HonsValue.fromShortInt(17);
-        HonsValue dissimilar = HonsValue.fromShortInt(-17);
+        HonsValue val = HonsValue.fromSmallInt(17);
+        HonsValue similar = HonsValue.fromSmallInt(17);
+        HonsValue dissimilar = HonsValue.fromSmallInt(-17);
         assertEquals(val.equals(similar), similar.equals(val));
         assertEquals(val.equals(dissimilar), dissimilar.equals(val));
     }
@@ -128,7 +128,7 @@ public class HonsValueTest {
     }
 
     @Test void equalsIsReflexiveForInteger() {
-        HonsValue val = HonsValue.fromShortInt(17);
+        HonsValue val = HonsValue.fromSmallInt(17);
         assertEquals(val, val);
     }
 

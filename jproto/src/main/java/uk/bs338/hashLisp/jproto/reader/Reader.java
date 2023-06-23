@@ -26,7 +26,7 @@ public class Reader {
     
     private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) throws Exception {
         if (token.getType() == TokenType.DIGITS) {
-            return Optional.of(HonsValue.fromShortInt(token.getTokenAsInt()));
+            return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
             return Optional.of(makeSymbol(heap, token.getToken()));
         } else if (token.getType() == TokenType.HASH) {

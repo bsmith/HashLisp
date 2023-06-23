@@ -44,7 +44,7 @@ public class HonsHeap implements
 
     @Override
     public HonsValue makeShortInt(int num) {
-        return HonsValue.fromShortInt(num);
+        return HonsValue.fromSmallInt(num);
     }
 
     @Override

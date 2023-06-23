@@ -30,7 +30,7 @@ public final class Utilities {
             var cur = list;
             while (!cur.isNil()) {
                 ConsPair<V> pair = heap.uncons(cur);
-                int ch = pair.fst().toShortInt();
+                int ch = pair.fst().toSmallInt();
                 codepoints.add(ch);
                 cur = pair.snd();
             }
