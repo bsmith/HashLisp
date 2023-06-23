@@ -8,27 +8,25 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class Reader {
     private final HonsHeap heap;
-    private final Function<String, Tokeniser> tokeniserFactory;
+    private final ITokeniserFactory tokeniserFactory;
     private List<String> errors;
 
-    Reader(HonsHeap heap, Function<String, Tokeniser> tokeniserFactory) {
+    public Reader(HonsHeap heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = null;
     }
     
-    private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) throws Exception {
+    private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) {
         if (token.getType() == TokenType.DIGITS) {
-            return Optional.of(HonsValue.fromShortInt(token.getTokenAsInt()));
+            return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
-            return Optional.of(makeSymbol(heap, token.getToken()));
+            return Optional.of(heap.makeSymbol(token.getToken()));
         } else if (token.getType() == TokenType.HASH) {
             Token token2 = tokeniser.next();
             if (token2.getType() == TokenType.DIGITS && token2.getTokenAsInt() == 0) {
@@ -47,7 +45,7 @@ public class Reader {
         }
     }
 
-    private Optional<HonsValue> readListAfterOpenParens(Iterator<Token> tokeniser) throws Exception {
+    private Optional<HonsValue> readListAfterOpenParens(Iterator<Token> tokeniser) {
         ArrayList<HonsValue> listContents = new ArrayList<>();
         
         while (tokeniser.hasNext()) {
@@ -89,7 +87,7 @@ public class Reader {
         return Optional.empty();
     }
 
-    private Optional<HonsValue> readOneValue(Iterator<Token> tokeniser) throws Exception {
+    private Optional<HonsValue> readOneValue(Iterator<Token> tokeniser) {
         if (!tokeniser.hasNext())
             return Optional.empty();
         
@@ -98,8 +96,8 @@ public class Reader {
         return interpretToken(tokeniser, token);
     }
     
-    public ReadResult read(String str) throws Exception {
-        Tokeniser tokeniser = tokeniserFactory.apply(str);
+    public ReadResult read(String str) {
+        Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
         /* XXX something nicer */
         var oldErrors = this.errors;

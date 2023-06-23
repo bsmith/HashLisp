@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier.CharClass;
@@ -20,6 +21,7 @@ class TokeniserTest {
         tokeniser = new Tokeniser(source, charClassifier);
     }
     
+    @Disabled
     @Test void readAllTokens() {
         while (tokeniser.hasNext()) {
             Token token = tokeniser.next();

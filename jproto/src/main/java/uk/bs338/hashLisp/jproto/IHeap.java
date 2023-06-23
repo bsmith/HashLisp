@@ -2,28 +2,28 @@ package uk.bs338.hashLisp.jproto;
 
 import javax.annotation.Nonnull;
 
-public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
+public interface IHeap<V extends IValue> extends IValueFactory<V> {
     @Nonnull
-    Value cons(@Nonnull Value fst, @Nonnull Value snd);
+    V cons(@Nonnull V fst, @Nonnull V snd);
     
     @Nonnull
-    Pair<Value> uncons(@Nonnull Value cons) throws Exception;
+    ConsPair<V> uncons(@Nonnull V cons);
 
     @Nonnull
-    default Value fst(Value val) throws Exception {
-        return uncons(val).fst;
+    default V fst(V val) {
+        return uncons(val).fst();
     }
 
     @Nonnull
-    default Value snd(Value val) throws Exception {
-        return uncons(val).snd;
+    default V snd(V val) {
+        return uncons(val).snd();
     }
 
-    Value makeSymbol(Value name) throws Exception;
+    V makeSymbol(V name);
 
-    boolean isSymbol(Value symbol);
+    boolean isSymbol(V symbol);
 
-    Value symbolName(Value symbol) throws Exception;
+    V symbolName(V symbol);
 
     // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }
