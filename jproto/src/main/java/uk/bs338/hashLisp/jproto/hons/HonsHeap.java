@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
-import uk.bs338.hashLisp.jproto.Pair;
+import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -44,7 +44,7 @@ public class HonsHeap implements
 
     @Override
     public HonsValue makeShortInt(int num) {
-        return HonsValue.fromShortInt(num);
+        return HonsValue.fromSmallInt(num);
     }
 
     @Override
@@ -127,12 +127,12 @@ public class HonsHeap implements
     }
 
     @Nonnull
-    public Pair<HonsValue> uncons(HonsValue val) throws Exception {
+    public ConsPair<HonsValue> uncons(HonsValue val) {
         if (!val.isObjectHash())
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
-            throw new Exception("Failed to find cell in heap: " + val);
+            throw new IllegalStateException("Failed to find cell in heap: " + val);
         return cell.getPair();
     }
 }

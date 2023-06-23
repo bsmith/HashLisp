@@ -1,6 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
-import uk.bs338.hashLisp.jproto.Pair;
+import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.util.Objects;
 
@@ -68,7 +68,7 @@ public class HonsCell {
         return snd;
     }
     
-    public Pair<HonsValue> getPair() { return Pair.of(fst, snd); }
+    public ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
 
     public String getSpecial() {
         return special;

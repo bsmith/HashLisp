@@ -13,8 +13,8 @@ import javax.annotation.Nonnull;
 /* this is a value class */
 public final class HonsValue implements IValue {
     /* 31-bit signed integers have the range [-(2**30-1)-1, 2**30-1] */
-    public final static int SHORTINT_MIN = -1073741823 - 1;
-    public final static int SHORTINT_MAX = 1073741823;
+    public final static int SMALLINT_MIN = -1073741823 - 1;
+    public final static int SMALLINT_MAX = 1073741823;
 
     /* We are an immutable object wrapping this primitive */
     private final int value;
@@ -51,19 +51,19 @@ public final class HonsValue implements IValue {
     }
 
     @Nonnull
-    public static HonsValue fromShortInt(int num) {
-        assert SHORTINT_MIN < num && num < SHORTINT_MAX;
+    public static HonsValue fromSmallInt(int num) {
+        assert SMALLINT_MIN < num && num < SMALLINT_MAX;
         //noinspection PointlessBitwiseExpression
         return new HonsValue((num << 1) | 0);
     }
 
     @Nonnull
     public static HonsValue fromObjectHash(int hash) {
-        assert SHORTINT_MIN < hash && hash < SHORTINT_MAX;
+        assert SMALLINT_MIN < hash && hash < SMALLINT_MAX;
         return new HonsValue((hash << 1) | 1);
     }
 
-    public int toShortInt() throws NoSuchElementException {
+    public int toSmallInt() throws NoSuchElementException {
         if ((value & 1) == 0) {
             return value >> 1;
         }
@@ -77,7 +77,7 @@ public final class HonsValue implements IValue {
         throw new NoSuchElementException();
     }
 
-    public boolean isShortInt() {
+    public boolean isSmallInt() {
         return (value & 1) == 0;
     }
 
@@ -96,17 +96,17 @@ public final class HonsValue implements IValue {
 
     /* XXX Are these two operations the best?  Most javaish? */
     /* XXX using fromInteger does some checks for overflow, but not all? */
-    public static HonsValue applyShortIntOperation(IntUnaryOperator func, HonsValue val) {
+    public static HonsValue applySmallIntOperation(IntUnaryOperator func, HonsValue val) {
         var rvInt = func.applyAsInt(val.value >> 1);
-        return val.isShortInt() ? HonsValue.fromShortInt(rvInt) : nil;
+        return val.isSmallInt() ? HonsValue.fromSmallInt(rvInt) : nil;
     }
 
-    public static HonsValue applyShortIntOperation(IntBinaryOperator func, HonsValue left, HonsValue right) {
-        if (!left.isShortInt() || !right.isShortInt()) {
+    public static HonsValue applySmallIntOperation(IntBinaryOperator func, HonsValue left, HonsValue right) {
+        if (!left.isSmallInt() || !right.isSmallInt()) {
             return nil;
         }
         var rvInt = func.applyAsInt(left.value >> 1, right.value >> 1);
-        return HonsValue.fromShortInt(rvInt);
+        return HonsValue.fromSmallInt(rvInt);
     }
 
     /* this is an immutable record, ie the Object is equivalent to its int value */

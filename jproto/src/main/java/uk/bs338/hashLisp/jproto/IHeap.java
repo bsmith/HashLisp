@@ -7,23 +7,23 @@ public interface IHeap<Value extends IValue> extends IValueFactory<Value> {
     Value cons(@Nonnull Value fst, @Nonnull Value snd);
     
     @Nonnull
-    Pair<Value> uncons(@Nonnull Value cons) throws Exception;
+    ConsPair<Value> uncons(@Nonnull Value cons);
 
     @Nonnull
-    default Value fst(Value val) throws Exception {
-        return uncons(val).fst;
+    default Value fst(Value val) {
+        return uncons(val).fst();
     }
 
     @Nonnull
-    default Value snd(Value val) throws Exception {
-        return uncons(val).snd;
+    default Value snd(Value val) {
+        return uncons(val).snd();
     }
 
-    Value makeSymbol(Value name) throws Exception;
+    Value makeSymbol(Value name);
 
     boolean isSymbol(Value symbol);
 
-    Value symbolName(Value symbol) throws Exception;
+    Value symbolName(Value symbol);
 
     // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }

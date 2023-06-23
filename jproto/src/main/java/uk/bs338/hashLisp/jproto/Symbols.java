@@ -10,11 +10,11 @@ public final class Symbols {
         throw new AssertionError("No Symbols instances for you!");
     }
     
-    public static <V extends IValue> V makeSymbol(IHeap<V> heap, String name) throws Exception {
+    public static <V extends IValue> V makeSymbol(IHeap<V> heap, String name) {
         return heap.makeSymbol(stringAsList(heap, name));
     }
     
-    public static <V extends IValue> String symbolName(IHeap<V> heap, V symbol) throws Exception {
+    public static <V extends IValue> String symbolName(IHeap<V> heap, V symbol) {
         return listAsString(heap, heap.symbolName(symbol));
     }
 }

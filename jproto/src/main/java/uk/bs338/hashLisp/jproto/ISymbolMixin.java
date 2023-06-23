@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto;
 
 /* This mixin extends a heap with symbol support */
 public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
-    default V makeSymbol(V name) throws Exception {
+    default V makeSymbol(V name) {
         return cons(symbolTag(), name);
     }
 
@@ -14,7 +14,7 @@ public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
         }
     }
 
-    default V symbolName(V symbol) throws Exception {
+    default V symbolName(V symbol) {
         return snd(symbol);
     }
 }
