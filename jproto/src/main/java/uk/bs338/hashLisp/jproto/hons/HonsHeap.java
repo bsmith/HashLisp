@@ -127,12 +127,12 @@ public class HonsHeap implements
     }
 
     @Nonnull
-    public ConsPair<HonsValue> uncons(HonsValue val) throws Exception {
+    public ConsPair<HonsValue> uncons(HonsValue val) {
         if (!val.isObjectHash())
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
-            throw new Exception("Failed to find cell in heap: " + val);
+            throw new IllegalStateException("Failed to find cell in heap: " + val);
         return cell.getPair();
     }
 }

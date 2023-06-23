@@ -21,7 +21,7 @@ public class App {
         return "jproto --- prototype for HashLisp";
     }
 
-    public void forceCollision() throws Exception {
+    public void forceCollision() {
         HonsCell cell = new HonsCell(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.println("Can we force a collision?");
 
@@ -45,7 +45,7 @@ public class App {
         }
     }
 
-    public HonsValue sumList(HonsValue list) throws Exception {
+    public HonsValue sumList(HonsValue list) {
         if (list.isNil())
             return HonsValue.fromSmallInt(0);
         else if (list.isSmallInt())
@@ -57,7 +57,7 @@ public class App {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());
 

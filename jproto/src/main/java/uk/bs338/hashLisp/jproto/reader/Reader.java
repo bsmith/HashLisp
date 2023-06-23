@@ -24,7 +24,7 @@ public class Reader {
         this.errors = null;
     }
     
-    private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) throws Exception {
+    private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) {
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
@@ -47,7 +47,7 @@ public class Reader {
         }
     }
 
-    private Optional<HonsValue> readListAfterOpenParens(Iterator<Token> tokeniser) throws Exception {
+    private Optional<HonsValue> readListAfterOpenParens(Iterator<Token> tokeniser) {
         ArrayList<HonsValue> listContents = new ArrayList<>();
         
         while (tokeniser.hasNext()) {
@@ -89,7 +89,7 @@ public class Reader {
         return Optional.empty();
     }
 
-    private Optional<HonsValue> readOneValue(Iterator<Token> tokeniser) throws Exception {
+    private Optional<HonsValue> readOneValue(Iterator<Token> tokeniser) {
         if (!tokeniser.hasNext())
             return Optional.empty();
         
@@ -98,7 +98,7 @@ public class Reader {
         return interpretToken(tokeniser, token);
     }
     
-    public ReadResult read(String str) throws Exception {
+    public ReadResult read(String str) {
         Tokeniser tokeniser = tokeniserFactory.apply(str);
 
         /* XXX something nicer */
