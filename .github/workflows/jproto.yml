@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
     
@@ -40,15 +40,28 @@ jobs:
         
     - name: Test jproto
       run: 'cd jproto && ./gradlew test'
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: jproto-test-report
+        path: jproto/build/reports/tests/test
       
     - name: Build/install distribution
       run: 'cd jproto && ./gradlew --profile clean test build installDist'
     
     - name: Run installed version
       run: 'cd jproto && build/install/jproto/bin/jproto'
+
+    - name: Upload profile report
+      uses: actions/upload-artifact@v3
+      with:
+        name: jproto-profile-report
+        path: jproto/build/reports/profile
   
   shadow:
     runs-on: ubuntu-latest
+    needs: test
     
     strategy:
       matrix:
