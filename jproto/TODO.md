@@ -8,13 +8,25 @@
 
 3. evaluator with memoisation
 
-    * [] applying primitives that call java
-    * [] applying lambdas
+    * [ ] applying primitives that call java
+    * [ ] applying lambdas
 
 4. maintain documentation
 
-    * [] identify gaps in the specification
+    * [ ] identify gaps in the specification
 
-## Extras & extensions
+## Detailed items
 
-* Investigate gradle's JaCoCo coverage plugin
+* [ ] Investigate gradle's JaCoCo coverage plugin
+* [ ] Javadocs:
+  * [ ] Add documentation to project
+  * [ ] Workflow to build javadocs and push to GH Pages
+* [ ] Syntax:
+  * [ ] Comments
+  * [ ] Strings
+* [ ] Semantics:
+  * [ ] Clear spec for evaluation
+  * [ ] Checks implementation matches spec
+* [ ] Monadic IO system using free monads
+* [ ] RTEnvironment for dependency injection
+* [ ] Exception class
