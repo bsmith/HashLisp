@@ -121,11 +121,31 @@ class ReaderTest {
     
     @Nested
     class StringValues {
-        @Test void emptyString() {}
-        @Test void stringWithSpaces() {}
-        @Test void multilineString() {}
-        @Test void backtickString() {}
-        @Test void emojiString() {}
+        void assertStringRead(String expectedStr, String input) {
+            var actual = reader.read(input);
+            var expected = stringAsList(heap, expectedStr);
+            assertEquals(Optional.of(expected), actual.getValue());
+        }
+        
+        @Test void emptyString() {
+            assertStringRead("", "\"\"");
+        }
+        
+        @Test void stringWithSpaces() {
+            assertStringRead("   ", "\"   \"");
+        }
+        
+        @Test void multilineString() {
+            assertStringRead("abc\nmno\nxyz", "\"abc\nmno\nxyz\"");
+        }
+        
+        @Test void backquoteString() {
+            assertStringRead("abc\"xyz", "\"abc\\\"xyz\"");
+        }
+        
+        @Test void emojiString() {
+            /* TODO */
+        }
     }
     
     @Test
