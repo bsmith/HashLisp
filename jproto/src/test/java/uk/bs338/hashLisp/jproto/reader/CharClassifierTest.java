@@ -58,6 +58,18 @@ class CharClassifierTest {
         assertEquals(EnumSet.of(DOT_CHAR), classifier.classifyChar("."));
     }
     
+    @Test void lineCommentSemicolon() {
+        assertEquals(EnumSet.of(LINE_COMMENT_CHAR), classifier.classifyChar(";"));
+    }
+    
+    @Test void stringQuoteDoubleQuote() {
+        assertEquals(EnumSet.of(STRING_QUOTE_CHAR), classifier.classifyChar("\""));
+    }
+    
+    @Test void stringEscapeBackslash() {
+        assertEquals(EnumSet.of(STRING_ESCAPE_CHAR), classifier.classifyChar("\\"));
+    }
+    
     @Test void whitespace() {
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar(" "));
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\n"));

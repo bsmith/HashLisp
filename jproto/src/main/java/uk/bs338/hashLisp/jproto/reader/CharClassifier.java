@@ -12,6 +12,9 @@ public class CharClassifier {
         HASH_CHAR,
         COLON_CHAR,
         DOT_CHAR,
+        LINE_COMMENT_CHAR,
+        STRING_QUOTE_CHAR,
+        STRING_ESCAPE_CHAR,
         WHITESPACE
     }
     
@@ -38,6 +41,9 @@ public class CharClassifier {
         classTable.get('#').add(CharClass.HASH_CHAR);
         classTable.get(':').add(CharClass.COLON_CHAR);
         classTable.get('.').add(CharClass.DOT_CHAR);
+        classTable.get(';').add(CharClass.LINE_COMMENT_CHAR);
+        classTable.get('"').add(CharClass.STRING_QUOTE_CHAR);
+        classTable.get('\\').add(CharClass.STRING_ESCAPE_CHAR);
         symbolChars.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.SYMBOL_CHAR));
         digits.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.DIGIT_CHAR));
         whitespace.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.WHITESPACE));
