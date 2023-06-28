@@ -53,19 +53,34 @@ public class Tokeniser implements Iterator<Token> {
         }
     }
 
-    public void eatClasses(EnumSet<CharClass> eatThem) {
+    public void eatExceptClasses(EnumSet<CharClass> stopAt) {
         while (!isAtEnd()) {
             var charClass = classifyFirstChar();
-            charClass.retainAll(eatThem);
-            if (!charClass.isEmpty())
+            charClass.retainAll(stopAt);
+            if (charClass.isEmpty())
                 advancePosition();
             else
                 break;
         }
     }
     
+    /* Eat both whitespace and comments */
     public void eatWhitespace() {
-        eatClass(CharClass.WHITESPACE);
+        while (!isAtEnd()) {
+            eatClass(CharClass.WHITESPACE);
+            if (!isAtEnd() && classifyFirstChar().contains(CharClass.LINE_COMMENT_CHAR)) {
+                /* consume the LINE_COMMENT_CHAR */
+                advancePosition();
+                /* consume characters that don't end a line */
+                eatExceptClasses(EnumSet.of(CharClass.END_OF_LINE_CHARS));
+                /* eat more whitespace! */
+                /* we're assuming that WHITESPACE includes END_OF_LINE_CHARS */ 
+                continue;
+            }
+            else {
+                break;
+            }
+        }
     }
     
     @Override
@@ -110,7 +125,7 @@ public class Tokeniser implements Iterator<Token> {
             int segmentStartOffset = curOffset;
             StringBuilder collectedString = new StringBuilder();
             while (!isAtEnd()) {
-                eatClasses(EnumSet.complementOf(specialChars));
+                eatExceptClasses(specialChars);
                 collectedString.append(source.subSequence(segmentStartOffset, curOffset));
 //                segmentStartOffset = curOffset;   // XXX
                 var nextCharClass = classifyFirstChar();
@@ -151,7 +166,7 @@ public class Tokeniser implements Iterator<Token> {
                     /* eat until we find a permitted character */
                     System.out.println(nextCharClass);
                     type = TokenType.UNKNOWN;
-                    eatClasses(EnumSet.complementOf(permittedNext));
+                    eatExceptClasses(permittedNext);
                 }
             }
         }
