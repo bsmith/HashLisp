@@ -240,7 +240,7 @@ class TokeniserTest {
             assertFalse(tokeniser.hasNext());
             assertEquals(source.length(), tokeniser.getStartPos());
             assertEquals(expectedToken, token.getToken());
-            assertEquals("0-" + String.valueOf(source.length()), token.getPositionAsString());
+            assertEquals("0-" + source.length(), token.getPositionAsString());
         }
         
         @Test void includesNewline() {

@@ -146,10 +146,12 @@ class ReaderTest {
     }
     
     @Test void comments() {
-        var input = "(1 ;comment\n" +
-            ".;comment\n" +
-            ";comment\n" +
-            "2) ;comment\n";
+        var input = """
+            (1 ;comment
+            .;comment
+            ;comment
+            2) ;comment
+            """;
         var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
         ReadResult rv = reader.read(input);
         assertEquals(Optional.of(expected), rv.getValue());

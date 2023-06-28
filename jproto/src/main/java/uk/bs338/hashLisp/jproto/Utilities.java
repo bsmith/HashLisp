@@ -1,7 +1,5 @@
 package uk.bs338.hashLisp.jproto;
 
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
