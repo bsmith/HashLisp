@@ -9,7 +9,8 @@ public /*abstract*/ class Token {
         OPEN_PARENS,
         CLOSE_PARENS,
         DIGITS,
-        SYMBOL
+        SYMBOL,
+        STRING
     }
     
     private final TokenType type;

@@ -163,6 +163,16 @@ class TokeniserTest {
             assertEquals("abc", token.getToken());
             assertEquals("0-3", token.getPositionAsString());
         }
+        
+        @Test void stringToken() {
+            source = "\"abc\"";
+            tokeniser = new Tokeniser(source, charClassifier);
+            Token token = tokeniser.next();
+            assertFalse(tokeniser.hasNext());
+            assertEquals(source.length(), tokeniser.getStartPos());
+            assertEquals("abc", token.getToken());
+            assertEquals("0-5", token.getPositionAsString());
+        }
 
         @Test void openParens() {
             source = "(";
@@ -212,6 +222,60 @@ class TokeniserTest {
             assertEquals(source.length(), tokeniser.getStartPos());
             assertEquals(".", token.getToken());
             assertEquals("0-1", token.getPositionAsString());
+        }
+    }
+    
+    @Nested
+    class StringTokens {
+        void testOneToken(String source, String expectedToken) {
+            tokeniser = new Tokeniser(source, charClassifier);
+            Token token = tokeniser.next();
+            assertFalse(tokeniser.hasNext());
+            assertEquals(source.length(), tokeniser.getStartPos());
+            assertEquals(expectedToken, token.getToken());
+            assertEquals("0-" + String.valueOf(source.length()), token.getPositionAsString());
+        }
+        
+        @Test void includesNewline() {
+            testOneToken("\"\n\"", "\n");
+            testOneToken("\"\r\n\"", "\r\n");
+        }
+        
+        @Test void escapedLiteralNewLine() {
+            testOneToken("\"\\\n\"", "\n");
+        }
+        
+        @Test void backslashTab() {
+            testOneToken("\"\\t\"", "\t");
+        }
+        
+        @Test void backslashBackspace() {
+            testOneToken("\"\\b\"", "\b");
+        }
+        
+        @Test void backslashNewline() {
+            testOneToken("\"\\n\"", "\n");
+        }
+        
+        @Test void backslashCarriageReturn() {
+            testOneToken("\"\\r\"", "\r");
+        }
+        
+        @Test void backslashFormfeed() {
+            testOneToken("\"\\f\"", "\f");
+        }
+
+        @Test void escapedSingleQuote() {
+            testOneToken("\"\\'\"", "'");
+        }
+
+        @Test void escapedDoubleQuote() {
+            /* source === "\"" */
+            testOneToken("\"\\\"\"", "\"");
+        }
+        
+        @Test void escapedBackslash() {
+            testOneToken("\"\\\\\"", "\\");
         }
     }
 }
