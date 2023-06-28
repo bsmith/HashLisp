@@ -30,3 +30,6 @@
 * [ ] Monadic IO system using free monads
 * [ ] RTEnvironment for dependency injection
 * [ ] Exception class
+* [ ] Command-line argument handling (similar to perl/python)
+* [ ] Publish to maven central or github
+

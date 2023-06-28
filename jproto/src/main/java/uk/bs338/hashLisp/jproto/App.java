@@ -13,6 +13,8 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 public class App {
     private final HonsHeap heap;
 
+    public boolean dumpHeap = false;
+
     public App() {
         heap = new HonsHeap();
     }
@@ -45,22 +47,7 @@ public class App {
         }
     }
 
-    public HonsValue sumList(HonsValue list) {
-        if (list.isNil())
-            return HonsValue.fromSmallInt(0);
-        else if (list.isSmallInt())
-            return list;
-        else {
-            HonsValue head = sumList(heap.fst(list));
-            HonsValue rest = sumList(heap.snd(list));
-            return HonsValue.applySmallIntOperation(Integer::sum, head, rest);
-        }
-    }
-
-    public static void main(String[] args) {
-        App app = new App();
-        System.out.println(app.getGreeting());
-
+    public void demo() {
         System.out.printf("nil:             %s%n", HonsValue.nil);
         System.out.printf("symbolTag:       %s%n", HonsValue.symbolTag);
         System.out.printf("small int -17:   %s%n", HonsValue.fromSmallInt(-17));
@@ -70,7 +57,6 @@ public class App {
         HonsCell cell = new HonsCell(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.printf("cell: %s%n", cell);
 
-        HonsHeap heap = app.heap;
         HonsValue val = heap.cons(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.printf("hons: %s%n", val);
         System.out.printf("      %s%n", heap.valueToString(val));
@@ -90,18 +76,30 @@ public class App {
         System.out.println(heap.valueToString(list));
         System.out.println();
 
-        System.out.printf("sum: %s%n", app.sumList(list));
+        System.out.printf("sum: %s%n", sumList(heap, list));
         System.out.println();
         
         System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
         System.out.println();
 
-        app.forceCollision();
-        System.out.println();
+        forceCollision();
+    }
 
-        LazyEvaluator.demo(heap);
-        System.out.println();
-        
-        heap.dumpHeap(System.out);
+    public void run() {
+        demo();
+
+        if (dumpHeap) {
+            System.err.printf("%n---%nHeap dump:%n");
+            heap.dumpHeap(System.err);
+            System.err.printf("---%n");
+        }
+    }
+
+    public static void main(String[] args) {
+        App app = new App();
+        System.out.println(app.getGreeting());
+        System.out.printf("args: %s%n", (Object) args);
+        app.dumpHeap = true;
+        app.run();
     }
 }
