@@ -118,7 +118,8 @@ public class Tokeniser implements Iterator<Token> {
                     advancePosition(); /* eat the backslash */
                     segmentStartOffset = curOffset;
                     advancePosition(); /* eat the char escaped */
-                    collectedString.append(source.subSequence(segmentStartOffset, curOffset));
+                    var escapedChar = source.subSequence(segmentStartOffset, curOffset);
+                    collectedString.append(charClassifier.interpretEscapedChar(escapedChar.toString()));
                     segmentStartOffset = curOffset;
                     /* continue */
                 }

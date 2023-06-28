@@ -236,11 +236,6 @@ class TokeniserTest {
             assertEquals("0-" + String.valueOf(source.length()), token.getPositionAsString());
         }
         
-        @Test void escapedDoubleQuote() {
-            /* source === "\"" */
-            testOneToken("\"\\\"\"", "\"");
-        }
-        
         @Test void includesNewline() {
             testOneToken("\"\n\"", "\n");
             testOneToken("\"\r\n\"", "\r\n");
@@ -248,6 +243,39 @@ class TokeniserTest {
         
         @Test void escapedLiteralNewLine() {
             testOneToken("\"\\\n\"", "\n");
+        }
+        
+        @Test void backslashTab() {
+            testOneToken("\"\\t\"", "\t");
+        }
+        
+        @Test void backslashBackspace() {
+            testOneToken("\"\\b\"", "\b");
+        }
+        
+        @Test void backslashNewline() {
+            testOneToken("\"\\n\"", "\n");
+        }
+        
+        @Test void backslashCarriageReturn() {
+            testOneToken("\"\\r\"", "\r");
+        }
+        
+        @Test void backslashFormfeed() {
+            testOneToken("\"\\f\"", "\f");
+        }
+
+        @Test void escapedSingleQuote() {
+            testOneToken("\"\\'\"", "'");
+        }
+
+        @Test void escapedDoubleQuote() {
+            /* source === "\"" */
+            testOneToken("\"\\\"\"", "\"");
+        }
+        
+        @Test void escapedBackslash() {
+            testOneToken("\"\\\\\"", "\\");
         }
     }
 }
