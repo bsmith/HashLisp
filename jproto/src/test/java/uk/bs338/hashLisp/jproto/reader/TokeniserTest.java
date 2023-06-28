@@ -142,6 +142,13 @@ class TokeniserTest {
         }
     }
     
+    @Test void eatsComments() {
+        tokeniser = new Tokeniser("  ;comment\nabc", charClassifier);
+        tokeniser.eatWhitespace();
+        assertEquals(11, tokeniser.getStartPos());
+        assertEquals("abc", tokeniser.getRemaining());
+    }
+    
     @Nested
     class OneTokenOnly {
         @Test void intToken() {

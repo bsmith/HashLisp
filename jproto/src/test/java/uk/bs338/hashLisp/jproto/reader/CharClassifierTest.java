@@ -73,8 +73,8 @@ class CharClassifierTest {
     
     @Test void whitespace() {
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar(" "));
-        assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\n"));
-        assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\r"));
+        assertEquals(EnumSet.of(WHITESPACE, END_OF_LINE_CHARS), classifier.classifyChar("\n"));
+        assertEquals(EnumSet.of(WHITESPACE, END_OF_LINE_CHARS), classifier.classifyChar("\r"));
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\t"));
     }
     

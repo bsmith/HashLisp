@@ -148,6 +148,17 @@ class ReaderTest {
         }
     }
     
+    @Test void comments() {
+        var input = "(1 ;comment\n" +
+            ".;comment\n" +
+            ";comment\n" +
+            "2) ;comment\n";
+        var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
+        ReadResult rv = reader.read(input);
+        assertEquals(Optional.of(expected), rv.getValue());
+        assertEquals("", rv.getRemaining());
+    }
+    
     @Test
     void read(TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";

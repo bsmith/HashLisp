@@ -107,6 +107,9 @@ public class Reader {
         var oldErrors = this.errors;
         this.errors = new ArrayList<>();
         var value = readOneValue(tokeniser);
+        /* if we read something, eat any whitespace after it */
+        if (value.isPresent())
+            tokeniser.eatWhitespace();
         var errors = this.errors;
         this.errors = oldErrors;
         
