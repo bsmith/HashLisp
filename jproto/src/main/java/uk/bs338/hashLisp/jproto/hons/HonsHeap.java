@@ -145,6 +145,8 @@ public class HonsHeap implements
     
     /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
     public Optional<HonsValue> getMemoEval(HonsValue val) {
+        if (!val.isConsRef())
+            return Optional.empty();
         var cell = getCell(val);
         return Optional.ofNullable(cell.getMemoEval());
     }
