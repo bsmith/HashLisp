@@ -4,7 +4,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
-/* Utilities to interop between Java and ILispValue */
+/* Utilities to interop between Java and IValue */
 
 @ParametersAreNonnullByDefault
 public final class Utilities {
@@ -61,7 +61,7 @@ public final class Utilities {
         return list;
     }
     
-    public static <V extends IValue> void unmakeList(IHeap<V> heap, V list, List<V> dst) throws Exception {
+    public static <V extends IValue> void unmakeList(IHeap<V> heap, V list, List<V> dst) {
         V cur = list;
         while (cur != null) {
             if (cur.isNil())

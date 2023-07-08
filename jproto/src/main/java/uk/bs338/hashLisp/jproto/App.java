@@ -3,6 +3,7 @@
  */
 package uk.bs338.hashLisp.jproto;
 
+import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -52,7 +53,7 @@ public class App {
         else {
             HonsValue head = sumList(heap.fst(list));
             HonsValue rest = sumList(heap.snd(list));
-            return HonsValue.applySmallIntOperation((a, b) -> a + b, head, rest);
+            return HonsValue.applySmallIntOperation(Integer::sum, head, rest);
         }
     }
 
@@ -96,8 +97,11 @@ public class App {
         System.out.println();
 
         app.forceCollision();
-
         System.out.println();
+
+        LazyEvaluator.demo(heap);
+        System.out.println();
+        
         heap.dumpHeap(System.out);
     }
 }
