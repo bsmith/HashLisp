@@ -7,7 +7,6 @@ import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class App {
@@ -93,7 +92,7 @@ public class App {
         System.out.printf("sum: %s%n", app.sumList(list));
         System.out.println();
         
-        System.out.printf("symbol: %s%n", heap.valueToString(makeSymbol(heap, "example")));
+        System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
         System.out.println();
 
         app.forceCollision();
