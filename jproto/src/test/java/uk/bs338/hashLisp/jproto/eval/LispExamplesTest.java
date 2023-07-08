@@ -1,6 +1,5 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import com.opencsv.CSVReaderBuilder;
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
@@ -66,25 +65,5 @@ public class LispExamplesTest {
             "7",
             "((lambda (x y) y) (add 1 2) (add 3 4))"
         );
-    }
-    
-    @TestFactory
-    Collection<DynamicTest> csvTestCases() throws IOException {
-        var resource = getClass().getClassLoader().getResourceAsStream("lispExamples.csv");
-        assert resource != null;
-        try (var reader = new CSVReaderBuilder(new InputStreamReader(resource)).build()) {
-            List<DynamicTest> tests = new ArrayList<>();
-            for (var fields : reader) {
-                tests.add(DynamicTest.dynamicTest(fields[0], () -> {
-                    System.out.printf("fields: %s--%s--%s%n", fields[0], fields[1], fields[2]);
-                    assertEval(fields[2], fields[1]);
-                }));
-            }
-            return tests;
-//            return DynamicTest.stream(reader.iterator(),
-//                (String[] fields) -> fields[0],
-//                (String[] fields) -> assertEval(fields[2], fields[1])
-//            );
-        }
     }
 }
