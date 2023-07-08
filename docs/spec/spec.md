@@ -45,6 +45,14 @@ For example,
 
 In s-expr used for programs, there is no need to use the cons pair notation: everything is built out of lists.  The cons pair notation is included for completeness as these structures can be built in memory by a program, and including this notation allows memory states to be both printed and read.
 
+## Storing S-exprs in the Hashed Heap
+
+_S-expr items_ can be stored in the hashed _Heap_ described above.  Items that don't require a cons pair, can be simply represented by a value.
+
+To store a cons pair, first fill out a _cons cell_.  Set _fst_ and _snd_ of the cell to the values stored for the _fst_ and _snd_ of the _s-expr item_.  Set _memoEval_ to _nil_.  Calculate the _hashCode_ calculated over the values of _fst_ and _snd_.  Look up the _hashCode_ in the _Heap_.
+
+TODO: explain how hash collisions work, and lookup works.
+
 ## HashLisp programs
 
 A HashLisp program is a s-expr that conforms to additional syntax rules.
@@ -85,3 +93,16 @@ The **arg match** procedure takes a
 TODO: explain **subst**
 
 ## HashLisp primitives
+
+* `lambda`
+* `cons`
+* `list`
+* `quote`
+* `fst` and `snd`
+* `uncons`
+* `nilp`, `smallintp`, `symbolp`, `lambdap` and `consp`
+* `cond`
+* `eval`
+* `apply`
+
+TODO: document the primitives
