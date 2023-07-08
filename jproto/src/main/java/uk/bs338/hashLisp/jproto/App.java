@@ -63,7 +63,7 @@ public class App {
 
         System.out.printf("nil:             %s%n", HonsValue.nil);
         System.out.printf("symbolTag:       %s%n", HonsValue.symbolTag);
-        System.out.printf("short int -17:   %s%n", HonsValue.fromSmallInt(-17));
+        System.out.printf("small int -17:   %s%n", HonsValue.fromSmallInt(-17));
         System.out.printf("object hash -19: %s%n", HonsValue.fromObjectHash(-19));
         System.out.println();
 
