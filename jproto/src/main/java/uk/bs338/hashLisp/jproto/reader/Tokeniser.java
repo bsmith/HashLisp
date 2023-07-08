@@ -21,6 +21,10 @@ public class Tokeniser implements Iterator<Token> {
         this.startPos = 0;
     }
     
+    public static ITokeniserFactory getFactory(CharClassifier charClassifier) {
+        return str -> new Tokeniser(str, charClassifier);
+    }
+    
     public String getRemaining() {
         return source.subSequence(curOffset, source.length()).toString();
     }

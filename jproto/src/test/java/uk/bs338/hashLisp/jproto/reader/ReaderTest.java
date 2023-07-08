@@ -6,17 +6,14 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class ReaderTest {
     HonsHeap heap;
     CharClassifier charClassifier;
-    Function<String, Tokeniser> tokeniserFactory;
     Reader reader;
 
     @BeforeEach
@@ -26,13 +23,13 @@ class ReaderTest {
             heap = new HonsHeap();
         if (charClassifier == null)
             charClassifier = new CharClassifier();
-        tokeniserFactory = (String str) -> new Tokeniser(str, charClassifier); 
+        var tokeniserFactory = Tokeniser.getFactory(charClassifier); 
         reader = new Reader(heap, tokeniserFactory);
     }
     
     @Nested
     class SimpleValues {
-        @Test void shortInt() {
+        @Test void smallInt() {
             var input = "123";
             var expected = ReadResult.successfulRead("", HonsValue.fromSmallInt(123));
             var actual = reader.read(input);
@@ -41,7 +38,7 @@ class ReaderTest {
 
         @Test void symbol() {
             var input = "abc";
-            var expected = ReadResult.successfulRead("", makeSymbol(heap, "abc"));
+            var expected = ReadResult.successfulRead("", heap.makeSymbol("abc"));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
@@ -162,7 +159,7 @@ class ReaderTest {
     @Test
     void read(TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";
-        var addSym = makeSymbol(heap, "add");
+        var addSym = heap.makeSymbol("add");
         var expected = makeList(heap,
             addSym,
             makeList(heap,

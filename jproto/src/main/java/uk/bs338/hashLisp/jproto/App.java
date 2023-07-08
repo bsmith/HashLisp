@@ -3,11 +3,11 @@
  */
 package uk.bs338.hashLisp.jproto;
 
+import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import static uk.bs338.hashLisp.jproto.Symbols.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class App {
@@ -53,7 +53,7 @@ public class App {
         else {
             HonsValue head = sumList(heap.fst(list));
             HonsValue rest = sumList(heap.snd(list));
-            return HonsValue.applySmallIntOperation((a, b) -> a + b, head, rest);
+            return HonsValue.applySmallIntOperation(Integer::sum, head, rest);
         }
     }
 
@@ -63,7 +63,7 @@ public class App {
 
         System.out.printf("nil:             %s%n", HonsValue.nil);
         System.out.printf("symbolTag:       %s%n", HonsValue.symbolTag);
-        System.out.printf("short int -17:   %s%n", HonsValue.fromSmallInt(-17));
+        System.out.printf("small int -17:   %s%n", HonsValue.fromSmallInt(-17));
         System.out.printf("object hash -19: %s%n", HonsValue.fromObjectHash(-19));
         System.out.println();
 
@@ -93,12 +93,15 @@ public class App {
         System.out.printf("sum: %s%n", app.sumList(list));
         System.out.println();
         
-        System.out.printf("symbol: %s%n", heap.valueToString(makeSymbol(heap, "example")));
+        System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
         System.out.println();
 
         app.forceCollision();
-
         System.out.println();
+
+        LazyEvaluator.demo(heap);
+        System.out.println();
+        
         heap.dumpHeap(System.out);
     }
 }

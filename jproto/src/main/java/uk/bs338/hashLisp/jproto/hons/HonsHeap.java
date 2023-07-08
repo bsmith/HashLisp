@@ -26,7 +26,7 @@ public class HonsHeap implements
             putCell(new HonsCell(special));
         }
     }
-
+    
     private HonsCell getCell(@Nonnull HonsValue obj) {
         return heap.get(obj.toObjectHash());
     }
@@ -72,7 +72,7 @@ public class HonsHeap implements
             cell.bumpObjectHash();
         } while (true);
     }
-    
+
     public String listToString(HonsValue head, HonsValue rest) {
         return listToString(head, rest, "");
     }
