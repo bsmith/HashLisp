@@ -1,0 +1,93 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: "JProto — Java CI with Gradle"
+
+on:
+  push:
+    branches: [ "main", "devel" ]
+  pull_request:
+    branches: [ "main", "devel" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        java: [ '17', '20' ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK ${{ matrix.Java }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ matrix.Java }}
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: current
+        
+    - name: Test jproto
+      run: 'cd jproto && ./gradlew test'
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: jproto-test-report
+        path: jproto/build/reports/tests/test
+      
+    - name: Build/install distribution
+      run: 'cd jproto && ./gradlew --profile clean test build installDist'
+    
+    - name: Run installed version
+      run: 'cd jproto && build/install/jproto/bin/jproto'
+
+    - name: Upload profile report
+      uses: actions/upload-artifact@v3
+      with:
+        name: jproto-profile-report
+        path: jproto/build/reports/profile
+  
+  shadow:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    strategy:
+      matrix:
+        java: [ '17' ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK ${{ matrix.Java }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ matrix.Java }}
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: current
+        
+    - name: Build fatjar jproto
+      run: 'cd jproto && ./gradlew shadowJar'
+      
+    - name: Run the fatjar
+      run: 'cd jproto && java -jar build/libs/jproto-all.jar'
+    
+    - name: Upload fatjar artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: jproto-fatjar
+        path: jproto/build/libs/jproto-all.jar
