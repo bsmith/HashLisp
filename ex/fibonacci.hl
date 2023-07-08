@@ -1,0 +1,8 @@
+; NB. not checked for correctness
+; NB. uses top-level (let ...) syntax
+
+(let (Y f) ((lambda (x) (f (x x))) (lambda (x) (f (x x))))
+
+(let (fib$ fib$$) (lambda (n) (expr n * (fib$$ (expr n - 1)))))
+
+(let (fib n) ((Y fib$) n)
