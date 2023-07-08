@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.List;
 
 /* Utilities to interop between Java and ILispValue */
 
@@ -15,7 +16,7 @@ public final class Utilities {
         V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.cons(heap.makeShortInt(num), list);
+            list = heap.cons(heap.makeSmallInt(num), list);
         }
         return list;
     }
@@ -29,10 +30,12 @@ public final class Utilities {
             ArrayList<Integer> codepoints = new ArrayList<>();
             var cur = list;
             while (!cur.isNil()) {
-                ConsPair<V> pair = heap.uncons(cur);
-                int ch = pair.fst().toSmallInt();
+                /* XXX record patterns is a Java 19 feature */
+//                if (heap.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
+                ConsPair<V> uncons = heap.uncons(cur);
+                int ch = uncons.fst().toSmallInt();
                 codepoints.add(ch);
-                cur = pair.snd();
+                cur = uncons.snd();
             }
             return new String(codepoints.stream().mapToInt(ch -> ch).toArray(), 0, codepoints.size());
         } catch (Exception e) {
@@ -56,5 +59,20 @@ public final class Utilities {
             list = heap.cons(elements[index], list);
         }
         return list;
+    }
+    
+    public static <V extends IValue> void unmakeList(IHeap<V> heap, V list, List<V> dst) throws Exception {
+        V cur = list;
+        while (cur != null) {
+            if (cur.isNil())
+                return;
+            if (!cur.isConsRef()) {
+                dst.add(cur);
+                return;
+            }
+            var uncons = heap.uncons(cur);
+            dst.add(uncons.fst());
+            cur = uncons.snd();
+        }
     }
 }

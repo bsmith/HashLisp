@@ -1,12 +1,14 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -24,13 +26,13 @@ public class HonsHeap implements
             putCell(new HonsCell(special));
         }
     }
-    
-    private void putCell(@Nonnull HonsCell cell) {
-        heap.put(cell.getObjectHash(), cell);
-    }
-    
+
     private HonsCell getCell(@Nonnull HonsValue obj) {
         return heap.get(obj.toObjectHash());
+    }
+
+    private void putCell(@Nonnull HonsCell cell) {
+        heap.put(cell.getObjectHash(), cell);
     }
     
     private HonsCell getCell(@Nonnull HonsCell cell) {
@@ -43,7 +45,7 @@ public class HonsHeap implements
     }
 
     @Override
-    public HonsValue makeShortInt(int num) {
+    public HonsValue makeSmallInt(int num) {
         return HonsValue.fromSmallInt(num);
     }
 
@@ -70,7 +72,7 @@ public class HonsHeap implements
             cell.bumpObjectHash();
         } while (true);
     }
-
+    
     public String listToString(HonsValue head, HonsValue rest) {
         return listToString(head, rest, "");
     }
@@ -116,13 +118,18 @@ public class HonsHeap implements
     }
 
     public void dumpHeap(PrintStream stream) {
+        dumpHeap(stream, false);
+    }
+    
+    public void dumpHeap(PrintStream stream, boolean onlyWithMemoValues) {
         stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
         var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         
         for (var entry : sortedHeap) {
             HonsCell cell = entry.getValue();
-            stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
+            if (!onlyWithMemoValues || cell.getMemoEval() != null)
+                stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
         }
     }
 
@@ -134,5 +141,35 @@ public class HonsHeap implements
         if (cell == null)
             throw new IllegalStateException("Failed to find cell in heap: " + val);
         return cell.getPair();
+    }
+    
+    /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
+    public Optional<HonsValue> getMemoEval(HonsValue val) {
+        if (!val.isConsRef())
+            return Optional.empty();
+        var cell = getCell(val);
+        return Optional.ofNullable(cell.getMemoEval());
+    }
+    
+    /* XXX what if the cell doesn't exist? */
+    public void setMemoEval(HonsValue val, HonsValue evalResult) {
+        var cell = getCell(val);
+        cell.setMemoEval(evalResult);
+    }
+    
+    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) {
+        if (val.isNil())
+            visitor.visitNil(val);
+        else if (val.isSmallInt())
+            visitor.visitSmallInt(val, val.toSmallInt());
+        else if (this.isSymbol(val))
+            visitor.visitSymbol(val, this.symbolName(val));
+        else if (val.isConsRef()) {
+            var uncons = this.uncons(val);
+            visitor.visitCons(val, uncons.fst(), uncons.snd());
+        }
+        else {
+            throw new IllegalArgumentException("couldn't identify value: " + val);
+        }
     }
 }
