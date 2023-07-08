@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier.CharClass;
@@ -21,7 +20,6 @@ class TokeniserTest {
         tokeniser = new Tokeniser(source, charClassifier);
     }
     
-    @Disabled
     @Test void readAllTokens() {
         while (tokeniser.hasNext()) {
             Token token = tokeniser.next();
@@ -144,6 +142,13 @@ class TokeniserTest {
         }
     }
     
+    @Test void eatsComments() {
+        tokeniser = new Tokeniser("  ;comment\nabc", charClassifier);
+        tokeniser.eatWhitespace();
+        assertEquals(11, tokeniser.getStartPos());
+        assertEquals("abc", tokeniser.getRemaining());
+    }
+    
     @Nested
     class OneTokenOnly {
         @Test void intToken() {
@@ -164,6 +169,16 @@ class TokeniserTest {
             assertEquals(source.length(), tokeniser.getStartPos());
             assertEquals("abc", token.getToken());
             assertEquals("0-3", token.getPositionAsString());
+        }
+        
+        @Test void stringToken() {
+            source = "\"abc\"";
+            tokeniser = new Tokeniser(source, charClassifier);
+            Token token = tokeniser.next();
+            assertFalse(tokeniser.hasNext());
+            assertEquals(source.length(), tokeniser.getStartPos());
+            assertEquals("abc", token.getToken());
+            assertEquals("0-5", token.getPositionAsString());
         }
 
         @Test void openParens() {
@@ -214,6 +229,60 @@ class TokeniserTest {
             assertEquals(source.length(), tokeniser.getStartPos());
             assertEquals(".", token.getToken());
             assertEquals("0-1", token.getPositionAsString());
+        }
+    }
+    
+    @Nested
+    class StringTokens {
+        void testOneToken(String source, String expectedToken) {
+            tokeniser = new Tokeniser(source, charClassifier);
+            Token token = tokeniser.next();
+            assertFalse(tokeniser.hasNext());
+            assertEquals(source.length(), tokeniser.getStartPos());
+            assertEquals(expectedToken, token.getToken());
+            assertEquals("0-" + String.valueOf(source.length()), token.getPositionAsString());
+        }
+        
+        @Test void includesNewline() {
+            testOneToken("\"\n\"", "\n");
+            testOneToken("\"\r\n\"", "\r\n");
+        }
+        
+        @Test void escapedLiteralNewLine() {
+            testOneToken("\"\\\n\"", "\n");
+        }
+        
+        @Test void backslashTab() {
+            testOneToken("\"\\t\"", "\t");
+        }
+        
+        @Test void backslashBackspace() {
+            testOneToken("\"\\b\"", "\b");
+        }
+        
+        @Test void backslashNewline() {
+            testOneToken("\"\\n\"", "\n");
+        }
+        
+        @Test void backslashCarriageReturn() {
+            testOneToken("\"\\r\"", "\r");
+        }
+        
+        @Test void backslashFormfeed() {
+            testOneToken("\"\\f\"", "\f");
+        }
+
+        @Test void escapedSingleQuote() {
+            testOneToken("\"\\'\"", "'");
+        }
+
+        @Test void escapedDoubleQuote() {
+            /* source === "\"" */
+            testOneToken("\"\\\"\"", "\"");
+        }
+        
+        @Test void escapedBackslash() {
+            testOneToken("\"\\\\\"", "\\");
         }
     }
 }

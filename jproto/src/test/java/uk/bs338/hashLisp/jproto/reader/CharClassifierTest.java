@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -58,10 +59,22 @@ class CharClassifierTest {
         assertEquals(EnumSet.of(DOT_CHAR), classifier.classifyChar("."));
     }
     
+    @Test void lineCommentSemicolon() {
+        assertEquals(EnumSet.of(LINE_COMMENT_CHAR), classifier.classifyChar(";"));
+    }
+    
+    @Test void stringQuoteDoubleQuote() {
+        assertEquals(EnumSet.of(STRING_QUOTE_CHAR), classifier.classifyChar("\""));
+    }
+    
+    @Test void stringEscapeBackslash() {
+        assertEquals(EnumSet.of(STRING_ESCAPE_CHAR), classifier.classifyChar("\\"));
+    }
+    
     @Test void whitespace() {
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar(" "));
-        assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\n"));
-        assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\r"));
+        assertEquals(EnumSet.of(WHITESPACE, END_OF_LINE_CHARS), classifier.classifyChar("\n"));
+        assertEquals(EnumSet.of(WHITESPACE, END_OF_LINE_CHARS), classifier.classifyChar("\r"));
         assertEquals(EnumSet.of(WHITESPACE), classifier.classifyChar("\t"));
     }
     
@@ -75,6 +88,41 @@ class CharClassifierTest {
         for (char ch = 0; ch < 128; ch++) {
             var classes = classifier.classifyChar(String.valueOf(ch));
             assertNotNull(classes);
+        }
+    }
+    
+    @Nested
+    class interpretingEscapeChars {
+        @Test void tab() {
+            assertEquals("\t", classifier.interpretEscapedChar("t"));
+        }
+
+        @Test void backspace() {
+            assertEquals("\b", classifier.interpretEscapedChar("b"));
+        }
+
+        @Test void newline() {
+            assertEquals("\n", classifier.interpretEscapedChar("n"));
+        }
+
+        @Test void carriageReturn() {
+            assertEquals("\r", classifier.interpretEscapedChar("r"));
+        }
+
+        @Test void formfeed() {
+            assertEquals("\f", classifier.interpretEscapedChar("f"));
+        }
+
+        @Test void singleQuote() {
+            assertEquals("'", classifier.interpretEscapedChar("'"));
+        }
+
+        @Test void doubleQuote() {
+            assertEquals("\"", classifier.interpretEscapedChar("\""));
+        }
+
+        @Test void backslash() {
+            assertEquals("\\", classifier.interpretEscapedChar("\\"));
         }
     }
 }

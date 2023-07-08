@@ -34,6 +34,8 @@ public class Reader {
             }
             errors.add("Failed to parse after HASH: " + token);
             return Optional.empty();
+        } else if (token.getType() == TokenType.STRING) {
+            return Optional.of(stringAsList(heap, token.getToken()));
         } else if (token.getType() == TokenType.OPEN_PARENS) {
             var rv = readListAfterOpenParens(tokeniser);
             if (rv.isEmpty())
@@ -103,6 +105,9 @@ public class Reader {
         var oldErrors = this.errors;
         this.errors = new ArrayList<>();
         var value = readOneValue(tokeniser);
+        /* if we read something, eat any whitespace after it */
+        if (value.isPresent())
+            tokeniser.eatWhitespace();
         var errors = this.errors;
         this.errors = oldErrors;
         

@@ -1,13 +1,25 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
 public class HonsValueTest {
+    @Test void getAllSpecials() {
+        List<HonsValue> allSpecials = new ArrayList<>();
+        HonsValue.getAllSpecials().forEach(allSpecials::add);
+        assertEquals(2, allSpecials.size());
+        assertEquals(HonsValue.nil, allSpecials.get(0));
+        assertEquals(HonsValue.symbolTag, allSpecials.get(1));
+    }
+    
     @Test void integerValuesWork() {
         HonsValue val = HonsValue.fromSmallInt(17);
         assertTrue(val.isSmallInt());
@@ -62,15 +74,72 @@ public class HonsValueTest {
         HonsValue rv = HonsValue.applySmallIntOperation(operation, left, right);
         assertTrue(rv.isNil());
     }
-
-    @Test void integerToString() {
-        HonsValue val = HonsValue.fromSmallInt(17);
-        assertEquals("17", val.toString());
+    
+    @Test void getSpecialNameOfSpecial() {
+        assertEquals("nil", HonsValue.nil.getSpecialName());
+    }
+    
+    @Test void getSpecialNameReturnsNullWithNonSpecial() {
+        assertNull(HonsValue.fromSmallInt(123).getSpecialName());
+    }
+    
+    @Test void symbolTagIsSymbolTag() {
+        assertTrue(HonsValue.symbolTag.isSymbolTag());
+    }
+    
+    @Test void nonTagIsNotSymbolTag() {
+        assertFalse(HonsValue.fromSmallInt(123).isSymbolTag());
+    }
+    
+    @Test void exceptionThrownByToSmallIntThatIsNotSmallInt() {
+        assertThrows(NoSuchElementException.class, () -> {
+            HonsValue.fromObjectHash(123).toSmallInt();
+        });
     }
 
-    @Test void objectHashToString() {
-        HonsValue val = HonsValue.fromObjectHash(17);
-        assertEquals("#17", val.toString());
+    @Test void exceptionThrownByToObjectHashThatIsNotSmallInt() {
+        assertThrows(NoSuchElementException.class, () -> {
+            HonsValue.fromSmallInt(123).toObjectHash();
+        });
+    }
+    
+    @Nested class isConsRef {
+        @Test void trueForObjectHash() {
+            assertTrue(HonsValue.fromObjectHash(123).isConsRef());
+        }
+        
+        @Test void falseForSmallInt() {
+            assertFalse(HonsValue.fromSmallInt(123).isConsRef());
+        }
+        
+        @Test void falseForNil() {
+            assertFalse(HonsValue.nil.isConsRef());
+        }
+        
+        @Test void falseForSymbolTag() {
+            assertFalse(HonsValue.symbolTag.isConsRef());
+        }
+    }
+
+    @Nested
+    class toString {
+        @Test void nilToString() {
+            assertEquals("nil", HonsValue.nil.toString());
+        }
+        
+        @Test void symbolTagToString() {
+            assertEquals("#1:symbol", HonsValue.symbolTag.toString());
+        }
+        
+        @Test void integerToString() {
+            HonsValue val = HonsValue.fromSmallInt(17);
+            assertEquals("17", val.toString());
+        }
+
+        @Test void objectHashToString() {
+            HonsValue val = HonsValue.fromObjectHash(17);
+            assertEquals("#17", val.toString());
+        }
     }
 
     /*

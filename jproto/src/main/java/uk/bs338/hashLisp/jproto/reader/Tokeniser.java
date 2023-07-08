@@ -57,19 +57,34 @@ public class Tokeniser implements Iterator<Token> {
         }
     }
 
-    public void eatClasses(EnumSet<CharClass> eatThem) {
+    public void eatExceptClasses(EnumSet<CharClass> stopAt) {
         while (!isAtEnd()) {
             var charClass = classifyFirstChar();
-            charClass.retainAll(eatThem);
-            if (!charClass.isEmpty())
+            charClass.retainAll(stopAt);
+            if (charClass.isEmpty())
                 advancePosition();
             else
                 break;
         }
     }
     
+    /* Eat both whitespace and comments */
     public void eatWhitespace() {
-        eatClass(CharClass.WHITESPACE);
+        while (!isAtEnd()) {
+            eatClass(CharClass.WHITESPACE);
+            if (!isAtEnd() && classifyFirstChar().contains(CharClass.LINE_COMMENT_CHAR)) {
+                /* consume the LINE_COMMENT_CHAR */
+                advancePosition();
+                /* consume characters that don't end a line */
+                eatExceptClasses(EnumSet.of(CharClass.END_OF_LINE_CHARS));
+                /* eat more whitespace! */
+                /* we're assuming that WHITESPACE includes END_OF_LINE_CHARS */ 
+                continue;
+            }
+            else {
+                break;
+            }
+        }
     }
     
     @Override
@@ -84,6 +99,7 @@ public class Tokeniser implements Iterator<Token> {
         
         int tokenStartPos = startPos;
         int tokenStartOffset = curOffset;
+        String tokenStr = null;
         var charClass = classifyFirstChar();
         var type = TokenType.UNKNOWN;
         
@@ -107,6 +123,41 @@ public class Tokeniser implements Iterator<Token> {
             type = TokenType.CLOSE_PARENS;
             advancePosition();
         }
+        else if (charClass.contains(CharClass.STRING_QUOTE_CHAR)) {
+            advancePosition();
+            var specialChars = EnumSet.of(CharClass.STRING_ESCAPE_CHAR, CharClass.STRING_QUOTE_CHAR);
+            int segmentStartOffset = curOffset;
+            StringBuilder collectedString = new StringBuilder();
+            while (!isAtEnd()) {
+                eatExceptClasses(specialChars);
+                collectedString.append(source.subSequence(segmentStartOffset, curOffset));
+//                segmentStartOffset = curOffset;   // XXX
+                var nextCharClass = classifyFirstChar();
+                if (nextCharClass.contains(CharClass.STRING_ESCAPE_CHAR)) {
+                    advancePosition(); /* eat the backslash */
+                    segmentStartOffset = curOffset;
+                    advancePosition(); /* eat the char escaped */
+                    var escapedChar = source.subSequence(segmentStartOffset, curOffset);
+                    collectedString.append(charClassifier.interpretEscapedChar(escapedChar.toString()));
+                    segmentStartOffset = curOffset;
+                    /* continue */
+                }
+                else if (nextCharClass.contains(CharClass.STRING_QUOTE_CHAR)) {
+                    /* end of string, break the loop */
+                    if (!isAtEnd() && classifyFirstChar().contains(CharClass.STRING_QUOTE_CHAR)) {
+                        type = TokenType.STRING;
+                        tokenStr = collectedString.toString();
+                        advancePosition();
+                    }
+                    break;
+                }
+                else {
+                    /* we stopped eating for some reason, break the loop */
+                    /* this leaves type as UNKNOWN */
+                    break;
+                }
+            }
+        }
         else if (charClass.contains(CharClass.DIGIT_CHAR)) {
             type = TokenType.DIGITS;
             eatClass(CharClass.DIGIT_CHAR);
@@ -119,7 +170,7 @@ public class Tokeniser implements Iterator<Token> {
                     /* eat until we find a permitted character */
                     System.out.println(nextCharClass);
                     type = TokenType.UNKNOWN;
-                    eatClasses(EnumSet.complementOf(permittedNext));
+                    eatExceptClasses(permittedNext);
                 }
             }
         }
@@ -131,7 +182,8 @@ public class Tokeniser implements Iterator<Token> {
             advancePosition();
         
         int tokenEndPos = startPos;
-        String tokenStr = source.subSequence(tokenStartOffset, curOffset).toString();
+        if (tokenStr == null) 
+            tokenStr = source.subSequence(tokenStartOffset, curOffset).toString();
         return new Token(type, tokenStr, tokenStartPos, tokenEndPos);
     }
 }

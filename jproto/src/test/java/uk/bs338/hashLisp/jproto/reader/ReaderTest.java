@@ -116,6 +116,46 @@ class ReaderTest {
         }
     }
     
+    @Nested
+    class StringValues {
+        void assertStringRead(String expectedStr, String input) {
+            var actual = reader.read(input);
+            var expected = stringAsList(heap, expectedStr);
+            assertEquals(Optional.of(expected), actual.getValue());
+        }
+        
+        @Test void emptyString() {
+            assertStringRead("", "\"\"");
+        }
+        
+        @Test void stringWithSpaces() {
+            assertStringRead("   ", "\"   \"");
+        }
+        
+        @Test void multilineString() {
+            assertStringRead("abc\nmno\nxyz", "\"abc\nmno\nxyz\"");
+        }
+        
+        @Test void backquoteString() {
+            assertStringRead("abc\"xyz", "\"abc\\\"xyz\"");
+        }
+        
+        @Test void emojiString() {
+            /* TODO */
+        }
+    }
+    
+    @Test void comments() {
+        var input = "(1 ;comment\n" +
+            ".;comment\n" +
+            ";comment\n" +
+            "2) ;comment\n";
+        var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
+        ReadResult rv = reader.read(input);
+        assertEquals(Optional.of(expected), rv.getValue());
+        assertEquals("", rv.getRemaining());
+    }
+    
     @Test
     void read(TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";

@@ -6,12 +6,6 @@ import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
 import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
