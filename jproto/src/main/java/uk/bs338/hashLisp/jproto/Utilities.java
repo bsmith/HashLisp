@@ -16,7 +16,7 @@ public final class Utilities {
         V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = heap.cons(heap.makeShortInt(num), list);
+            list = heap.cons(heap.makeSmallInt(num), list);
         }
         return list;
     }

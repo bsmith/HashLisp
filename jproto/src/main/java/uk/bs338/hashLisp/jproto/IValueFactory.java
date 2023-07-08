@@ -3,7 +3,7 @@ package uk.bs338.hashLisp.jproto;
 public interface IValueFactory<T extends IValue> {
     T nil();
 
-    T makeShortInt(int num);
+    T makeSmallInt(int num);
 
     T symbolTag();
 }

@@ -129,11 +129,13 @@ public class HonsValueTest {
 
     @Test void equalsIsReflexiveForInteger() {
         HonsValue val = HonsValue.fromSmallInt(17);
+        //noinspection EqualsWithItself
         assertEquals(val, val);
     }
 
     @Test void equalsIsReflexiveForObjectHash() {
         HonsValue val = HonsValue.fromObjectHash(17);
+        //noinspection EqualsWithItself
         assertEquals(val, val);
     }
 }
