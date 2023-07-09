@@ -117,6 +117,37 @@ class ReaderTest {
     }
     
     @Nested
+    class SmallIntValues {
+        void assertSmallIntRead(int expected, String input) {
+            var actual = reader.read(input);
+            assertTrue(actual.getValue().isPresent());
+            assertEquals(HonsValue.fromSmallInt(expected), actual.getValue().get());
+            /* check this too in case of range bugs in fromSmallInt */
+            assertEquals(expected, actual.getValue().get().toSmallInt());
+        }
+        
+        @Test void zero() {
+            assertSmallIntRead(0, "0");
+        }
+        
+        @Test void one() {
+            assertSmallIntRead(1, "1");
+        }
+        
+        @Test void minusOne() {
+            assertSmallIntRead(-1, "-1");
+        }
+        
+        @Test void minimum() {
+            assertSmallIntRead(HonsValue.SMALLINT_MIN, String.valueOf(HonsValue.SMALLINT_MIN));
+        }
+
+        @Test void maximum() {
+            assertSmallIntRead(HonsValue.SMALLINT_MAX, String.valueOf(HonsValue.SMALLINT_MAX));
+        }
+    }
+    
+    @Nested
     class StringValues {
         void assertStringRead(String expectedStr, String input) {
             var actual = reader.read(input);

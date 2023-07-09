@@ -16,6 +16,7 @@ public class CharClassifier {
         STRING_QUOTE_CHAR,
         STRING_ESCAPE_CHAR,
         END_OF_LINE_CHARS,
+        MINUS_SIGN,
         WHITESPACE
     }
     
@@ -47,6 +48,7 @@ public class CharClassifier {
         classTable.get('\\').add(CharClass.STRING_ESCAPE_CHAR);
         classTable.get('\n').add(CharClass.END_OF_LINE_CHARS);
         classTable.get('\r').add(CharClass.END_OF_LINE_CHARS);
+        classTable.get('-').add(CharClass.MINUS_SIGN);
         symbolChars.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.SYMBOL_CHAR));
         digits.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.DIGIT_CHAR));
         whitespace.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.WHITESPACE));
