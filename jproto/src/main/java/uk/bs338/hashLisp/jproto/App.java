@@ -87,6 +87,8 @@ public class App {
 
     public void run() {
         demo();
+        System.out.println();
+        LazyEvaluator.demo(heap);
 
         if (dumpHeap) {
             System.err.printf("%n---%nHeap dump:%n");
