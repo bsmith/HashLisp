@@ -7,6 +7,17 @@ import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.reader.CharClassifier;
+import uk.bs338.hashLisp.jproto.reader.Reader;
+import uk.bs338.hashLisp.jproto.reader.Tokeniser;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -86,9 +97,33 @@ public class App {
     }
 
     public void run() {
-        demo();
-        System.out.println();
-        LazyEvaluator.demo(heap);
+        //demo();
+        //System.out.println();
+        //LazyEvaluator.demo(heap);
+        var filename = Paths.get("/Users/bsmith/postclan/week_0x1f/HashLisp/ex/fibonacci.hl");
+        try {
+            var contents = Files.readString(filename, StandardCharsets.UTF_8);
+//            System.out.println(contents);
+
+            var reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
+            var evaluator = new LazyEvaluator(heap);
+
+            var result = reader.read(contents);
+            System.out.printf("result = %s%n", result);
+            
+            // XXX: result is really awkward to use
+            // XXX: error reporting of line/col of error!
+            if (result.getValue().isPresent()) {
+                System.out.println(heap.valueToString(result.getValue().get()));
+                
+                evaluator.setDebug(true);
+                var retval = evaluator.eval(result.getValue().get());
+                System.out.printf("result = %s%n", heap.valueToString(retval));
+            }
+        }
+        catch (IOException e) {
+            System.out.printf("IOException: %s%n", e);
+        }
 
         if (dumpHeap) {
             System.err.printf("%n---%nHeap dump:%n");
@@ -101,7 +136,12 @@ public class App {
         App app = new App();
         System.out.println(app.getGreeting());
         System.out.printf("args: %s%n", (Object) args);
+        
+        // Parse argument flags here and configure the app object
         app.dumpHeap = true;
+        
+        // Run the main program/task
+        // XXX Inside this we might create a Driver object
         app.run();
     }
 }

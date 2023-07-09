@@ -27,7 +27,7 @@ public class HonsHeap implements
         }
     }
     
-    private HonsCell getCell(@Nonnull HonsValue obj) {
+    public HonsCell getCell(@Nonnull HonsValue obj) {
         return heap.get(obj.toObjectHash());
     }
 

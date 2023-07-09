@@ -9,7 +9,15 @@
 
 ; fib 5 == 5*4*3*2*1 == 120
 
-( (lambda (Y fib$) ((Y fib$) n))
+( (lambda (Y fib$) ((Y fib$) 5))
+  ; Y =
   (lambda (f) ((lambda (x) (f (x x))) (lambda (x) (f (x x)))))
-  (lambda (fib$$) (lambda (n) (mul n (fib$$ (add n -1)))))
-)
+;  (lambda (f) ((lambda (x) ((f x) x)) (lambda (x) ((f x) x))))
+  ; fib$ =
+  (lambda (fib$$) (lambda (n) 
+    (zerop n
+      1
+      (mul n (fib$$ (add n -1)))
+      )
+    ))
+  )
