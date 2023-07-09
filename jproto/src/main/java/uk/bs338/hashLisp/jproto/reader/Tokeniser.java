@@ -158,8 +158,9 @@ public class Tokeniser implements Iterator<Token> {
                 }
             }
         }
-        else if (charClass.contains(CharClass.DIGIT_CHAR)) {
+        else if (charClass.contains(CharClass.DIGIT_CHAR) || charClass.contains(CharClass.MINUS_SIGN)) {
             type = TokenType.DIGITS;
+            advancePosition(); /* eat the first digit or minus sign */
             eatClass(CharClass.DIGIT_CHAR);
             /* must be followed by whitespace or parens or end */
             var permittedNext = EnumSet.of(CharClass.WHITESPACE, CharClass.OPEN_PARENS, CharClass.CLOSE_PARENS);

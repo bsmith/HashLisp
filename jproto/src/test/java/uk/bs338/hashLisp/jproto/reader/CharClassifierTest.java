@@ -40,7 +40,7 @@ class CharClassifierTest {
     }
     
     @Test void specialSymbols() {
-        assertEquals(EnumSet.of(SYMBOL_CHAR), classifier.classifyChar("-"));
+        assertEquals(EnumSet.of(SYMBOL_CHAR, MINUS_SIGN), classifier.classifyChar("-"));
         assertEquals(EnumSet.of(SYMBOL_CHAR), classifier.classifyChar("?"));
         assertEquals(EnumSet.of(SYMBOL_CHAR), classifier.classifyChar("!"));
         assertEquals(EnumSet.of(SYMBOL_CHAR), classifier.classifyChar("$"));

@@ -52,7 +52,7 @@ public final class HonsValue implements IValue {
 
     @Nonnull
     public static HonsValue fromSmallInt(int num) {
-        assert SMALLINT_MIN < num && num < SMALLINT_MAX;
+        assert SMALLINT_MIN <= num && num <= SMALLINT_MAX;
         //noinspection PointlessBitwiseExpression
         return new HonsValue((num << 1) | 0);
     }
