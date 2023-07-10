@@ -15,6 +15,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
@@ -237,6 +238,7 @@ public class App {
         return true;
     }
 
+    @Blocking
     public void run() {
         if (showHelp)
             throw new IllegalStateException("Help should be shown without running app");
@@ -299,6 +301,7 @@ public class App {
         }
     }
 
+    @Blocking
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());

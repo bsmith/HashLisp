@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
@@ -16,16 +15,15 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 public class Reader {
     private final HonsHeap heap;
     private final ITokeniserFactory tokeniserFactory;
-    private @Nullable List<String> errors;
+    private @NotNull List<String> errors;
 
     public Reader(HonsHeap heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
-        this.errors = null;
+        this.errors = new ArrayList<>();
     }
     
     private @NotNull Optional<HonsValue> interpretToken(@NotNull Iterator<Token> tokeniser, @NotNull Token token) {
-        assert errors != null;
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
@@ -51,7 +49,6 @@ public class Reader {
     }
 
     private @NotNull Optional<HonsValue> readListAfterOpenParens(@NotNull Iterator<Token> tokeniser) {
-        assert errors != null;
         ArrayList<HonsValue> listContents = new ArrayList<>();
         
         while (tokeniser.hasNext()) {

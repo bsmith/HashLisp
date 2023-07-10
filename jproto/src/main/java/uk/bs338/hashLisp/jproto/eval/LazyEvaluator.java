@@ -35,7 +35,7 @@ public class LazyEvaluator {
         debug = flag;
     }
     
-    public @NotNull HonsValue fst(HonsValue args) {
+    public @NotNull HonsValue fst(@NotNull HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -43,7 +43,7 @@ public class LazyEvaluator {
             return heap.fst(arg);
     }
 
-    public @NotNull HonsValue snd(HonsValue args) {
+    public @NotNull HonsValue snd(@NotNull HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -51,13 +51,13 @@ public class LazyEvaluator {
             return heap.snd(arg);
     }
     
-    public @NotNull HonsValue cons(HonsValue args) {
+    public @NotNull HonsValue cons(@NotNull HonsValue args) {
         var fst = eval(heap.fst(args));
         var snd = eval(heap.fst(heap.snd(args)));
         return heap.cons(fst, snd);
     }
     
-    public @NotNull HonsValue add(HonsValue args) throws EvalException {
+    public @NotNull HonsValue add(@NotNull HonsValue args) throws EvalException {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
@@ -74,7 +74,7 @@ public class LazyEvaluator {
         return heap.makeSmallInt(sum);
     }
 
-    public HonsValue mul(HonsValue args) throws EvalException {
+    public @NotNull HonsValue mul(@NotNull HonsValue args) throws EvalException {
         int product = 1;
         var cur = args;
         while (cur.isConsRef()) {
@@ -90,7 +90,7 @@ public class LazyEvaluator {
         return heap.makeSmallInt(product);
     }
     
-    public HonsValue zerop(HonsValue args) {
+    public @NotNull HonsValue zerop(@NotNull HonsValue args) {
         var cond = heap.fst(args);
         var t_val = heap.fst(heap.snd(args));
         var f_val = heap.fst(heap.snd(heap.snd(args)));
@@ -108,7 +108,7 @@ public class LazyEvaluator {
 
     /* XXX this does validation stuff? */
     /* XXX alpha convert early? */
-    public @NotNull HonsValue lambda(HonsValue args) {
+    public @NotNull HonsValue lambda(@NotNull HonsValue args) {
         System.out.printf("lambda: %s%n", heap.valueToString(args));
         var argSpec = heap.fst(args);
         var body = heap.fst(heap.snd(args));
@@ -213,7 +213,7 @@ public class LazyEvaluator {
             throw new RuntimeException("Not implemented");
     }
 
-    public HonsValue applyLambda(HonsValue lambda, HonsValue args) {
+    public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
         System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
@@ -268,7 +268,7 @@ public class LazyEvaluator {
 
             @Override
             public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
-                var savedIndent = evalIndent;
+                var savedIndent = evalIndent; // XXX add try/finally for this!  maybe an auxiallary function that takes a lambda
                 var result = (HonsValue)null;
 
                 if (debug) {
