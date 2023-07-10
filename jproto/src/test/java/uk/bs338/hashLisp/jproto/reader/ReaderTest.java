@@ -6,8 +6,6 @@ import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
@@ -111,8 +109,8 @@ class ReaderTest {
         @Test void dotCannotAppearAtStartOfList(@NotNull TestReporter testReporter) {
             var input = "( . 123)";
             var actual = reader.read(input);
-            assertTrue(actual.getValue().isEmpty());
-            testReporter.publishEntry(actual.getMessage());
+            assertTrue(actual.isFailure());
+            testReporter.publishEntry(actual.getFailureMessage());
             assertEquals(input, actual.getRemaining());
         }
     }
@@ -121,10 +119,10 @@ class ReaderTest {
     class SmallIntValues {
         void assertSmallIntRead(int expected, @NotNull String input) {
             var actual = reader.read(input);
-            assertTrue(actual.getValue().isPresent());
-            assertEquals(HonsValue.fromSmallInt(expected), actual.getValue().get());
+            assertTrue(actual.isSuccess());
+            assertEquals(HonsValue.fromSmallInt(expected), actual.getValue());
             /* check this too in case of range bugs in fromSmallInt */
-            assertEquals(expected, actual.getValue().get().toSmallInt());
+            assertEquals(expected, actual.getValue().toSmallInt());
         }
         
         @Test void zero() {
@@ -153,7 +151,9 @@ class ReaderTest {
         void assertStringRead(@NotNull String expectedStr, @NotNull String input) {
             var actual = reader.read(input);
             var expected = stringAsList(heap, expectedStr);
-            assertEquals(Optional.of(expected), actual.getValue());
+            assertTrue(actual.isSuccess());
+            assertEquals(expected, actual.getValue());
+            assertEquals("", actual.getRemaining());
         }
         
         @Test void emptyString() {
@@ -186,7 +186,8 @@ class ReaderTest {
             """;
         var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
         ReadResult rv = reader.read(input);
-        assertEquals(Optional.of(expected), rv.getValue());
+        assertTrue(rv.isSuccess());
+        assertEquals(expected, rv.getValue());
         assertEquals("", rv.getRemaining());
     }
     
@@ -205,7 +206,8 @@ class ReaderTest {
             HonsValue.fromSmallInt(4)
             );
         ReadResult rv = reader.read(input);
-        assertEquals(Optional.of(expected), rv.getValue());
+        assertTrue(rv.isSuccess());
+        assertEquals(expected, rv.getValue());
         testReporter.publishEntry(rv.toString());
         assertEquals("", rv.getRemaining());
     }

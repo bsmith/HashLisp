@@ -2,25 +2,28 @@ package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.IReadResult;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 
-public abstract class ReadResult {
+public sealed abstract class ReadResult implements IReadResult<HonsValue> {
     protected final String remaining;
 
     protected ReadResult(String remaining) {
         this.remaining = remaining;
     }
     
-    public String getRemaining() {
+    public @NotNull String getRemaining() {
         return remaining;
     }
     
-    public abstract Optional<HonsValue> getValue();
-    public String getMessage() throws NoSuchElementException {
+    public @NotNull HonsValue getValue(){
+        throw new NoSuchElementException();
+    }
+    
+    public @NotNull String getFailureMessage() throws NoSuchElementException {
         throw new NoSuchElementException();
     }
 
@@ -45,7 +48,7 @@ public abstract class ReadResult {
         return Objects.hash(remaining);
     }
 
-    private static class Failed extends ReadResult {
+    private final static class Failed extends ReadResult {
         private final String message;
         
         public Failed(String remaining, String message) {
@@ -54,12 +57,17 @@ public abstract class ReadResult {
         }
 
         @Override
-        public @NotNull Optional<HonsValue> getValue() {
-            return Optional.empty();
+        public boolean isSuccess() {
+            return false;
         }
-        
+
         @Override
-        public String getMessage() {
+        public boolean isFailure() {
+            return true;
+        }
+
+        @Override
+        public @NotNull String getFailureMessage() {
             return message;
         }
 
@@ -86,7 +94,7 @@ public abstract class ReadResult {
         }
     }
     
-    private static class Successful extends ReadResult {
+    private final static class Successful extends ReadResult {
         private final HonsValue value;
         
         public Successful(String remaining, HonsValue value) {
@@ -95,8 +103,18 @@ public abstract class ReadResult {
         }
 
         @Override
-        public @NotNull Optional<HonsValue> getValue() {
-            return Optional.of(value);
+        public boolean isSuccess() {
+            return true;
+        }
+
+        @Override
+        public boolean isFailure() {
+            return false;
+        }
+
+        @Override
+        public @NotNull HonsValue getValue() {
+            return value;
         }
 
         @Override

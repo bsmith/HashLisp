@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
@@ -12,7 +13,7 @@ import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
-public class Reader {
+public class Reader implements IReader<HonsValue> {
     private final HonsHeap heap;
     private final ITokeniserFactory tokeniserFactory;
     private @NotNull List<String> errors;

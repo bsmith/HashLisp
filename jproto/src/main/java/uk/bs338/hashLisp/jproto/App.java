@@ -278,16 +278,16 @@ public class App {
             else {
                 Reader reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
                 var readResult = reader.read(source);
-                if (readResult.getValue().isEmpty()) {
-                    System.err.println("Failed to read program: " + readResult.getMessage());
+                if (readResult.isFailure()) {
+                    System.err.println("Failed to read program: " + readResult.getFailureMessage());
                 }
                 else {
                     HonsValue result;
                     if (readMode) {
-                        result = readResult.getValue().get();
+                        result = readResult.getValue();
                     } else {
                         LazyEvaluator evaluator = new LazyEvaluator(heap);
-                        result = evaluator.eval(readResult.getValue().get());
+                        result = evaluator.eval(readResult.getValue());
                     }
                     System.out.println(heap.valueToString(result));
                 }
