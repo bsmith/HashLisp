@@ -6,6 +6,8 @@ import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.Objects;
+
 public class WrappedHeap implements IHeap<WrappedValue> {
     private final HonsHeap heap;
     private WrappedValue nil;
@@ -89,5 +91,18 @@ public class WrappedHeap implements IHeap<WrappedValue> {
         if (symbolTag == null)
             symbolTag = wrap(HonsValue.symbolTag);
         return symbolTag;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WrappedHeap that = (WrappedHeap) o;
+        return Objects.equals(heap, that.heap);
+    }
+
+    @Override
+    public int hashCode() {
+        return heap.hashCode();
     }
 }

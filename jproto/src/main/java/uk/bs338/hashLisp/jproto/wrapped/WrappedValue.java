@@ -4,6 +4,8 @@ import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.Objects;
+
 public class WrappedValue implements IWrappedValue<HonsValue> {
     private final HonsHeap heap;
     private final HonsValue value;
@@ -70,5 +72,18 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
     @Override
     public String toString() {
         return heap.valueToString(value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WrappedValue that = (WrappedValue) o;
+        return Objects.equals(heap, that.heap) && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(heap, value);
     }
 }
