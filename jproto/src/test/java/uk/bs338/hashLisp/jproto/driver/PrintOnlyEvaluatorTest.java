@@ -32,15 +32,12 @@ class PrintOnlyEvaluatorTest {
     @Test
     void eval_hnf() {
         var retval = evaluator.eval_hnf(exampleValue);
-        assertEquals(exampleValue, retval);
+        assertEquals(wrappedExampleValue, retval);
     }
 
     @Test
     void apply() {
-        var head = heap.makeSymbol("apply");
-        var retval = evaluator.apply(head, exampleValue);
-        assertEquals(Utilities.makeList(heap, heap.makeSymbol("io-print!"),
-                heap.cons(head, exampleValue)),
-            retval);
+        var retval = evaluator.apply_hnf(evaluator.eval_hnf(exampleValue));
+        assertEquals(wrappedExampleValue, retval);
     }
 }

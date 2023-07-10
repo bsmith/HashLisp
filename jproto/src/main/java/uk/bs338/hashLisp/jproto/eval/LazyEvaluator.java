@@ -251,8 +251,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return heap.cons(head, rest);
     }
     
-    public HonsValue apply(HonsValue head, HonsValue args) {
-        var expr = heap.cons(head, args);
+    @Override
+    public @NotNull HonsValue apply_hnf(@NotNull HonsValue expr) {
         try {
             return apply(expr);
         }
@@ -262,14 +262,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
     
     @Override
-    public HonsValue eval_hnf(HonsValue val) {
+    public @NotNull HonsValue eval_hnf(@NotNull HonsValue val) {
         var uncons = heap.uncons(val);
         var head_nf = eval_one(uncons.fst());
         return heap.cons(head_nf, uncons.snd());
     }
 
     static String evalIndent = "";
-    public HonsValue eval_one(@NotNull HonsValue val) {
+    public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
         var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
             public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
