@@ -28,13 +28,13 @@ public class CharClassifier {
     private final static String whitespace = " \t\r\n";
     
     private final static int TABLE_SIZE = 256;
-    private static @Nullable ArrayList<EnumSet<CharClass>> classTable = null;
+    private static @Nullable ArrayList<EnumSet<CharClass>> classTable;
     
     public CharClassifier() {
         setupTables();
     }
     
-    private void setupTables() {
+    private static void setupTables() {
         if (classTable != null)
             return;
         classTable = new ArrayList<>(TABLE_SIZE);
@@ -58,10 +58,9 @@ public class CharClassifier {
     }
     
     public EnumSet<CharClass> classifyChar(int codepoint) {
-        if (codepoint < TABLE_SIZE) {
-            assert classTable != null;
+        assert classTable != null;
+        if (codepoint < TABLE_SIZE)
             return EnumSet.copyOf(classTable.get(codepoint));
-        }
         return EnumSet.noneOf(CharClass.class);
     }
     
