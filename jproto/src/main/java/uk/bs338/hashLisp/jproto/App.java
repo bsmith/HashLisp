@@ -84,7 +84,7 @@ public class App {
         return new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
     }
 
-    public @NotNull LazyEvaluator getEvaluator() {
+    public @NotNull IEvaluator<HonsValue> getEvaluator() {
         return new LazyEvaluator(heap);
     }
     
@@ -271,8 +271,8 @@ public class App {
 
             var reader = getReader();
             var evaluator = getEvaluator();
-            if (debug)
-                evaluator.setDebug(true);
+            if (debug && evaluator instanceof LazyEvaluator)
+                ((LazyEvaluator) evaluator).setDebug(true);
 
             if (source == null && sourceFilename != null) {
                 try {
@@ -295,7 +295,7 @@ public class App {
                     if (readMode) {
                         result = readResult.getValue();
                     } else {
-                        result = evaluator.eval(readResult.getValue());
+                        result = evaluator.eval_one(readResult.getValue());
                     }
                     System.out.println(heap.valueToString(result));
                 }
