@@ -1,16 +1,15 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 /* HonsCells are mutable in memoEval, but this is not included in the hashValue or the objectHash */
 public class HonsCell {
     private int objectHash;
-    @Nonnull
+    @NotNull
     private final HonsValue fst, snd;
     /* mutable */
     @Nullable
@@ -19,7 +18,7 @@ public class HonsCell {
     private int collision;
     
     /* for special values */
-    public HonsCell(@Nonnull HonsValue special)  {
+    public HonsCell(@NotNull HonsValue special)  {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
@@ -27,7 +26,7 @@ public class HonsCell {
         this.collision = 0;
     }
 
-    public HonsCell(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    public HonsCell(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
@@ -54,16 +53,16 @@ public class HonsCell {
         return objectHash;
     }
 
-    public HonsValue getMemoEval() {
+    public @Nullable HonsValue getMemoEval() {
         return memoEval;
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue getFst() {
         return fst;
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue getSnd() {
         return snd;
     }
@@ -74,7 +73,7 @@ public class HonsCell {
         return special;
     }
 
-    public void setMemoEval(HonsValue memoEval) {
+    public void setMemoEval(@NotNull HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
@@ -106,7 +105,7 @@ public class HonsCell {
         return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue toValue() {
         return HonsValue.fromObjectHash(objectHash);
     }

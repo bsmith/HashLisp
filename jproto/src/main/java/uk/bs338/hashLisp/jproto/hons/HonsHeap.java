@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
@@ -9,8 +10,6 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import javax.annotation.Nonnull;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
@@ -27,35 +26,35 @@ public class HonsHeap implements
         }
     }
     
-    private HonsCell getCell(@Nonnull HonsValue obj) {
+    private HonsCell getCell(@NotNull HonsValue obj) {
         return heap.get(obj.toObjectHash());
     }
 
-    private void putCell(@Nonnull HonsCell cell) {
+    private void putCell(@NotNull HonsCell cell) {
         heap.put(cell.getObjectHash(), cell);
     }
     
-    private HonsCell getCell(@Nonnull HonsCell cell) {
+    private HonsCell getCell(@NotNull HonsCell cell) {
         return heap.get(cell.getObjectHash());
     }
 
     @Override
-    public HonsValue nil() {
+    public @NotNull HonsValue nil() {
         return HonsValue.nil;
     }
 
     @Override
-    public HonsValue makeSmallInt(int num) {
+    public @NotNull HonsValue makeSmallInt(int num) {
         return HonsValue.fromSmallInt(num);
     }
 
     @Override
-    public HonsValue symbolTag() {
+    public @NotNull HonsValue symbolTag() {
         return HonsValue.symbolTag;
     }
 
-    @Nonnull
-    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    @NotNull
+    public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -108,8 +107,7 @@ public class HonsHeap implements
                 return String.format("#%d:%s", cell.getObjectHash(), special);
             if (cell.getFst().equals(HonsValue.symbolTag)) {
                 String symName = listAsString(this, cell.getSnd());
-                if (symName != null)
-                    return accum + symName;
+                return accum + symName;
             }
             return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
@@ -133,8 +131,8 @@ public class HonsHeap implements
         }
     }
 
-    @Nonnull
-    public ConsPair<HonsValue> uncons(HonsValue val) {
+    @NotNull
+    public ConsPair<HonsValue> uncons(@NotNull HonsValue val) {
         if (!val.isObjectHash())
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);

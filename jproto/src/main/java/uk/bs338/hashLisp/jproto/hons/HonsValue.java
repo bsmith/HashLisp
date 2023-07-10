@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IValue;
 
 import java.util.List;
@@ -7,8 +8,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
-
-import javax.annotation.Nonnull;
 
 /* this is a value class */
 public final class HonsValue implements IValue {
@@ -50,14 +49,14 @@ public final class HonsValue implements IValue {
         return this.value == symbolTag.value;
     }
 
-    @Nonnull
+    @NotNull
     public static HonsValue fromSmallInt(int num) {
         assert SMALLINT_MIN <= num && num <= SMALLINT_MAX;
         //noinspection PointlessBitwiseExpression
         return new HonsValue((num << 1) | 0);
     }
 
-    @Nonnull
+    @NotNull
     public static HonsValue fromObjectHash(int hash) {
         assert SMALLINT_MIN < hash && hash < SMALLINT_MAX;
         return new HonsValue((hash << 1) | 1);

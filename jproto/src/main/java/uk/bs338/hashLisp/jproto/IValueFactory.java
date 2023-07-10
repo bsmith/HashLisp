@@ -1,9 +1,11 @@
 package uk.bs338.hashLisp.jproto;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface IValueFactory<T extends IValue> {
-    T nil();
+    @NotNull T nil();
 
-    T makeSmallInt(int num);
+    @NotNull T makeSmallInt(int num);
 
-    T symbolTag();
+    @NotNull T symbolTag();
 }

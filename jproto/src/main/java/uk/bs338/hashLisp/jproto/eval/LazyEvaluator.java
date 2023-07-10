@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -108,18 +109,18 @@ public class LazyEvaluator {
         
         private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
             @Override
-            public HonsValue visitConstant(HonsValue visited) {
+            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
                 return visited;
             }
 
             @Override
-            public HonsValue visitSymbol(HonsValue visited) {
+            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
                 var assignedValue = assignments.get(visited);
                 return assignedValue == null ? visited : assignedValue;
             }
 
             @Override
-            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
+            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
                 return heap.cons(
                     substitute(head),
                     substitute(args)
@@ -127,7 +128,7 @@ public class LazyEvaluator {
             }
 
             @Override
-            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) {
+            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
                 /* we want to remove from our assignments map any var mentioned in argSpec */
                 /* if our assignments map becomes empty, just return visited */
                 /* otherwise, apply the reduced assignments map to the body */
@@ -209,20 +210,20 @@ public class LazyEvaluator {
     public HonsValue eval(HonsValue val) {
         var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
-            public HonsValue visitConstant(HonsValue visited) {
+            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
                 return visited;
             }
             
             @Override
-            public HonsValue visitSymbol(HonsValue visited) {
+            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
                 return visited;
             }
             
             @Override
-            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) { return visited; }
+            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) { return visited; }
 
             @Override
-            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
+            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
                 var savedIndent = evalIndent;
                 var result = (HonsValue)null;
 

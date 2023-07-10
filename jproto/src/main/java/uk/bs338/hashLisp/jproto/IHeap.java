@@ -1,20 +1,20 @@
 package uk.bs338.hashLisp.jproto;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public interface IHeap<V extends IValue> extends IValueFactory<V> {
-    @Nonnull
-    V cons(@Nonnull V fst, @Nonnull V snd);
+    @NotNull
+    V cons(@NotNull V fst, @NotNull V snd);
     
-    @Nonnull
-    ConsPair<V> uncons(@Nonnull V cons);
+    @NotNull
+    ConsPair<V> uncons(@NotNull V cons);
 
-    @Nonnull
+    @NotNull
     default V fst(V val) {
         return uncons(val).fst();
     }
 
-    @Nonnull
+    @NotNull
     default V snd(V val) {
         return uncons(val).snd();
     }

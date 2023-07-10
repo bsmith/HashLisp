@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -17,22 +18,22 @@ public class ExprToHeapVisitorAdapter<R> implements IHeapVisitor<HonsValue> {
     }
 
     @Override
-    public void visitNil(HonsValue visited) {
+    public void visitNil(@NotNull HonsValue visited) {
         result = exprVisitor.visitConstant(visited);
     }
 
     @Override
-    public void visitSmallInt(HonsValue visited, int num) {
+    public void visitSmallInt(@NotNull HonsValue visited, int num) {
         result = exprVisitor.visitConstant(visited);
     }
 
     @Override
-    public void visitSymbol(HonsValue visited, HonsValue val) {
+    public void visitSymbol(@NotNull HonsValue visited, @NotNull HonsValue val) {
         result = exprVisitor.visitSymbol(visited);
     }
 
     @Override
-    public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+    public void visitCons(@NotNull HonsValue visited, @NotNull HonsValue fst, @NotNull HonsValue snd) {
         if (heap.isSymbol(fst)) {
             String symbolName = heap.symbolNameAsString(fst);
             if (symbolName.equals("lambda")) {
