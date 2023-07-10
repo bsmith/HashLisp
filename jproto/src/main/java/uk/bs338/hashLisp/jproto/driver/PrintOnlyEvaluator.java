@@ -1,31 +1,32 @@
 package uk.bs338.hashLisp.jproto.driver;
 
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IValue;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-public class PrintOnlyEvaluator implements IEvaluator<HonsValue> {
-    private HonsHeap heap;
-    private HonsValue ioPrintSym;
+public class PrintOnlyEvaluator<V extends IValue> implements IEvaluator<V> {
+    private final IHeap<V> heap;
+    private final V ioPrintSym;
 
-    public PrintOnlyEvaluator(HonsHeap heap) {
+    public PrintOnlyEvaluator(IHeap<V> heap) {
         this.heap = heap;
         ioPrintSym = heap.makeSymbol("io-print!");
     }
 
     @Override
-    public HonsValue eval_one(HonsValue val) {
+    public V eval_one(V val) {
         /* wrap in (io-print! <val>) */
-        return heap.cons(ioPrintSym, heap.cons(val, HonsValue.nil));
+        return heap.cons(ioPrintSym, heap.cons(val, heap.nil()));
     }
 
     @Override
-    public HonsValue eval_hnf(HonsValue val) {
+    public V eval_hnf(V val) {
         return val;
     }
 
     @Override
-    public HonsValue apply(HonsValue head, HonsValue args) {
+    public V apply(V head, V args) {
         return eval_one(heap.cons(head, args));
     }
 }
