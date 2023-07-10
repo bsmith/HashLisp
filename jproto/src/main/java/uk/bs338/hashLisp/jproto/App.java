@@ -15,6 +15,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.driver.PrintOnlyEvaluator;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -85,7 +86,10 @@ public class App {
     }
 
     public @NotNull IEvaluator<HonsValue> getEvaluator() {
-        return new LazyEvaluator(heap);
+        if (readMode)
+            return new PrintOnlyEvaluator(heap);
+        else
+            return new LazyEvaluator(heap);
     }
     
     public void forceCollision() {
