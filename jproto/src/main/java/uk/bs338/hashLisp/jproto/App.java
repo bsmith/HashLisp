@@ -159,6 +159,7 @@ public class App {
         forceCollision();
     }
 
+    @Blocking
     private void parseUserArgs(String[] args)
     {
         /* Complicated logic:
@@ -203,6 +204,7 @@ public class App {
     }
 
     /* Return false if the app doesn't need to run */
+    @Blocking
     public boolean parseArgs(String[] args)
     {
         if (argsParsed)
