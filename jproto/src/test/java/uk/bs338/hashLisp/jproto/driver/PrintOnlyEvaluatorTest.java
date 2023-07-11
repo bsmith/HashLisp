@@ -20,7 +20,8 @@ class PrintOnlyEvaluatorTest {
         heap = WrappedHeap.wrap(new HonsHeap());
         evaluator = new PrintOnlyEvaluator<>(heap);
         exampleValue = Utilities.makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-        wrappedExampleValue = Utilities.makeList(heap, heap.makeSymbol("io-print!"), exampleValue);
+        wrappedExampleValue = Utilities.makeList(heap, heap.makeSymbol("io-print!"),
+            Utilities.makeList(heap, heap.makeSymbol("quote"), exampleValue));
     }
 
     @Test
