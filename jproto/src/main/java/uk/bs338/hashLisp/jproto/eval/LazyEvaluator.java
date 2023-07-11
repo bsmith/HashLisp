@@ -12,11 +12,13 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
     private final @NotNull Primitives primitives;
+    private final @NotNull ArgSpecCache argSpecCache;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
         primitives = new Primitives(heap);
+        argSpecCache = new ArgSpecCache(heap);
         debug = false;
     }
     
@@ -45,7 +47,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
 //        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
         
-        var assignments = ArgSpec.match(heap, argSpec, args);
+        var assignments = argSpecCache.match(argSpec, args);
         
         var result = assignments.substitute(body);
 //        System.out.printf("result=%s%n", heap.valueToString(result));

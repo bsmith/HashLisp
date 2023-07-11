@@ -52,7 +52,7 @@ public class ArgSpec {
         }
     }
 
-    public @NotNull Assignments match(@NotNull HonsValue args) throws EvalException {
+    public @NotNull Assignments match(@NotNull HonsValue args) {
         var assignmentsMap = new HashMap<HonsValue, HonsValue>();
         var curArg = args;
         /* XXX would an iterator make sense here? */
