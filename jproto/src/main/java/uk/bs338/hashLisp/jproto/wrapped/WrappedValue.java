@@ -15,6 +15,10 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
         this.value = value;
     }
     
+    public static WrappedValue wrap(HonsHeap heap, HonsValue value) {
+        return new WrappedValue(heap, value);
+    }
+    
     public HonsHeap getHeap() {
         return heap;
     }

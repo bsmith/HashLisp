@@ -8,6 +8,8 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
 
+/* XXX: instead of just wrapping a heap, wrap a whole Context, optionally with Evaluators, Readers etc */
+
 public class WrappedHeap implements IHeap<WrappedValue> {
     private final HonsHeap heap;
     private WrappedValue nil;
