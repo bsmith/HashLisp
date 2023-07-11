@@ -326,7 +326,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     
     public <R> R visitExpr(@NotNull HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
         var heapVisitor = new ExprToHeapVisitorAdapter<>(heap, exprVisitor);
-        heap.visitValue(value, heapVisitor);
+        heapVisitor.visitValue(heap, value);
         return heapVisitor.result;
     }
 
