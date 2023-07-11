@@ -2,13 +2,12 @@ package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.IReadResult;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
 
-public sealed abstract class ReadResult<V> implements IReadResult<V> {
+public sealed abstract class ReadResult<V> {
     protected final String remaining;
 
     protected ReadResult(String remaining) {
@@ -23,6 +22,18 @@ public sealed abstract class ReadResult<V> implements IReadResult<V> {
         throw new NoSuchElementException();
     }
 
+    public @NotNull String getFailureMessage() throws NoSuchElementException {
+        throw new NoSuchElementException();
+    }
+    
+    public boolean isSuccess() {
+        return false;
+    }
+    
+    public boolean isFailure() {
+        return false;
+    }
+
     public static <T> @NotNull ReadResult<T> failedRead(String remaining, String message) {
         return new Failed<>(remaining, message);
     }
@@ -31,18 +42,16 @@ public sealed abstract class ReadResult<V> implements IReadResult<V> {
         return new Successful<>(remaining, value);
     }
 
-    @Override
-    public <R extends V> ReadResult<V> replaceValueIfSuccess(R val) {
+    public <R> ReadResult<R> replaceValueIfSuccess(R val) {
         if (isSuccess())
             return successfulRead(this.remaining, val);
-        return this;
+        return failedRead(this.remaining, getFailureMessage());
     }
 
-    @Override
-    public ReadResult<V> mapValueIfSuccess(Function<? super V, ? extends V> mapper) {
+    public <R> ReadResult<R> mapValueIfSuccess(Function<? super V, ? extends R> mapper) {
         if (isSuccess())
             return replaceValueIfSuccess(mapper.apply(this.getValue()));
-        return this;
+        return failedRead(this.remaining, getFailureMessage());
     }
 
     @Override
