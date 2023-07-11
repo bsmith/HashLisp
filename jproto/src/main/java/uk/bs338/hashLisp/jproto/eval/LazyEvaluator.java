@@ -1,12 +1,10 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -127,77 +125,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         var head = heap.fst(value);
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
-    
-    private class Assignments {
-        private @Nullable HonsValue assignmentsAsValue;
-        private final Map<HonsValue, HonsValue> assignments;
-        
-        public Assignments(Map<HonsValue, HonsValue> assignments) {
-            this.assignmentsAsValue = null;
-            this.assignments = assignments;
-        }
-        
-        public @NotNull HonsValue getAssignmentsAsValue() {
-            if (assignmentsAsValue != null)
-                return assignmentsAsValue;
-            var assignmentsList = HonsValue.nil;
-            for (var assignment : assignments.entrySet()) {
-                assignmentsList = heap.cons(heap.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
-            }
-            return assignmentsAsValue = assignmentsList;
-        }
-        
-        public @NotNull String toString() {
-            return "Assignments{" + heap.valueToString(getAssignmentsAsValue()) + "}";
-        }
-        
-        private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
-            @Override
-            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
-                return visited;
-            }
 
-            @Override
-            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
-                var assignedValue = assignments.get(visited);
-                return assignedValue == null ? visited : assignedValue;
-            }
-
-            @Override
-            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
-                return heap.cons(
-                    substitute(head),
-                    substitute(args)
-                );
-            }
-
-            @Override
-            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
-                /* we want to remove from our assignments map any var mentioned in argSpec */
-                /* if our assignments map becomes empty, just return visited */
-                /* otherwise, apply the reduced assignments map to the body */
-                var reducedAssignments = new HashMap<>(assignments);
-                var argsList = new ArrayList<HonsValue>();
-                unmakeList(heap, argSpec, argsList);
-                for (var arg : argsList) {
-                    reducedAssignments.remove(arg);
-                }
-                if (argsList.isEmpty())
-                    return visited;
-                var newAssignments = new Assignments(reducedAssignments);
-                var newBody = newAssignments.substitute(body);
-//                throw new RuntimeException("Unimplemented");
-                return makeList(heap, heap.makeSymbol("lambda"), argSpec, newBody);
-            }
-        }
-        
-        public HonsValue substitute(@NotNull HonsValue body) {
-            var visitor = new SubstituteVisitor();
-            return visitExpr(body, visitor);
-        }
-    }
-    
-    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, @NotNull HonsValue args) {
+    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, HonsValue args) {
         if (heap.isSymbol(argSpec)) {
 //            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
             throw new RuntimeException("Not implemented");
@@ -211,9 +140,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 curSpec = heap.snd(curSpec);
                 curArg = heap.snd(curArg);
             }
-            var assignments = new Assignments(assignmentsMap);
-//            System.out.printf("assignmentsList=%s%n", assignments);
-            return assignments;
+            return new Assignments(heap, this, assignmentsMap);
         }
         else
             throw new RuntimeException("Not implemented");
