@@ -56,6 +56,12 @@ class PrettyPrinterTest {
             prettyPrinter.valueToString(makeListWithDot(heap, HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2), HonsValue.fromSmallInt(3))));
     }
     
+    @Test void dottedListEndsInSymbol() {
+        var val = heap.cons(HonsValue.fromSmallInt(1), heap.makeSymbol("abc"));
+        assertEquals("(1 . abc)",
+            prettyPrinter.valueToString(val));
+    }
+    
     @Test void nestedLists() {
         var val = makeList(heap,
             makeList(heap,
@@ -66,5 +72,9 @@ class PrettyPrinterTest {
             HonsValue.fromSmallInt(456));
         assertEquals("((lambda nil 123) 456)",
             prettyPrinter.valueToString(val));
+    }
+    
+    @Test void pairOfNil() {
+        assertEquals("(nil)", prettyPrinter.valueToString(heap.cons(HonsValue.nil, HonsValue.nil)));
     }
 }
