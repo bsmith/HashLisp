@@ -15,6 +15,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.driver.Driver;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
@@ -282,6 +283,8 @@ public class App {
             if (debug && evaluator instanceof LazyEvaluator)
                 ((LazyEvaluator) evaluator).setDebug(true);
 
+            var driver = new Driver(heap, reader, evaluator);
+
             if (source == null && sourceFilename != null) {
                 try {
                     source = Files.readString(Path.of(sourceFilename), StandardCharsets.UTF_8);
@@ -294,19 +297,7 @@ public class App {
                 System.out.println("No program supplied");
             }
             else {
-                var readResult = reader.read(source);
-                if (readResult.isFailure()) {
-                    System.err.println("Failed to read program: " + readResult.getFailureMessage());
-                }
-                else {
-                    HonsValue result;
-                    if (readMode) {
-                        result = readResult.getValue();
-                    } else {
-                        result = evaluator.eval_one(readResult.getValue());
-                    }
-                    System.out.println(heap.valueToString(result));
-                }
+                driver.runSource(source);
             }
         }
 

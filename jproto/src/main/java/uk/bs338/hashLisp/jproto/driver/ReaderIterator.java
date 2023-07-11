@@ -1,13 +1,13 @@
 package uk.bs338.hashLisp.jproto.driver;
 
-import uk.bs338.hashLisp.jproto.IReadResult;
 import uk.bs338.hashLisp.jproto.IReader;
+import uk.bs338.hashLisp.jproto.reader.ReadResult;
 
 import java.util.Iterator;
 
 public class ReaderIterator<V> implements Iterator<V> {
     private final IReader<V> reader;
-    private IReadResult<V> curResult;
+    private ReadResult<V> curResult;
     
     public ReaderIterator(IReader<V> reader, String input) {
         this.reader = reader;
@@ -18,7 +18,7 @@ public class ReaderIterator<V> implements Iterator<V> {
         return new ReaderIterator<>(reader, input);
     }
 
-    public IReadResult<V> getCurResult() {
+    public ReadResult<V> getCurResult() {
         return curResult;
     }
 
