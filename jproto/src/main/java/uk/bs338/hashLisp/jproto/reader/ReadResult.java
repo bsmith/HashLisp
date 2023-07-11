@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Function;
 
 public sealed abstract class ReadResult implements IReadResult<HonsValue> {
     protected final String remaining;
@@ -33,6 +34,20 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
     
     public static @NotNull ReadResult successfulRead(String remaining, HonsValue value) {
         return new Successful(remaining, value);
+    }
+
+    @Override
+    public <R extends HonsValue> ReadResult replaceValueIfSuccess(R val) {
+        if (isSuccess())
+            return successfulRead(this.remaining, val);
+        return this;
+    }
+
+    @Override
+    public ReadResult mapValueIfSuccess(Function<? super HonsValue, ? extends HonsValue> mapper) {
+        if (isSuccess())
+            return replaceValueIfSuccess(mapper.apply(this.getValue()));
+        return this;
     }
 
     @Override
