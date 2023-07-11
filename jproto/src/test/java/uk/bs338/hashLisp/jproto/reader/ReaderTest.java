@@ -185,7 +185,7 @@ class ReaderTest {
             2) ;comment
             """;
         var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
-        ReadResult rv = reader.read(input);
+        ReadResult<HonsValue> rv = reader.read(input);
         assertTrue(rv.isSuccess());
         assertEquals(expected, rv.getValue());
         assertEquals("", rv.getRemaining());
@@ -205,7 +205,7 @@ class ReaderTest {
             HonsValue.fromSmallInt(3),
             HonsValue.fromSmallInt(4)
             );
-        ReadResult rv = reader.read(input);
+        ReadResult<HonsValue> rv = reader.read(input);
         assertTrue(rv.isSuccess());
         assertEquals(expected, rv.getValue());
         testReporter.publishEntry(rv.toString());

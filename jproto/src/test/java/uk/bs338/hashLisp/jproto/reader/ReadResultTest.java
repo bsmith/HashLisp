@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReadResultTest {
     @Nested
     class FailedTest {
-        ReadResult result;
+        ReadResult<?> result;
         
         @BeforeEach void setUp() {
             result = ReadResult.failedRead("remaining", "message");
@@ -38,7 +38,7 @@ class ReadResultTest {
     
     @Nested
     class SuccessfulTest {
-        ReadResult result;
+        ReadResult<HonsValue> result;
 
         @BeforeEach void setUp() {
             result = ReadResult.successfulRead("remaining", HonsValue.nil);

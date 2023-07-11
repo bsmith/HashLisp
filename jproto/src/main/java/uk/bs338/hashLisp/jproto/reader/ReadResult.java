@@ -24,11 +24,11 @@ public sealed abstract class ReadResult<V> implements IReadResult<V> {
     }
 
     public static <T> @NotNull ReadResult<T> failedRead(String remaining, String message) {
-        return new Failed<T>(remaining, message);
+        return new Failed<>(remaining, message);
     }
     
     public static <T> @NotNull ReadResult<T> successfulRead(String remaining, T value) {
-        return new Successful<T>(remaining, value);
+        return new Successful<>(remaining, value);
     }
 
     @Override
