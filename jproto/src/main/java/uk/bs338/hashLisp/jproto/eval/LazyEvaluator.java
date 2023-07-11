@@ -28,6 +28,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         primitives.put(heap.makeSymbol( "add"), this::add);
         primitives.put(heap.makeSymbol( "mul"), this::mul);
         primitives.put(heap.makeSymbol( "zerop"), this::zerop);
+        primitives.put(heap.makeSymbol( "quote"), this::quote);
         primitives.put(heap.makeSymbol( "lambda"), this::lambda);
         primitives.put(heap.makeSymbol( "eval"), this::eval_one);
     }
@@ -105,6 +106,10 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         else {
             return eval_one(f_val);
         }
+    }
+    
+    public @NotNull HonsValue quote(@NotNull HonsValue args) {
+        return heap.fst(args);
     }
 
     /* XXX this does validation stuff? */
