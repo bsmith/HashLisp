@@ -1,12 +1,14 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
 
-public class WrappedValue implements IWrappedValue<HonsValue> {
+public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     private final HonsHeap heap;
     private final HonsValue value;
 
@@ -19,12 +21,16 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
         return new WrappedValue(heap, value);
     }
     
+    private WrappedValue wrap(HonsValue newValue) {
+        return new WrappedValue(heap, newValue);
+    }
+    
     public HonsHeap getHeap() {
         return heap;
     }
 
     @Override
-    public HonsValue getValue() {
+    public @NotNull HonsValue getValue() {
         return value;
     }
 
@@ -54,8 +60,8 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
     }
 
     @Override
-    public ConsPair<HonsValue> uncons() {
-        return heap.uncons(value);
+    public @NotNull ConsPair<WrappedValue> uncons() {
+        return heap.uncons(value).fmap(this::wrap);
     }
 
     @Override
@@ -64,12 +70,12 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
     }
 
     @Override
-    public HonsValue symbolName() {
-        return heap.symbolName(value);
+    public @NotNull WrappedValue symbolName() {
+        return wrap(heap.symbolName(value));
     }
 
     @Override
-    public String symbolNameAsString() {
+    public @NotNull String symbolNameAsString() {
         return heap.symbolNameAsString(value);
     }
 
@@ -79,7 +85,7 @@ public class WrappedValue implements IWrappedValue<HonsValue> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WrappedValue that = (WrappedValue) o;

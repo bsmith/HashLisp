@@ -1,24 +1,25 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.IValue;
 
-public interface IWrappedValue<V extends IValue> extends IValue {
-    V getValue();
+public interface IWrappedValue<V extends IValue, W extends IWrappedValue<V, W>> extends IValue {
+    @NotNull V getValue();
 
-    ConsPair<V> uncons();
+    @NotNull ConsPair<W> uncons();
 
-    default V fst() {
+    default @NotNull W fst() {
         return uncons().fst();
     }
 
-    default V snd() {
+    default @NotNull W snd() {
         return uncons().snd();
     }
 
     boolean isSymbol();
 
-    V symbolName();
+    @NotNull W symbolName();
 
-    String symbolNameAsString();
+    @NotNull String symbolNameAsString();
 }

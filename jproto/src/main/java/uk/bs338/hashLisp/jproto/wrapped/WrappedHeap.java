@@ -24,7 +24,7 @@ public class WrappedHeap implements IHeap<WrappedValue> {
     }
     
     public WrappedValue wrap(HonsValue value) {
-        return new WrappedValue(heap, value);
+        return WrappedValue.wrap(heap, value);
     }
     
     /* was 'checkSameHeap' */
