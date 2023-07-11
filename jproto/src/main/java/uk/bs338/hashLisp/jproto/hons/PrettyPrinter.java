@@ -54,6 +54,6 @@ public class PrettyPrinter<V extends IValue> {
     }
     
     public static <V extends IValue> String valueToString(@NotNull IHeap<V> heap, @NotNull V val) {
-        return new PrettyPrinter(heap).valueToString(val);
+        return new PrettyPrinter<>(heap).valueToString(val);
     }
 }

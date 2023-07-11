@@ -8,12 +8,12 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class PrettyPrinterTest {
     HonsHeap heap;
-    PrettyPrinter prettyPrinter;
+    PrettyPrinter<HonsValue> prettyPrinter;
 
     @BeforeEach
     void setUp() {
         heap = new HonsHeap();
-        prettyPrinter = new PrettyPrinter(heap);
+        prettyPrinter = new PrettyPrinter<>(heap);
     }
     
     @Test void positiveSmallInt() {

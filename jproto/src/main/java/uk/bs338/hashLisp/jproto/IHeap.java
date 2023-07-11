@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.hons.PrettyPrinter;
 
 public interface IHeap<V extends IValue> extends IValueFactory<V> {
