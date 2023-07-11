@@ -19,22 +19,21 @@ public class Driver {
     protected void runOneProgram(HonsValue program) {
         System.out.printf("program = %s%n", heap.valueToString(program));
         
-        var hnf = evaluator.eval_hnf(program);
-        if (hnf.isConsRef())
-            System.out.printf("head_nf = %s%n", heap.valueToString(heap.fst(hnf)));
+        var result = evaluator.eval_one(program);
+        if (result.isConsRef())
+            System.out.printf("head = %s%n", heap.valueToString(heap.fst(result)));
         
         /* XXX: interpret result */
-        if (!hnf.isConsRef()) {
-            /* finish evaluating it, and print */
-            var retval = evaluator.apply_hnf(hnf);
-            System.out.printf("result = %s%n", heap.valueToString(retval));
+        if (!result.isConsRef() || !heap.isSymbol(heap.fst(result))) {
+            /* Not a io-monad command: print it */
+            System.out.printf("result = %s%n", heap.valueToString(result));
             return;
         }
         
         /* Is it a recognised io-monad value? */
-        var head_name = heap.symbolNameAsString(heap.fst(hnf));
+        var head_name = heap.symbolNameAsString(heap.fst(result)); 
         if (head_name.equals("io-print!")) {
-            var value = heap.fst(heap.snd(hnf));
+            var value = heap.fst(heap.snd(result));
             var evaled = evaluator.eval_one(value);
             /* XXX another bug in PrintOnlyEvaluator — it needs to quote its argument! */
             /* alternatively, ditch eval_hnf, and register the io-monad primitives? */

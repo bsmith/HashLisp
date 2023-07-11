@@ -6,11 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IEvaluator<V extends IValue> {
-    /* eval_one === apply_hnf . eval_hnf */
-    default @NotNull V eval_one(@NotNull V val) {
-        var hnf = eval_hnf(val);
-        return apply_hnf(hnf);
-    }
+    @NotNull V eval_one(@NotNull V val);
 
     default @NotNull List<V> eval_multi(@NotNull List<V> vals) {
         ArrayList<V> out = new ArrayList<>(vals.size());
@@ -25,8 +21,4 @@ public interface IEvaluator<V extends IValue> {
             vals[i] = eval_one(vals[i]);
         }
     }
-
-    @NotNull V eval_hnf(@NotNull V val);
-
-    @NotNull V apply_hnf(@NotNull V val);
 }

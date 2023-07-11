@@ -197,7 +197,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
     
-    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, HonsValue args) {
+    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, @NotNull HonsValue args) {
         if (heap.isSymbol(argSpec)) {
 //            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
             throw new RuntimeException("Not implemented");
@@ -212,7 +212,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 curArg = heap.snd(curArg);
             }
             var assignments = new Assignments(assignmentsMap);
-            System.out.printf("assignmentsList=%s%n", assignments);
+//            System.out.printf("assignmentsList=%s%n", assignments);
             return assignments;
         }
         else
@@ -222,12 +222,12 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
-        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
+//        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
         
         var assignments = matchArgSpec(argSpec, args);
         
         var result = assignments.substitute(body);
-        System.out.printf("result=%s%n", heap.valueToString(result));
+//        System.out.printf("result=%s%n", heap.valueToString(result));
         return eval_one(result);
 
 //        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
@@ -254,23 +254,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             return applyLambda(head, uncons.snd());
         }
         return heap.cons(head, rest);
-    }
-    
-    @Override
-    public @NotNull HonsValue apply_hnf(@NotNull HonsValue expr) {
-        try {
-            return apply(expr);
-        }
-        catch (EvalException e) {
-            throw new Error("Exception during apply", e); /* XXX */
-        }
-    }
-    
-    @Override
-    public @NotNull HonsValue eval_hnf(@NotNull HonsValue val) {
-        var uncons = heap.uncons(val);
-        var head_nf = eval_one(uncons.fst());
-        return heap.cons(head_nf, uncons.snd());
     }
 
     static String evalIndent = "";
