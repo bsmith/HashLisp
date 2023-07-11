@@ -15,7 +15,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.driver.PrintOnlyEvaluator;
+import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -82,14 +82,15 @@ public class App {
     }
 
     public @NotNull IReader<HonsValue> getReader() {
-        return new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
-    }
-
-    public @NotNull IEvaluator<HonsValue> getEvaluator() {
+        var reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
         if (readMode)
-            return new PrintOnlyEvaluator(heap);
+            return new PrintOnlyReader<>(heap, reader);
         else
-            return new LazyEvaluator(heap);
+            return reader;
+    }
+    
+    public @NotNull IEvaluator<HonsValue> getEvaluator() {
+        return new LazyEvaluator(heap);
     }
     
     public void forceCollision() {
