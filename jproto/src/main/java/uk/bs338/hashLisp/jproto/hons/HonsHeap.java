@@ -1,38 +1,85 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class HonsHeap implements
     IHeap<HonsValue>,
     ISymbolMixin<HonsValue>
 {
-    private final @NotNull HashMap<Integer, HonsCell> heap;
+    private HonsCell[] table;
+    private int tableLoad;
     
     public HonsHeap() {
-        heap = new HashMap<>();
+        this(2048);
+    }
+    
+    public HonsHeap(int initialSize) {
+        table = new HonsCell[initialSize];
+        tableLoad = 0;
         for (HonsValue special : HonsValue.getAllSpecials()) {
             putCell(new HonsCell(special));
         }
     }
     
-    public HonsCell getCell(@NotNull HonsValue obj) {
-        return heap.get(obj.toObjectHash());
-    }
-
-    private void putCell(@NotNull HonsCell cell) {
-        heap.put(cell.getObjectHash(), cell);
+    public @Nullable HonsCell getCell(@NotNull HonsValue obj) {
+        return getCell(obj.toObjectHash());
     }
     
-    private HonsCell getCell(@NotNull HonsCell cell) {
-        return heap.get(cell.getObjectHash());
+    private void expandTable() {
+        if (table.length > 1024*1024)
+            throw new Error("Refusing to increase the heap over 1Mi cells");
+        
+        HonsCell[] oldTable = table;
+        table = new HonsCell[oldTable.length * 2];
+        tableLoad = 0;
+        
+        for (final var cell : oldTable) {
+            putCell(cell);
+        }
+    }
+    
+    /* Mix up the high-order bits into the low-order bits for a bit more entropy */
+    private int mixHash(int objectHash) {
+        return objectHash | (objectHash >> 10);
+    }
+
+    /* putCell and getCell implement our hash table */
+    private @NotNull HonsCell putCell(@NotNull HonsCell cell) {
+        if (tableLoad > table.length / 2)
+            expandTable();
+        int objectHash = cell.getObjectHash();
+        int hash = mixHash(objectHash);
+        for (int offset = 0; offset < table.length; offset++) {
+            int tableIdx = (hash + offset) % table.length;
+            HonsCell tableCell = table[tableIdx];
+            if (tableCell == null) {
+                table[tableIdx] = cell;
+                tableLoad++;
+                return cell;
+            }
+            if (tableCell.getObjectHash() == objectHash)
+                return tableCell;
+        }
+        throw new Error("Table full");
+    }
+    
+    private @Nullable HonsCell getCell(int objectHash) {
+        int hash = mixHash(objectHash);
+        for (int offset = 0; offset < table.length; offset++) {
+            HonsCell cell = table[(hash + offset) % table.length];
+            if (cell == null)
+                return null;
+            if (cell.getObjectHash() == objectHash)
+                return cell;
+        }
+        return null;
     }
 
     @Override
@@ -54,7 +101,7 @@ public class HonsHeap implements
     public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
-            HonsCell heapCell = getCell(cell);
+            HonsCell heapCell = getCell(cell.getObjectHash());
             /* equals compares the hash, fst, and snd, so we can return this cell as our value */
             if (heapCell != null && heapCell.equals(cell)) {
                 return cell.toValue();
@@ -74,14 +121,11 @@ public class HonsHeap implements
     }
     
     public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
-        stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
-
-        var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
+        stream.printf("HonsHeap.dumpHeap(size=%d,load=%d)%n", table.length, tableLoad);
         
-        for (var entry : sortedHeap) {
-            HonsCell cell = entry.getValue();
-            if (!onlyWithMemoValues || cell.getMemoEval() != null)
-                stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
+        for (var cell : table) {
+            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null))
+                stream.printf("%s: %s%n  %s%n", cell.getObjectHash(), cell, valueToString(cell.toValue()));
         }
     }
 

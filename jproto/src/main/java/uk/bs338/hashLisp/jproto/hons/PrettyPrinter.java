@@ -40,13 +40,18 @@ public class PrettyPrinter<V extends IValue> {
         if (!val.isConsRef())
             return builder.append(val);
         
-        var uncons = heap.uncons(val);
-        if (uncons.fst().isSymbolTag())
-            return builder.append(listAsString(heap, uncons.snd()));
+        try {
+            var uncons = heap.uncons(val);
+            if (uncons.fst().isSymbolTag())
+                return builder.append(listAsString(heap, uncons.snd()));
 
-        builder.append("(");
-        listToString(uncons.fst(), uncons.snd(), builder);
-        return builder.append(")");
+            builder.append("(");
+            listToString(uncons.fst(), uncons.snd(), builder);
+            return builder.append(")");
+        }
+        catch (IllegalStateException e) {
+            return builder.append(val);
+        }
     }
 
     public String valueToString(@NotNull V val) {
