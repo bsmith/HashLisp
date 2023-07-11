@@ -40,7 +40,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
 
-    public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) {
+    public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) throws EvalException {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
 //        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));

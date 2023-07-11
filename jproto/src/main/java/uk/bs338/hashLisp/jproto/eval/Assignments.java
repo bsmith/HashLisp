@@ -80,4 +80,8 @@ class Assignments {
         var visitor = new SubstituteVisitor();
         return ExprToHeapVisitorAdapter.visitExpr(heap, body, visitor);
     }
+    
+    public @Nullable HonsValue get(@NotNull HonsValue name) {
+        return assignments.get(name);
+    }
 }
