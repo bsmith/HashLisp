@@ -40,32 +40,12 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
 
-    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, HonsValue args) {
-        if (heap.isSymbol(argSpec)) {
-//            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
-            throw new RuntimeException("Not implemented");
-        }
-        else if (argSpec.isConsRef()) {
-            var assignmentsMap = new HashMap<HonsValue, HonsValue>();
-            var curSpec = argSpec;
-            var curArg = args;
-            while (!curSpec.isNil()) {
-                assignmentsMap.put(heap.fst(curSpec), heap.fst(curArg));
-                curSpec = heap.snd(curSpec);
-                curArg = heap.snd(curArg);
-            }
-            return new Assignments(heap, this, assignmentsMap);
-        }
-        else
-            throw new RuntimeException("Not implemented");
-    }
-
     public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
 //        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
         
-        var assignments = matchArgSpec(argSpec, args);
+        var assignments = ArgSpec.match(heap, argSpec, args);
         
         var result = assignments.substitute(body);
 //        System.out.printf("result=%s%n", heap.valueToString(result));
@@ -144,13 +124,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             }
         };
         
-        return visitExpr(val, visitor);
-    }
-    
-    public <R> R visitExpr(@NotNull HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
-        var heapVisitor = new ExprToHeapVisitorAdapter<>(heap, exprVisitor);
-        heap.visitValue(value, heapVisitor);
-        return heapVisitor.result;
+        return ExprToHeapVisitorAdapter.visitExpr(heap, val, visitor);
     }
 
     public static void demo(@NotNull HonsHeap heap) {

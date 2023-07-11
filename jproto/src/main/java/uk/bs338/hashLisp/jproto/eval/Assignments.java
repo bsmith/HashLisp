@@ -14,13 +14,11 @@ import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 class Assignments {
     private final HonsHeap heap;
-    private final LazyEvaluator evaluator;
     private @Nullable HonsValue assignmentsAsValue;
     private final Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(HonsHeap heap, LazyEvaluator evaluator, Map<HonsValue, HonsValue> assignments) {
+    public Assignments(HonsHeap heap, Map<HonsValue, HonsValue> assignments) {
         this.heap = heap;
-        this.evaluator = evaluator;
         this.assignmentsAsValue = null;
         this.assignments = assignments;
     }
@@ -72,7 +70,7 @@ class Assignments {
             }
             if (argsList.isEmpty())
                 return visited;
-            var newAssignments = new Assignments(heap, evaluator, reducedAssignments);
+            var newAssignments = new Assignments(heap, reducedAssignments);
             var newBody = newAssignments.substitute(body);
             return makeList(heap, heap.makeSymbol("lambda"), argSpec, newBody);
         }
@@ -80,6 +78,6 @@ class Assignments {
 
     public HonsValue substitute(@NotNull HonsValue body) {
         var visitor = new SubstituteVisitor();
-        return evaluator.visitExpr(body, visitor);
+        return ExprToHeapVisitorAdapter.visitExpr(heap, body, visitor);
     }
 }
