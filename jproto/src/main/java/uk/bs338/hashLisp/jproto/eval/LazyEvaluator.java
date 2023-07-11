@@ -6,108 +6,22 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
-    private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
+    private final @NotNull Primitives primitives;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
-        primitives = new HashMap<>();
+        primitives = new Primitives(heap);
         debug = false;
-        
-        primitives.put(heap.makeSymbol("fst"), this::fst);
-        primitives.put(heap.makeSymbol( "snd"), this::snd);
-        primitives.put(heap.makeSymbol( "cons"), this::cons);
-        primitives.put(heap.makeSymbol( "add"), this::add);
-        primitives.put(heap.makeSymbol( "mul"), this::mul);
-        primitives.put(heap.makeSymbol( "zerop"), this::zerop);
-        primitives.put(heap.makeSymbol( "quote"), this::quote);
-        primitives.put(heap.makeSymbol( "lambda"), this::lambda);
-        primitives.put(heap.makeSymbol( "eval"), this::eval_one);
     }
     
     public void setDebug(boolean flag) {
         debug = flag;
-    }
-    
-    public @NotNull HonsValue fst(@NotNull HonsValue args) {
-        var arg = eval_one(heap.fst(args));
-        if (!arg.isConsRef())
-            return HonsValue.nil;
-        else
-            return heap.fst(arg);
-    }
-
-    public @NotNull HonsValue snd(@NotNull HonsValue args) {
-        var arg = eval_one(heap.fst(args));
-        if (!arg.isConsRef())
-            return HonsValue.nil;
-        else
-            return heap.snd(arg);
-    }
-    
-    public @NotNull HonsValue cons(@NotNull HonsValue args) {
-        var fst = eval_one(heap.fst(args));
-        var snd = eval_one(heap.fst(heap.snd(args)));
-        return heap.cons(fst, snd);
-    }
-    
-    public @NotNull HonsValue add(@NotNull HonsValue args) throws EvalException {
-        int sum = 0;
-        var cur = args;
-        while (cur.isConsRef()) {
-            var fst = eval_one(heap.fst(cur));
-            if (fst.isSmallInt())
-                sum += fst.toSmallInt();
-            else {
-                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, heap.valueToString(args), cur, heap.valueToString(cur), fst, heap.valueToString(fst), heap.getCell(fst)));
-            }
-            cur = heap.snd(cur);
-        }
-        if (!cur.isNil())
-            throw new EvalException("args not terminated by nil");
-        return heap.makeSmallInt(sum);
-    }
-
-    public @NotNull HonsValue mul(@NotNull HonsValue args) throws EvalException {
-        int product = 1;
-        var cur = args;
-        while (cur.isConsRef()) {
-            var fst = eval_one(heap.fst(cur));
-            if (fst.isSmallInt())
-                product *= fst.toSmallInt();
-            else
-                throw new EvalException("arg is not a smallint");
-            cur = heap.snd(cur);
-        }
-        if (!cur.isNil())
-            throw new EvalException("args not terminated by nil");
-        return heap.makeSmallInt(product);
-    }
-    
-    public @NotNull HonsValue zerop(@NotNull HonsValue args) {
-        var cond = heap.fst(args);
-        var t_val = heap.fst(heap.snd(args));
-        var f_val = heap.fst(heap.snd(heap.snd(args)));
-        cond = eval_one(cond);
-        if (!cond.isSmallInt()) {
-            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
-        }
-        else if (cond.toSmallInt() == 0) {
-            return eval_one(t_val);
-        }
-        else {
-            return eval_one(f_val);
-        }
-    }
-    
-    public @NotNull HonsValue quote(@NotNull HonsValue args) {
-        return heap.fst(args);
     }
 
     /* XXX this does validation stuff? */
@@ -167,15 +81,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
-            if (prim != null)
-                try {
-                    return prim.apply(rest);
-                }
-                catch (EvalException e) {
-                    e.setPrimitive(heap.symbolNameAsString(head));
-                    e.setCurrentlyEvaluating(heap.valueToString(args));
-                    throw e;
-                }
+            try {
+                return prim.apply(this, rest);
+            }
+            catch (EvalException e) {
+                e.setPrimitive(heap.symbolNameAsString(head));
+                e.setCurrentlyEvaluating(heap.valueToString(args));
+                throw e;
+            }
         }
         else if (isLambda(head)) {
             return applyLambda(head, uncons.snd());

@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface IEvaluator<V extends IValue> {
+public interface IEvaluator<V> {
     @NotNull V eval_one(@NotNull V val);
 
     default @NotNull List<V> eval_multi(@NotNull List<V> vals) {
