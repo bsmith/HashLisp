@@ -100,7 +100,7 @@ public class Reader implements IReader<HonsValue> {
         return interpretToken(tokeniser, token);
     }
     
-    public @NotNull ReadResult read(@NotNull String str) {
+    public @NotNull ReadResult<HonsValue> read(@NotNull String str) {
         Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
         /* XXX something nicer */

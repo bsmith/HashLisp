@@ -3,13 +3,12 @@ package uk.bs338.hashLisp.jproto.reader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IReadResult;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
 
-public sealed abstract class ReadResult implements IReadResult<HonsValue> {
+public sealed abstract class ReadResult<V> implements IReadResult<V> {
     protected final String remaining;
 
     protected ReadResult(String remaining) {
@@ -20,31 +19,27 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
         return remaining;
     }
     
-    public @NotNull HonsValue getValue(){
-        throw new NoSuchElementException();
-    }
-    
-    public @NotNull String getFailureMessage() throws NoSuchElementException {
+    public @NotNull V getValue(){
         throw new NoSuchElementException();
     }
 
-    public static @NotNull ReadResult failedRead(String remaining, String message) {
-        return new Failed(remaining, message);
+    public static <T> @NotNull ReadResult<T> failedRead(String remaining, String message) {
+        return new Failed<T>(remaining, message);
     }
     
-    public static @NotNull ReadResult successfulRead(String remaining, HonsValue value) {
-        return new Successful(remaining, value);
+    public static <T> @NotNull ReadResult<T> successfulRead(String remaining, T value) {
+        return new Successful<T>(remaining, value);
     }
 
     @Override
-    public <R extends HonsValue> ReadResult replaceValueIfSuccess(R val) {
+    public <R extends V> ReadResult<V> replaceValueIfSuccess(R val) {
         if (isSuccess())
             return successfulRead(this.remaining, val);
         return this;
     }
 
     @Override
-    public ReadResult mapValueIfSuccess(Function<? super HonsValue, ? extends HonsValue> mapper) {
+    public ReadResult<V> mapValueIfSuccess(Function<? super V, ? extends V> mapper) {
         if (isSuccess())
             return replaceValueIfSuccess(mapper.apply(this.getValue()));
         return this;
@@ -54,7 +49,7 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReadResult that = (ReadResult) o;
+        ReadResult<?> that = (ReadResult<?>) o;
         return Objects.equals(remaining, that.remaining);
     }
 
@@ -63,17 +58,12 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
         return Objects.hash(remaining);
     }
 
-    private final static class Failed extends ReadResult {
+    private final static class Failed<V> extends ReadResult<V> {
         private final String message;
         
         public Failed(String remaining, String message) {
             super(remaining);
             this.message = message;
-        }
-
-        @Override
-        public boolean isSuccess() {
-            return false;
         }
 
         @Override
@@ -91,7 +81,7 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
-            Failed failed = (Failed) o;
+            Failed<?> failed = (Failed<?>) o;
             return Objects.equals(message, failed.message);
         }
 
@@ -109,10 +99,10 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
         }
     }
     
-    private final static class Successful extends ReadResult {
-        private final HonsValue value;
+    private final static class Successful<V> extends ReadResult<V> {
+        private final V value;
         
-        public Successful(String remaining, HonsValue value) {
+        public Successful(String remaining, V value) {
             super(remaining);
             this.value = value;
         }
@@ -123,12 +113,7 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
         }
 
         @Override
-        public boolean isFailure() {
-            return false;
-        }
-
-        @Override
-        public @NotNull HonsValue getValue() {
+        public @NotNull V getValue() {
             return value;
         }
 
@@ -137,7 +122,7 @@ public sealed abstract class ReadResult implements IReadResult<HonsValue> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
-            Successful that = (Successful) o;
+            Successful<?> that = (Successful<?>) o;
             return Objects.equals(value, that.value);
         }
 
