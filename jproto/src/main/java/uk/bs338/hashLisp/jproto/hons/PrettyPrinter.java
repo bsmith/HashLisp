@@ -1,22 +1,23 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IValue;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
-public class PrettyPrinter {
-    private final @NotNull HonsHeap heap;
+public class PrettyPrinter<V extends IValue> {
+    private final @NotNull IHeap<V> heap;
 
-    public PrettyPrinter(@NotNull HonsHeap heap) {
+    public PrettyPrinter(@NotNull IHeap<V> heap) {
         this.heap = heap;
     }
     
-//    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest) {
-//        return listToString(head, rest, "");
-//    }
+    public String listToString(@NotNull V head, @NotNull V rest) {
+        return listToString(head, rest, new StringBuilder()).toString();
+    }
 
-    public <V extends HonsValue> StringBuilder listToString(@NotNull V head, @NotNull HonsValue rest, StringBuilder builder) {
+    public StringBuilder listToString(@NotNull V head, @NotNull V rest, StringBuilder builder) {
         valueToString(head, builder);
         while (!rest.isNil()) {
             if (!rest.isConsRef())
@@ -35,7 +36,7 @@ public class PrettyPrinter {
     }
     
     /* XXX: this is not generic over implementations */
-    public StringBuilder valueToString(@NotNull HonsValue val, StringBuilder builder) {
+    public StringBuilder valueToString(@NotNull V val, StringBuilder builder) {
         if (!val.isConsRef())
             return builder.append(val);
         
@@ -48,11 +49,11 @@ public class PrettyPrinter {
         return builder.append(")");
     }
 
-    public <V extends HonsValue> String valueToString(@NotNull V val) {
+    public String valueToString(@NotNull V val) {
         return valueToString(val, new StringBuilder()).toString();
     }
     
-    public static <V extends HonsValue> String valueToString(@NotNull HonsHeap heap, @NotNull V val) {
+    public static <V extends IValue> String valueToString(@NotNull IHeap<V> heap, @NotNull V val) {
         return new PrettyPrinter(heap).valueToString(val);
     }
 }

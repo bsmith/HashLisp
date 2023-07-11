@@ -109,8 +109,4 @@ public class HonsHeap implements
             throw new IllegalStateException("can't find cell for ConsRef: " + val);
         cell.setMemoEval(evalResult);
     }
-    
-    public String valueToString(HonsValue val) {
-        return new PrettyPrinter(this).valueToString(val);
-    }
 }
