@@ -15,8 +15,12 @@ public class WrappedHeap implements IHeap<WrappedValue> {
     private WrappedValue nil;
     private WrappedValue symbolTag;
 
-    public WrappedHeap(HonsHeap heap) {
+    private WrappedHeap(HonsHeap heap) {
         this.heap = heap;
+    }
+    
+    public static WrappedHeap wrap(HonsHeap heap) {
+        return new WrappedHeap(heap);
     }
 
     public HonsHeap getHeap() {
