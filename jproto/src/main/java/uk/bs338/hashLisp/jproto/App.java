@@ -265,7 +265,7 @@ public class App {
             else {
                 Reader reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
                 var readResult = reader.read(source);
-                if (!readResult.getValue().isPresent()) {
+                if (readResult.getValue().isEmpty()) {
                     System.err.println("Failed to read program: " + readResult.getMessage());
                 }
                 else {

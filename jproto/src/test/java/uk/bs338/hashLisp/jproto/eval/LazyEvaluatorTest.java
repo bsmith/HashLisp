@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.TestReporter;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 
 import static org.junit.jupiter.api.Assertions.*;

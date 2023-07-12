@@ -1,6 +1,5 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import com.google.common.collect.Maps;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -83,9 +82,6 @@ public class LazyEvaluator {
         var head = heap.fst(value);
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
-    
-//    HonsValue assignmentsCacheValue = null;
-//    Map<HonsValue, HonsValue> assignmentsCacheMap = null;
     
     private class Assignments {
         private HonsValue assignmentsAsValue;
