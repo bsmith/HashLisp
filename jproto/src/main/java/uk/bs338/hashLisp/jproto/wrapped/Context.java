@@ -8,13 +8,21 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
 
 public class Context extends WrappedHeap implements IReader<WrappedValue>, IEvaluator<WrappedValue> {
-    private final IReader<HonsValue> reader;
-    private final IEvaluator<HonsValue> evaluator;
+    protected final IReader<HonsValue> reader;
+    protected final IEvaluator<HonsValue> evaluator;
     
     public Context(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
         super(heap);
         this.reader = reader;
         this.evaluator = evaluator;
+    }
+
+    public IReader<HonsValue> getReader() {
+        return reader;
+    }
+
+    public IEvaluator<HonsValue> getEvaluator() {
+        return evaluator;
     }
 
     @Override

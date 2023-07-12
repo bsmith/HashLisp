@@ -4,16 +4,12 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.wrapped.Context;
 
-public class Driver {
-    private HonsHeap heap;
-    private IReader<HonsValue> reader;
-    private IEvaluator<HonsValue> evaluator;
+public class Driver extends Context {
 
     public Driver(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
-        this.heap = heap;
-        this.evaluator = evaluator;
-        this.reader = reader;
+        super(heap, reader, evaluator);
     }
 
     protected void runOneProgram(HonsValue program) {
@@ -35,12 +31,6 @@ public class Driver {
         if (head_name.equals("io-print!")) {
             var value = heap.fst(heap.snd(result));
             var evaled = evaluator.eval_one(value);
-            /* XXX another bug in PrintOnlyEvaluator — it needs to quote its argument! */
-            /* alternatively, ditch eval_hnf, and register the io-monad primitives? */
-            /* I like the idea of unregistered symbols as constructors though, very Wolframish */
-            /* eval rules for quote vs hold?  eval("(quote <x>)") == "<x>", eval("(hold <x>)") == "(hold <x>)"
-             * actually the latter rule is for any unregistered symbol!
-             */
             System.out.println(heap.valueToString(evaled));
             
             /* handle continuation, is it lambda wrapped? */
@@ -66,7 +56,7 @@ public class Driver {
     public void runSource(String source) {
         var iterator = new ReaderIterator<>(reader, source);
         iterator.forEachRemaining(this::runOneProgram);
-        /* XXX handle failure to read */
+        /* XXX handle failure to read better */
         if (iterator.getCurResult().getRemaining().length() != 0)
             throw new Error("Reading failed: " + iterator.getCurResult());
     }
