@@ -135,6 +135,76 @@ public class App {
         forceCollision();
     }
 
+    private void parseUserArgs(String[] args)
+    {
+        /* Complicated logic:
+         *   If --file or --expr are not given,
+         *     then the first arg (if present) of app.userArguments
+         *       is removed and used as --file's parameter
+         *   Otherwise, don't change app.userArguments.
+         * 
+         *   You can't have both entries in app.userArguments already,
+         *     and have more userArgs!
+         *   Specifically, if -- is provided then user args must be after it
+         */
+        if (sourceFilename == null && sourceExpr == null) {
+            if (userArguments != null && userArguments.size() > 0)
+                sourceFilename = userArguments.remove(0);
+        }
+        if (args != null) {
+            if (userArguments != null && userArguments.size() > 0)
+                throw new ParameterException("Unrecognised parameters before --: " + userArguments);
+            if (userArguments == null)
+                userArguments = new ArrayList<>();
+            userArguments.addAll(Arrays.asList(args));
+        }
+    }
+
+    /* Return false if the app doesn't need to run */
+    public boolean parseArgs(String[] args)
+    {
+        // Split the arguments into args for App and for the user's program
+        int splitIdx;
+        boolean argSplitPresent = false;
+        for (splitIdx = 0; splitIdx < args.length; splitIdx++) {
+            if (args[splitIdx].equals("--")) {
+                argSplitPresent = true;
+                break;
+            }
+        }
+
+        String[] appArgs, userArgs;
+        if (argSplitPresent) {
+            appArgs = Arrays.copyOfRange(args, 0, splitIdx);
+            userArgs = Arrays.copyOfRange(args, splitIdx + 1, args.length);
+            System.out.printf("args: %s -- %s%n", List.of(appArgs), List.of(userArgs));
+        } else {
+            appArgs = args;
+            userArgs = null;
+            System.out.printf("args: %s%n", List.of(appArgs));
+        }
+
+        // Parse argument flags here and configure the app object
+        JCommander commander = JCommander.newBuilder()
+            .addObject(this)
+            .build();
+        try {
+            commander.parse(appArgs);
+            parseUserArgs(userArgs);
+        } catch (ParameterException e) {
+            System.err.println(e.getLocalizedMessage());
+            commander.usage();
+            return false;
+        }
+
+        if (this.showHelp) {
+            commander.usage();
+            return false;
+        }
+        
+        return true;
+    }
+
     public void run() {
         if (showHelp)
             throw new IllegalStateException("Help should be shown without running app");
@@ -171,68 +241,11 @@ public class App {
         // For development, override debug by default
         app.debug = true;
 
-        // Split the arguments into args for App and for the user's program
-        int splitIdx;
-        boolean argSplitPresent = false;
-        for (splitIdx = 0; splitIdx < args.length; splitIdx++) {
-            if (args[splitIdx].equals("--")) {
-                argSplitPresent = true;
-                break;
-            }
-        }
-
-        String[] appArgs, userArgs;
-        if (argSplitPresent) {
-            appArgs = Arrays.copyOfRange(args, 0, splitIdx);
-            userArgs = Arrays.copyOfRange(args, splitIdx + 1, args.length);
-            System.out.printf("args: %s -- %s%n", List.of(appArgs), List.of(userArgs));
-        } else {
-            appArgs = args;
-            userArgs = null;
-            System.out.printf("args: %s%n", List.of(appArgs));
-        }
-
-        // Parse argument flags here and configure the app object
-        JCommander commander = JCommander.newBuilder()
-            .addObject(app)
-            .build();
-        try {
-            commander.parse(appArgs);
-        } catch (ParameterException e) {
-            System.err.println(e.getLocalizedMessage());
-            commander.usage();
-            return;
-        }
-
-        if (app.showHelp) {
-            commander.usage();
-            return;
-        }
-
-        /* Complicated logic:
-         *   If --file or --expr are not given,
-         *     then the first arg (if present) of app.userArguments
-         *       is removed and used as --file's parameter
-         *   Otherwise, don't change app.userArguments.
-         * 
-         *   You can't have both entries in app.userArguments already,
-         *     and have more userArgs!
-         *   Specifically, if -- is provided then user args must be after it
-         */
-        if (app.sourceFilename == null && app.sourceExpr == null) {
-            if (app.userArguments != null && app.userArguments.size() > 0)
-                app.sourceFilename = app.userArguments.remove(0);
-        }
-        if (userArgs != null) {
-            if (app.userArguments != null && app.userArguments.size() > 0)
-                throw new ParameterException("Unrecognised parameters before --: " + app.userArguments);
-            if (app.userArguments == null)
-                app.userArguments = new ArrayList<>();
-            app.userArguments.addAll(Arrays.asList(userArgs));
-        }
+        boolean runNeeded = app.parseArgs(args);
 
         // Run the main program/task
         // XXX Inside this we might create a Driver object
-        app.run();
+        if (runNeeded)
+            app.run();
     }
 }
