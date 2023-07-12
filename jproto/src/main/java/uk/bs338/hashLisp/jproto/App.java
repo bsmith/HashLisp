@@ -3,6 +3,10 @@
  */
 package uk.bs338.hashLisp.jproto;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -258,9 +262,14 @@ public class App {
         } else {
             String source = sourceExpr;
 
-            if (source == null && sourceFilename != null)
-                // source = getContentsOfSourceFile(sourceFilename);
-                source = "(error \"reading source file not implemented\")";
+            if (source == null && sourceFilename != null) {
+                try {
+                    source = Files.readString(Path.of(sourceFilename), StandardCharsets.UTF_8);
+                }
+                catch (IOException e) {
+                    System.err.println("Couldn't read program from " + sourceFilename + ": " + e);
+                }
+            }
             if (source == null) {
                 System.out.println("No program supplied");
             }
