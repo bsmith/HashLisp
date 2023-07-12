@@ -220,7 +220,7 @@ public class App {
          *   Specifically, if -- is provided then user args must be after it
          */
         if (app.sourceFilename == null && app.sourceExpr == null) {
-            if (app.userArguments.size() > 0)
+            if (app.userArguments != null && app.userArguments.size() > 0)
                 app.sourceFilename = app.userArguments.remove(0);
         }
         if (userArgs != null) {
