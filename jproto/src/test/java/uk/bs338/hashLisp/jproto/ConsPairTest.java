@@ -10,34 +10,34 @@ class ConsPairTest {
 
         @Override
         public boolean isNil() {
-                return false;
-            }
+            return false;
+        }
     
-            @Override
-            public boolean isSymbolTag() {
-                return false;
-            }
+        @Override
+        public boolean isSymbolTag() {
+            return false;
+        }
     
-            @Override
-            public boolean isSmallInt() {
-                return true;
-            }
+        @Override
+        public boolean isSmallInt() {
+            return true;
+        }
     
-            @Override
-            public boolean isConsRef() {
-                return false;
-            }
+        @Override
+        public boolean isConsRef() {
+            return false;
+        }
     
-            @Override
-            public int toSmallInt() {
-                return 123;
-            }
+        @Override
+        public int toSmallInt() {
+            return value;
+        }
 
         @Override
         public String toString() {
-                return String.format("MockValue{%d}", toSmallInt());
-            }
+            return String.format("MockValue{%d}", toSmallInt());
         }
+    }
     
     MockValue fstMock;
     MockValue sndMock;
@@ -70,5 +70,11 @@ class ConsPairTest {
     @Test void hasUsefulToString() {
         String expected = "ConsPair[fst=%s, snd=%s]".formatted(fstMock, sndMock);
         assertEquals(expected, consPair.toString());
+    }
+
+    @Test void fmapAppliesFunction() {
+        ConsPair<MockValue> retval = consPair.fmap((mock) -> new MockValue(mock.toSmallInt()*2));
+        assertEquals(123*2, retval.fst().toSmallInt());
+        assertEquals(456*2, retval.snd().toSmallInt());
     }
 }
