@@ -3,6 +3,8 @@ package uk.bs338.hashLisp.jproto;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
 
 /* Utilities to interop between Java and IValue */
 
@@ -10,6 +12,33 @@ import java.util.List;
 public final class Utilities {
     private Utilities() {
         throw new AssertionError("No Utilities instances for you!");
+    }
+    
+    /* XXX Are these two operations the best?  Most javaish? */
+    /* XXX using fromInteger does some checks for overflow, but not all? */
+    public static <V extends IValue> V applySmallIntOperation(IValueFactory<V> ivf, IntUnaryOperator func, V val) {
+        var rvInt = func.applyAsInt(val.toSmallInt());
+        return val.isSmallInt() ? ivf.makeSmallInt(rvInt) : ivf.nil();
+    }
+
+    public static <V extends IValue> V applySmallIntOperation(IValueFactory<V> ivf, IntBinaryOperator func, V left, V right) {
+        if (!left.isSmallInt() || !right.isSmallInt()) {
+            return ivf.nil();
+        }
+        var rvInt = func.applyAsInt(left.toSmallInt(), right.toSmallInt());
+        return ivf.makeSmallInt(rvInt);
+    }
+    
+    public static <V extends IValue> V sumList(IHeap<V> heap, V list) {
+        if (list.isNil())
+            return heap.makeSmallInt(0);
+        else if (list.isSmallInt())
+            return list;
+        else {
+            V head = sumList(heap, heap.fst(list));
+            V rest = sumList(heap, heap.snd(list));
+            return applySmallIntOperation(heap, Integer::sum, head, rest);
+        }
     }
 
     public static <V extends IValue> V intList(IHeap<V> heap, int[] nums) {
