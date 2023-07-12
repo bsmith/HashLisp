@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
@@ -28,7 +29,7 @@ public class LispExamplesTest {
     }
     
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    void assertEval(String expectedStr, String programStr) {
+    void assertEval(@NotNull String expectedStr, @NotNull String programStr) {
         var expected = reader.read(expectedStr).getValue().get();
         var program = reader.read(programStr).getValue().get();
         var actual = evaluator.eval(program);

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
@@ -10,15 +11,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
 public class HonsHeap implements
     IHeap<HonsValue>,
     ISymbolMixin<HonsValue>
 {
-    private final HashMap<Integer, HonsCell> heap;
+    private final @NotNull HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
         heap = new HashMap<>();
@@ -27,35 +26,35 @@ public class HonsHeap implements
         }
     }
     
-    private HonsCell getCell(@Nonnull HonsValue obj) {
+    private HonsCell getCell(@NotNull HonsValue obj) {
         return heap.get(obj.toObjectHash());
     }
 
-    private void putCell(@Nonnull HonsCell cell) {
+    private void putCell(@NotNull HonsCell cell) {
         heap.put(cell.getObjectHash(), cell);
     }
     
-    private HonsCell getCell(@Nonnull HonsCell cell) {
+    private HonsCell getCell(@NotNull HonsCell cell) {
         return heap.get(cell.getObjectHash());
     }
 
     @Override
-    public HonsValue nil() {
+    public @NotNull HonsValue nil() {
         return HonsValue.nil;
     }
 
     @Override
-    public HonsValue makeSmallInt(int num) {
+    public @NotNull HonsValue makeSmallInt(int num) {
         return HonsValue.fromSmallInt(num);
     }
 
     @Override
-    public HonsValue symbolTag() {
+    public @NotNull HonsValue symbolTag() {
         return HonsValue.symbolTag;
     }
 
-    @Nonnull
-    public HonsValue cons(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    @NotNull
+    public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
             HonsCell heapCell = getCell(cell);
@@ -73,11 +72,11 @@ public class HonsHeap implements
         } while (true);
     }
 
-    public String listToString(HonsValue head, HonsValue rest) {
+    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest) {
         return listToString(head, rest, "");
     }
 
-    public String listToString(HonsValue head, HonsValue rest, String accum) {
+    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest, String accum) {
         var str = valueToString(head, accum);
         
         if (rest.isNil())
@@ -94,11 +93,11 @@ public class HonsHeap implements
         return listToString(restCell.getFst(), restCell.getSnd(), str + " ");
     }
 
-    public String valueToString(HonsValue val) {
+    public String valueToString(@NotNull HonsValue val) {
         return valueToString(val, "");
     }
 
-    public String valueToString(HonsValue val, String accum) {
+    public String valueToString(@NotNull HonsValue val, String accum) {
         if (val.isObjectHash()) {
             var cell = getCell(val);
             if (cell == null)
@@ -108,8 +107,7 @@ public class HonsHeap implements
                 return String.format("#%d:%s", cell.getObjectHash(), special);
             if (cell.getFst().equals(HonsValue.symbolTag)) {
                 String symName = listAsString(this, cell.getSnd());
-                if (symName != null)
-                    return accum + symName;
+                return accum + symName;
             }
             return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
         } else {
@@ -117,11 +115,11 @@ public class HonsHeap implements
         }
     }
 
-    public void dumpHeap(PrintStream stream) {
+    public void dumpHeap(@NotNull PrintStream stream) {
         dumpHeap(stream, false);
     }
     
-    public void dumpHeap(PrintStream stream, boolean onlyWithMemoValues) {
+    public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
         stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
         var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
@@ -133,8 +131,8 @@ public class HonsHeap implements
         }
     }
 
-    @Nonnull
-    public ConsPair<HonsValue> uncons(HonsValue val) {
+    @NotNull
+    public ConsPair<HonsValue> uncons(@NotNull HonsValue val) {
         if (!val.isObjectHash())
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
@@ -144,7 +142,7 @@ public class HonsHeap implements
     }
     
     /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
-    public Optional<HonsValue> getMemoEval(HonsValue val) {
+    public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
         if (!val.isConsRef())
             return Optional.empty();
         var cell = getCell(val);
@@ -152,12 +150,12 @@ public class HonsHeap implements
     }
     
     /* XXX what if the cell doesn't exist? */
-    public void setMemoEval(HonsValue val, HonsValue evalResult) {
+    public void setMemoEval(@NotNull HonsValue val, @NotNull HonsValue evalResult) {
         var cell = getCell(val);
         cell.setMemoEval(evalResult);
     }
     
-    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) {
+    public void visitValue(@NotNull HonsValue val, @NotNull IHeapVisitor<HonsValue> visitor) {
         if (val.isNil())
             visitor.visitNil(val);
         else if (val.isSmallInt())

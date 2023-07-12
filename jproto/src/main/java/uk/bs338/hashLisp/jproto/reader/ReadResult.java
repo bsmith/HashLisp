@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
@@ -22,16 +24,16 @@ public abstract class ReadResult {
         throw new NoSuchElementException();
     }
 
-    public static ReadResult failedRead(String remaining, String message) {
+    public static @NotNull ReadResult failedRead(String remaining, String message) {
         return new Failed(remaining, message);
     }
     
-    public static ReadResult successfulRead(String remaining, HonsValue value) {
+    public static @NotNull ReadResult successfulRead(String remaining, HonsValue value) {
         return new Successful(remaining, value);
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReadResult that = (ReadResult) o;
@@ -52,7 +54,7 @@ public abstract class ReadResult {
         }
 
         @Override
-        public Optional<HonsValue> getValue() {
+        public @NotNull Optional<HonsValue> getValue() {
             return Optional.empty();
         }
         
@@ -62,7 +64,7 @@ public abstract class ReadResult {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
@@ -76,7 +78,7 @@ public abstract class ReadResult {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "Failed{" +
                 "message='" + message + '\'' +
                 ", remaining='" + remaining + '\'' +
@@ -93,12 +95,12 @@ public abstract class ReadResult {
         }
 
         @Override
-        public Optional<HonsValue> getValue() {
+        public @NotNull Optional<HonsValue> getValue() {
             return Optional.of(value);
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
@@ -112,7 +114,7 @@ public abstract class ReadResult {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "Successful{" +
                 "value=" + value +
                 ", remaining='" + remaining + '\'' +

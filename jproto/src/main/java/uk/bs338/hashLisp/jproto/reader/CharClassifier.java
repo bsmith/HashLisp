@@ -1,5 +1,8 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 
@@ -25,7 +28,7 @@ public class CharClassifier {
     private final static String whitespace = " \t\r\n";
     
     private final static int TABLE_SIZE = 256;
-    private static ArrayList<EnumSet<CharClass>> classTable = null;
+    private static @Nullable ArrayList<EnumSet<CharClass>> classTable = null;
     
     public CharClassifier() {
         setupTables();
@@ -54,18 +57,19 @@ public class CharClassifier {
         whitespace.codePoints().forEach(cp -> classTable.get(cp).add(CharClass.WHITESPACE));
     }
     
-    /* XXX rewrite this so that this is the more efficient impl! */
     public EnumSet<CharClass> classifyChar(int codepoint) {
-        if (codepoint < TABLE_SIZE)
+        if (codepoint < TABLE_SIZE) {
+            assert classTable != null;
             return EnumSet.copyOf(classTable.get(codepoint));
+        }
         return EnumSet.noneOf(CharClass.class);
     }
     
-    public EnumSet<CharClass> classifyChar(String ch) {
+    public EnumSet<CharClass> classifyChar(@NotNull String ch) {
         return classifyChar(ch.codePointAt(0));
     }
     
-    public String interpretEscapedChar(String ch) {
+    public @NotNull String interpretEscapedChar(@NotNull String ch) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
         return switch (ch) {
             case "t" -> "\t";

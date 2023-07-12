@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier.CharClass;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
@@ -21,11 +22,11 @@ public class Tokeniser implements Iterator<Token> {
         this.startPos = 0;
     }
     
-    public static ITokeniserFactory getFactory(CharClassifier charClassifier) {
+    public static @NotNull ITokeniserFactory getFactory(CharClassifier charClassifier) {
         return str -> new Tokeniser(str, charClassifier);
     }
     
-    public String getRemaining() {
+    public @NotNull String getRemaining() {
         return source.subSequence(curOffset, source.length()).toString();
     }
     
@@ -57,7 +58,7 @@ public class Tokeniser implements Iterator<Token> {
         }
     }
 
-    public void eatExceptClasses(EnumSet<CharClass> stopAt) {
+    public void eatExceptClasses(@NotNull EnumSet<CharClass> stopAt) {
         while (!isAtEnd()) {
             var charClass = classifyFirstChar();
             charClass.retainAll(stopAt);
@@ -94,7 +95,7 @@ public class Tokeniser implements Iterator<Token> {
     }
 
     @Override
-    public Token next() {
+    public @NotNull Token next() {
         eatWhitespace();
         
         int tokenStartPos = startPos;

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -234,7 +235,7 @@ class TokeniserTest {
     
     @Nested
     class StringTokens {
-        void testOneToken(String source, String expectedToken) {
+        void testOneToken(@NotNull String source, String expectedToken) {
             tokeniser = new Tokeniser(source, charClassifier);
             Token token = tokeniser.next();
             assertFalse(tokeniser.hasNext());

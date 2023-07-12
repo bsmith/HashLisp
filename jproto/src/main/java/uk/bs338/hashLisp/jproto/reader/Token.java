@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
+
 public /*abstract*/ class Token {
     enum TokenType {
         UNKNOWN,
@@ -42,7 +44,7 @@ public /*abstract*/ class Token {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "Token{" +
             "type=" + type +
             ", token='" + token + '\'' +

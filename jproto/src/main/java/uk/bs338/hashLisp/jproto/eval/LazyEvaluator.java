@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -12,10 +13,10 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator {
     private final HonsHeap heap;
-    private final Map<HonsValue, IPrimitive<HonsValue>> primitives;
+    private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private boolean debug;
 
-    public LazyEvaluator(HonsHeap heap) {
+    public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
         primitives = new HashMap<>();
         debug = false;
@@ -32,7 +33,7 @@ public class LazyEvaluator {
         debug = flag;
     }
     
-    public HonsValue fst(HonsValue args) {
+    public @NotNull HonsValue fst(HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -40,7 +41,7 @@ public class LazyEvaluator {
             return heap.fst(arg);
     }
 
-    public HonsValue snd(HonsValue args) {
+    public @NotNull HonsValue snd(HonsValue args) {
         var arg = eval(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
@@ -48,13 +49,13 @@ public class LazyEvaluator {
             return heap.snd(arg);
     }
     
-    public HonsValue cons(HonsValue args) {
+    public @NotNull HonsValue cons(HonsValue args) {
         var fst = eval(heap.fst(args));
         var snd = eval(heap.fst(heap.snd(args)));
         return heap.cons(fst, snd);
     }
     
-    public HonsValue add(HonsValue args) {
+    public @NotNull HonsValue add(HonsValue args) {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
@@ -70,25 +71,22 @@ public class LazyEvaluator {
 
     /* XXX this does validation stuff? */
     /* XXX alpha convert early? */
-    public HonsValue lambda(HonsValue args) {
+    public @NotNull HonsValue lambda(HonsValue args) {
         System.out.printf("lambda: %s%n", heap.valueToString(args));
         var argSpec = heap.fst(args);
         var body = heap.fst(heap.snd(args));
         return heap.cons(heap.makeSymbol("lambda"), heap.cons(argSpec, heap.cons(body, heap.nil())));
     }
 
-    public boolean isLambda(HonsValue value) {
+    public boolean isLambda(@NotNull HonsValue value) {
         if (!value.isConsRef())
             return false;
         var head = heap.fst(value);
         return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
     }
     
-//    HonsValue assignmentsCacheValue = null;
-//    Map<HonsValue, HonsValue> assignmentsCacheMap = null;
-    
     private class Assignments {
-        private HonsValue assignmentsAsValue;
+        private @Nullable HonsValue assignmentsAsValue;
         private final Map<HonsValue, HonsValue> assignments;
         
         public Assignments(Map<HonsValue, HonsValue> assignments) {
@@ -96,7 +94,7 @@ public class LazyEvaluator {
             this.assignments = assignments;
         }
         
-        public HonsValue getAssignmentsAsValue() {
+        public @NotNull HonsValue getAssignmentsAsValue() {
             if (assignmentsAsValue != null)
                 return assignmentsAsValue;
             var assignmentsList = HonsValue.nil;
@@ -106,24 +104,24 @@ public class LazyEvaluator {
             return assignmentsAsValue = assignmentsList;
         }
         
-        public String toString() {
+        public @NotNull String toString() {
             return "Assignments{" + heap.valueToString(getAssignmentsAsValue()) + "}";
         }
         
         private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
             @Override
-            public HonsValue visitConstant(HonsValue visited) {
+            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
                 return visited;
             }
 
             @Override
-            public HonsValue visitSymbol(HonsValue visited) {
+            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
                 var assignedValue = assignments.get(visited);
                 return assignedValue == null ? visited : assignedValue;
             }
 
             @Override
-            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
+            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
                 return heap.cons(
                     substitute(head),
                     substitute(args)
@@ -131,7 +129,7 @@ public class LazyEvaluator {
             }
 
             @Override
-            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) {
+            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
                 /* we want to remove from our assignments map any var mentioned in argSpec */
                 /* if our assignments map becomes empty, just return visited */
                 /* otherwise, apply the reduced assignments map to the body */
@@ -150,13 +148,13 @@ public class LazyEvaluator {
             }
         }
         
-        public HonsValue substitute(HonsValue body) {
+        public HonsValue substitute(@NotNull HonsValue body) {
             var visitor = new SubstituteVisitor();
             return visitExpr(body, visitor);
         }
     }
     
-    public Assignments matchArgSpec(HonsValue argSpec, HonsValue args) {
+    public @NotNull Assignments matchArgSpec(@NotNull HonsValue argSpec, HonsValue args) {
         if (heap.isSymbol(argSpec)) {
 //            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("slurpy argSpec not implemented"));
             throw new RuntimeException("Not implemented");
@@ -192,7 +190,7 @@ public class LazyEvaluator {
 //        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
 
-    public HonsValue apply(HonsValue args) {
+    public HonsValue apply(@NotNull HonsValue args) {
         /* cons */
         var uncons = heap.uncons(args);
         var head = eval(uncons.fst());
@@ -210,23 +208,23 @@ public class LazyEvaluator {
     }
 
     static String evalIndent = "";
-    public HonsValue eval(HonsValue val) {
+    public HonsValue eval(@NotNull HonsValue val) {
         var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
-            public HonsValue visitConstant(HonsValue visited) {
+            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
                 return visited;
             }
             
             @Override
-            public HonsValue visitSymbol(HonsValue visited) {
+            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
                 return visited;
             }
             
             @Override
-            public HonsValue visitLambda(HonsValue visited, HonsValue argSpec, HonsValue body) { return visited; }
+            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) { return visited; }
 
             @Override
-            public HonsValue visitApply(HonsValue visited, HonsValue head, HonsValue args) {
+            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
                 var savedIndent = evalIndent;
                 var result = (HonsValue)null;
 
@@ -255,13 +253,13 @@ public class LazyEvaluator {
         return visitExpr(val, visitor);
     }
     
-    public <R> R visitExpr(HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
+    public <R> R visitExpr(@NotNull HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
         var heapVisitor = new ExprToHeapVisitorAdapter<>(heap, exprVisitor);
         heap.visitValue(value, heapVisitor);
         return heapVisitor.result;
     }
     
-    public static void demo(HonsHeap heap) {
+    public static void demo(@NotNull HonsHeap heap) {
         System.out.println("Evaluator demo");
         
         var evaluator = new LazyEvaluator(heap);

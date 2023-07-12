@@ -1,25 +1,24 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 /* HonsCells are mutable in memoEval, but this is not included in the hashValue or the objectHash */
 public class HonsCell {
     private int objectHash;
-    @Nonnull
+    @NotNull
     private final HonsValue fst, snd;
     /* mutable */
     @Nullable
     private HonsValue memoEval;
-    private final String special;
+    private final @Nullable String special;
     private int collision;
     
     /* for special values */
-    public HonsCell(@Nonnull HonsValue special)  {
+    public HonsCell(@NotNull HonsValue special)  {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
@@ -27,7 +26,7 @@ public class HonsCell {
         this.collision = 0;
     }
 
-    public HonsCell(@Nonnull HonsValue fst, @Nonnull HonsValue snd) {
+    public HonsCell(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
@@ -54,27 +53,27 @@ public class HonsCell {
         return objectHash;
     }
 
-    public HonsValue getMemoEval() {
+    public @Nullable HonsValue getMemoEval() {
         return memoEval;
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue getFst() {
         return fst;
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue getSnd() {
         return snd;
     }
     
-    public ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
+    public @NotNull ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
 
-    public String getSpecial() {
+    public @Nullable String getSpecial() {
         return special;
     }
 
-    public void setMemoEval(HonsValue memoEval) {
+    public void setMemoEval(@NotNull HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
@@ -84,7 +83,7 @@ public class HonsCell {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -100,13 +99,13 @@ public class HonsCell {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         if (this.special != null)
             return "HonsCell{objectHash=" + objectHash + ", special=" + special + "}";
         return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";
     }
 
-    @Nonnull
+    @NotNull
     public HonsValue toValue() {
         return HonsValue.fromObjectHash(objectHash);
     }

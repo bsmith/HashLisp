@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,22 +42,22 @@ class HonsHeapTest {
     class HeapVisitor {
         class heapVisitor implements IHeapVisitor<HonsValue> {
             @Override
-            public void visitNil(HonsValue visited) {
+            public void visitNil(@NotNull HonsValue visited) {
                 throw new AssertionError("visitNil shouldn't have been called");
             }
 
             @Override
-            public void visitSmallInt(HonsValue visited, int num) {
+            public void visitSmallInt(@NotNull HonsValue visited, int num) {
                 throw new AssertionError("visitSmallInt shouldn't have been called");
             }
 
             @Override
-            public void visitSymbol(HonsValue visited, HonsValue val) {
+            public void visitSymbol(@NotNull HonsValue visited, @NotNull HonsValue val) {
                 throw new AssertionError("visitSymbol shouldn't have been called");
             }
 
             @Override
-            public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+            public void visitCons(@NotNull HonsValue visited, @NotNull HonsValue fst, @NotNull HonsValue snd) {
                 throw new AssertionError("visitCons shouldn't have been called");
             }
         }
@@ -65,7 +66,7 @@ class HonsHeapTest {
             HonsValue value = HonsValue.nil;
             var visitor = new heapVisitor() {
                 public boolean visitCalled = false;
-                public void visitNil(HonsValue visited) {
+                public void visitNil(@NotNull HonsValue visited) {
                     assertEquals(value, visited);
                     visitCalled = true;
                 }
@@ -78,7 +79,7 @@ class HonsHeapTest {
             HonsValue value = HonsValue.fromSmallInt(123);
             var visitor = new heapVisitor() {
                 public boolean visitCalled = false;
-                public void visitSmallInt(HonsValue visited, int num) {
+                public void visitSmallInt(@NotNull HonsValue visited, int num) {
                     assertEquals(value, visited);
                     assertEquals(123, num);
                     visitCalled = true;
@@ -91,7 +92,7 @@ class HonsHeapTest {
         @Test void canVisitSymbol() {
             var visitor = new heapVisitor() {
                 public boolean visitCalled = false;
-                public void visitSymbol(HonsValue visited, HonsValue val) {
+                public void visitSymbol(@NotNull HonsValue visited, @NotNull HonsValue val) {
                     assertEquals(sym, visited);
                     assertEquals(heap.symbolName(sym), val);
                     visitCalled = true;
@@ -104,7 +105,7 @@ class HonsHeapTest {
         @Test void canVisitCons() {
             var visitor = new heapVisitor() {
                 public boolean visitCalled = false;
-                public void visitCons(HonsValue visited, HonsValue fst, HonsValue snd) {
+                public void visitCons(@NotNull HonsValue visited, @NotNull HonsValue fst, @NotNull HonsValue snd) {
                     assertEquals(cons, visited);
                     assertEquals(one, fst);
                     assertEquals(two, snd);
