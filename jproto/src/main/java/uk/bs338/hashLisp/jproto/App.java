@@ -53,7 +53,7 @@ public class App {
         names = {"-E", "--eval"},
         description = "Read the program and then evaluate the program"
     )
-    public boolean evalMode = true;
+    public boolean evalMode = false;
     @Parameter(
         names = {"-f", "--file"},
         description = "The file to use as the source of the program"
@@ -66,6 +66,7 @@ public class App {
     public String sourceExpr = null;
     @Parameter
     public List<String> userArguments = null;
+    boolean argsParsed = false;
 
     public App() {
         heap = new HonsHeap();
@@ -173,11 +174,20 @@ public class App {
             modeFlagsSet++;
         if (modeFlagsSet > 1)
             throw new ParameterException("--demo, --read and --eval are mutually exclusive: only supply one");
+        if (modeFlagsSet == 0)
+            evalMode = true;
+        
+        if (sourceFilename != null && sourceExpr != null)
+            throw new ParameterException("Cannot supply an expr and a filename");
     }
 
     /* Return false if the app doesn't need to run */
     public boolean parseArgs(String[] args)
     {
+        if (argsParsed)
+            throw new IllegalStateException("App.parseArgs is only able to be called once");
+        argsParsed = true;
+
         // Split the arguments into args for App and for the user's program
         int splitIdx;
         boolean argSplitPresent = false;
@@ -224,6 +234,8 @@ public class App {
     public void run() {
         if (showHelp)
             throw new IllegalStateException("Help should be shown without running app");
+        if (!argsParsed)
+            throw new IllegalStateException("Please App.parseArgs before App.run");
 
         if (debug) {
             System.err.printf("App flags: %n");
