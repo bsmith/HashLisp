@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IValue;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public final class HonsValue implements IValue {
         return (this.value & 1) == 1 && objectHash >= 0 && objectHash < specialNames.size();
     }
     
-    public String getSpecialName() {
+    public @Nullable String getSpecialName() {
         if (this.isSpecial())
             return specialNames.get(this.value >> 1);
         else
@@ -95,12 +96,12 @@ public final class HonsValue implements IValue {
 
     /* XXX Are these two operations the best?  Most javaish? */
     /* XXX using fromInteger does some checks for overflow, but not all? */
-    public static HonsValue applySmallIntOperation(IntUnaryOperator func, HonsValue val) {
+    public static HonsValue applySmallIntOperation(@NotNull IntUnaryOperator func, @NotNull HonsValue val) {
         var rvInt = func.applyAsInt(val.value >> 1);
         return val.isSmallInt() ? HonsValue.fromSmallInt(rvInt) : nil;
     }
 
-    public static HonsValue applySmallIntOperation(IntBinaryOperator func, HonsValue left, HonsValue right) {
+    public static HonsValue applySmallIntOperation(@NotNull IntBinaryOperator func, @NotNull HonsValue left, @NotNull HonsValue right) {
         if (!left.isSmallInt() || !right.isSmallInt()) {
             return nil;
         }
@@ -110,7 +111,7 @@ public final class HonsValue implements IValue {
 
     /* this is an immutable record, ie the Object is equivalent to its int value */
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         if (this.isNil())
             return "nil";
         if ((this.value & 1) == 1) {

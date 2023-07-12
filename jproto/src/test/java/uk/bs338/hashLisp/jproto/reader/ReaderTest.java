@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -107,7 +108,7 @@ class ReaderTest {
             assertEquals(expected, actual);
         }
         
-        @Test void dotCannotAppearAtStartOfList(TestReporter testReporter) {
+        @Test void dotCannotAppearAtStartOfList(@NotNull TestReporter testReporter) {
             var input = "( . 123)";
             var actual = reader.read(input);
             assertTrue(actual.getValue().isEmpty());
@@ -118,7 +119,7 @@ class ReaderTest {
     
     @Nested
     class SmallIntValues {
-        void assertSmallIntRead(int expected, String input) {
+        void assertSmallIntRead(int expected, @NotNull String input) {
             var actual = reader.read(input);
             assertTrue(actual.getValue().isPresent());
             assertEquals(HonsValue.fromSmallInt(expected), actual.getValue().get());
@@ -149,7 +150,7 @@ class ReaderTest {
     
     @Nested
     class StringValues {
-        void assertStringRead(String expectedStr, String input) {
+        void assertStringRead(@NotNull String expectedStr, @NotNull String input) {
             var actual = reader.read(input);
             var expected = stringAsList(heap, expectedStr);
             assertEquals(Optional.of(expected), actual.getValue());
@@ -190,7 +191,7 @@ class ReaderTest {
     }
     
     @Test
-    void read(TestReporter testReporter) {
+    void read(@NotNull TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";
         var addSym = heap.makeSymbol("add");
         var expected = makeList(heap,

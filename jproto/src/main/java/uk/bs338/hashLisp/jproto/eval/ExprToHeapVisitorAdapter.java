@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -9,7 +10,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 public class ExprToHeapVisitorAdapter<R> implements IHeapVisitor<HonsValue> {
     private final HonsHeap heap;
     private final IExprVisitor<HonsValue, R> exprVisitor;
-    public R result;
+    public @Nullable R result;
 
     public ExprToHeapVisitorAdapter(HonsHeap heap, IExprVisitor<HonsValue, R> exprVisitor) {
         this.heap = heap;

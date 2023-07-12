@@ -17,13 +17,13 @@ public final class Utilities {
     /* XXX Are these two operations the best?  Most javaish? */
     /* XXX using fromInteger does some checks for overflow, but not all? */
     @NotNull
-    public static <V extends IValue> V applySmallIntOperation(IValueFactory<V> ivf, IntUnaryOperator func, V val) {
+    public static <V extends IValue> V applySmallIntOperation(@NotNull IValueFactory<V> ivf, @NotNull IntUnaryOperator func, @NotNull V val) {
         var rvInt = func.applyAsInt(val.toSmallInt());
         return val.isSmallInt() ? ivf.makeSmallInt(rvInt) : ivf.nil();
     }
 
     @NotNull
-    public static <V extends IValue> V applySmallIntOperation(IValueFactory<V> ivf, IntBinaryOperator func, V left, V right) {
+    public static <V extends IValue> V applySmallIntOperation(@NotNull IValueFactory<V> ivf, @NotNull IntBinaryOperator func, @NotNull V left, @NotNull V right) {
         if (!left.isSmallInt() || !right.isSmallInt()) {
             return ivf.nil();
         }
@@ -32,7 +32,7 @@ public final class Utilities {
     }
     
     @NotNull
-    public static <V extends IValue> V sumList(IHeap<V> heap, V list) {
+    public static <V extends IValue> V sumList(@NotNull IHeap<V> heap, @NotNull V list) {
         if (list.isNil())
             return heap.makeSmallInt(0);
         else if (list.isSmallInt())
@@ -45,7 +45,7 @@ public final class Utilities {
     }
 
     @NotNull
-    public static <V extends IValue> V intList(IHeap<V> heap, int[] nums) {
+    public static <V extends IValue> V intList(@NotNull IHeap<V> heap, int @NotNull [] nums) {
         V list = heap.nil();
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
@@ -55,12 +55,12 @@ public final class Utilities {
     }
 
     @NotNull
-    public static <V extends IValue> V stringAsList(IHeap<V> heap, String str) {
+    public static <V extends IValue> V stringAsList(@NotNull IHeap<V> heap, @NotNull String str) {
         return intList(heap, str.codePoints().toArray());
     }
     
     @NotNull
-    public static <V extends IValue> String listAsString(IHeap<V> heap, V list) {
+    public static <V extends IValue> String listAsString(@NotNull IHeap<V> heap, V list) {
         ArrayList<Integer> codepoints = new ArrayList<>();
         var cur = list;
         while (!cur.isNil()) {
@@ -76,7 +76,7 @@ public final class Utilities {
     
     @NotNull
     @SafeVarargs
-    public static <V extends IValue> V makeList(IHeap<V> heap, V... elements) {
+    public static <V extends IValue> V makeList(@NotNull IHeap<V> heap, V @NotNull ... elements) {
         var list = heap.nil();
         for (int index = elements.length - 1; index >= 0; index--) {
             list = heap.cons(elements[index], list);
@@ -86,7 +86,7 @@ public final class Utilities {
 
     @NotNull
     @SafeVarargs
-    public static <V extends IValue> V makeListWithDot(IHeap<V> heap, V... elements) {
+    public static <V extends IValue> V makeListWithDot(@NotNull IHeap<V> heap, V @NotNull ... elements) {
         var list = elements[elements.length - 1];
         for (int index = elements.length - 2; index >= 0; index--) {
             list = heap.cons(elements[index], list);
@@ -94,7 +94,7 @@ public final class Utilities {
         return list;
     }
     
-    public static <V extends IValue> void unmakeList(IHeap<V> heap, V list, List<V> dst) {
+    public static <V extends IValue> void unmakeList(@NotNull IHeap<V> heap, V list, @NotNull List<V> dst) {
         V cur = list;
         while (cur != null) {
             if (cur.isNil())

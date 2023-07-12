@@ -10,12 +10,12 @@ public interface IHeap<V extends IValue> extends IValueFactory<V> {
     ConsPair<V> uncons(@NotNull V cons);
 
     @NotNull
-    default V fst(V val) {
+    default V fst(@NotNull V val) {
         return uncons(val).fst();
     }
 
     @NotNull
-    default V snd(V val) {
+    default V snd(@NotNull V val) {
         return uncons(val).snd();
     }
 

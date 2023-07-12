@@ -14,7 +14,7 @@ public class HonsCell {
     /* mutable */
     @Nullable
     private HonsValue memoEval;
-    private final String special;
+    private final @Nullable String special;
     private int collision;
     
     /* for special values */
@@ -67,9 +67,9 @@ public class HonsCell {
         return snd;
     }
     
-    public ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
+    public @NotNull ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
 
-    public String getSpecial() {
+    public @Nullable String getSpecial() {
         return special;
     }
 
@@ -83,7 +83,7 @@ public class HonsCell {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -99,7 +99,7 @@ public class HonsCell {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         if (this.special != null)
             return "HonsCell{objectHash=" + objectHash + ", special=" + special + "}";
         return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";

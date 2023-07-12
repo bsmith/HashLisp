@@ -17,7 +17,7 @@ public class HonsHeap implements
     IHeap<HonsValue>,
     ISymbolMixin<HonsValue>
 {
-    private final HashMap<Integer, HonsCell> heap;
+    private final @NotNull HashMap<Integer, HonsCell> heap;
     
     public HonsHeap() {
         heap = new HashMap<>();
@@ -72,11 +72,11 @@ public class HonsHeap implements
         } while (true);
     }
 
-    public String listToString(HonsValue head, HonsValue rest) {
+    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest) {
         return listToString(head, rest, "");
     }
 
-    public String listToString(HonsValue head, HonsValue rest, String accum) {
+    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest, String accum) {
         var str = valueToString(head, accum);
         
         if (rest.isNil())
@@ -93,11 +93,11 @@ public class HonsHeap implements
         return listToString(restCell.getFst(), restCell.getSnd(), str + " ");
     }
 
-    public String valueToString(HonsValue val) {
+    public String valueToString(@NotNull HonsValue val) {
         return valueToString(val, "");
     }
 
-    public String valueToString(HonsValue val, String accum) {
+    public String valueToString(@NotNull HonsValue val, String accum) {
         if (val.isObjectHash()) {
             var cell = getCell(val);
             if (cell == null)
@@ -115,11 +115,11 @@ public class HonsHeap implements
         }
     }
 
-    public void dumpHeap(PrintStream stream) {
+    public void dumpHeap(@NotNull PrintStream stream) {
         dumpHeap(stream, false);
     }
     
-    public void dumpHeap(PrintStream stream, boolean onlyWithMemoValues) {
+    public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
         stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
 
         var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
@@ -142,7 +142,7 @@ public class HonsHeap implements
     }
     
     /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
-    public Optional<HonsValue> getMemoEval(HonsValue val) {
+    public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
         if (!val.isConsRef())
             return Optional.empty();
         var cell = getCell(val);
@@ -150,12 +150,12 @@ public class HonsHeap implements
     }
     
     /* XXX what if the cell doesn't exist? */
-    public void setMemoEval(HonsValue val, HonsValue evalResult) {
+    public void setMemoEval(@NotNull HonsValue val, @NotNull HonsValue evalResult) {
         var cell = getCell(val);
         cell.setMemoEval(evalResult);
     }
     
-    public void visitValue(HonsValue val, IHeapVisitor<HonsValue> visitor) {
+    public void visitValue(@NotNull HonsValue val, @NotNull IHeapVisitor<HonsValue> visitor) {
         if (val.isNil())
             visitor.visitNil(val);
         else if (val.isSmallInt())

@@ -1,5 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
@@ -14,7 +16,7 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 public class Reader {
     private final HonsHeap heap;
     private final ITokeniserFactory tokeniserFactory;
-    private List<String> errors;
+    private @Nullable List<String> errors;
 
     public Reader(HonsHeap heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
@@ -22,7 +24,8 @@ public class Reader {
         this.errors = null;
     }
     
-    private Optional<HonsValue> interpretToken(Iterator<Token> tokeniser, Token token) {
+    private @NotNull Optional<HonsValue> interpretToken(@NotNull Iterator<Token> tokeniser, @NotNull Token token) {
+        assert errors != null;
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
@@ -47,7 +50,8 @@ public class Reader {
         }
     }
 
-    private Optional<HonsValue> readListAfterOpenParens(Iterator<Token> tokeniser) {
+    private @NotNull Optional<HonsValue> readListAfterOpenParens(@NotNull Iterator<Token> tokeniser) {
+        assert errors != null;
         ArrayList<HonsValue> listContents = new ArrayList<>();
         
         while (tokeniser.hasNext()) {
@@ -89,7 +93,7 @@ public class Reader {
         return Optional.empty();
     }
 
-    private Optional<HonsValue> readOneValue(Iterator<Token> tokeniser) {
+    private Optional<HonsValue> readOneValue(@NotNull Iterator<Token> tokeniser) {
         if (!tokeniser.hasNext())
             return Optional.empty();
         
@@ -98,7 +102,7 @@ public class Reader {
         return interpretToken(tokeniser, token);
     }
     
-    public ReadResult read(String str) {
+    public @NotNull ReadResult read(@NotNull String str) {
         Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
         /* XXX something nicer */

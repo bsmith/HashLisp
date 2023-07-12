@@ -11,6 +11,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -22,7 +24,7 @@ import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class App {
-    private final HonsHeap heap;
+    private final @NotNull HonsHeap heap;
 
     @Parameter(
         names = {"--help"},
@@ -58,21 +60,21 @@ public class App {
         names = {"-f", "--file"},
         description = "The file to use as the source of the program"
     )
-    public String sourceFilename = null;
+    public @Nullable String sourceFilename = null;
     @Parameter(
         names = {"-e", "--expr"},
         description = "Read the given expression as the source of the program"
     )
-    public String sourceExpr = null;
+    public @Nullable String sourceExpr = null;
     @Parameter
-    public List<String> userArguments = null;
+    public @Nullable List<String> userArguments = null;
     boolean argsParsed = false;
 
     public App() {
         heap = new HonsHeap();
     }
 
-    public String getGreeting() {
+    public @NotNull String getGreeting() {
         return "jproto --- prototype for HashLisp";
     }
 
