@@ -6,7 +6,7 @@ This will allow common tests to be used between multiple implementations of _Has
 ## Overview:
 
 ```
-hashlisp [-r|--read] [-E|--eval] [(-f|--file) 'filename.hl'] [(-e|--expr '(code ...)'] [--] [args...]
+hashlisp [-r|--read] [-E|--eval] [(-f|--file) 'filename.hl'] [(-e|--expr) '(code ...)'] [--] [args...]
 ```
 
 `hashlisp` is the executable of the _HashLisp_ implementation.
@@ -44,7 +44,7 @@ It is an error to specify both `-e|--expr` and `-f|--file`.
 
 Arguments provided after `--` or after arguments parsed by the _HashLisp_ implementation are provided to the program when it is evaluated.
 
-If no arguments are provided, the empty list (`nil`) is pass to the program when it is evaluated.
+If no arguments are provided, the empty list (`nil`) is passed to the program when it is evaluated.
 
 ## Reading a _HashLisp_ program
 
