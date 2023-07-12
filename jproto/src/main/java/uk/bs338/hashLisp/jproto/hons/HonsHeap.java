@@ -40,8 +40,9 @@ public class HonsHeap implements
         table = new HonsCell[oldTable.length * 2];
         tableLoad = 0;
         
-        for (final var cell : oldTable) {
-            putCell(cell);
+        for (final HonsCell cell : oldTable) {
+            if (cell != null)
+                putCell(cell);
         }
     }
     
@@ -108,8 +109,7 @@ public class HonsHeap implements
             }
             /* need to put the cell into the heap */
             if (heapCell == null) {
-                putCell(cell);
-                return cell.toValue();
+                return putCell(cell).toValue();
             }
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
