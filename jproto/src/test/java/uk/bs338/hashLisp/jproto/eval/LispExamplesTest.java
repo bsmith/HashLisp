@@ -28,10 +28,9 @@ public class LispExamplesTest {
         heap.dumpHeap(System.out, true);
     }
     
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     void assertEval(@NotNull String expectedStr, @NotNull String programStr) {
-        var expected = reader.read(expectedStr).getValue().get();
-        var program = reader.read(programStr).getValue().get();
+        var expected = reader.read(expectedStr).getValue();
+        var program = reader.read(programStr).getValue();
         var actual = evaluator.eval(program);
         assertEquals(expected, actual);
     }

@@ -2,41 +2,63 @@ package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Function;
 
-public abstract class ReadResult {
+public sealed abstract class ReadResult<V> {
     protected final String remaining;
 
     protected ReadResult(String remaining) {
         this.remaining = remaining;
     }
     
-    public String getRemaining() {
+    public @NotNull String getRemaining() {
         return remaining;
     }
     
-    public abstract Optional<HonsValue> getValue();
-    public String getMessage() throws NoSuchElementException {
+    public @NotNull V getValue(){
         throw new NoSuchElementException();
     }
 
-    public static @NotNull ReadResult failedRead(String remaining, String message) {
-        return new Failed(remaining, message);
+    public @NotNull String getFailureMessage() throws NoSuchElementException {
+        throw new NoSuchElementException();
     }
     
-    public static @NotNull ReadResult successfulRead(String remaining, HonsValue value) {
-        return new Successful(remaining, value);
+    public boolean isSuccess() {
+        return false;
+    }
+    
+    public boolean isFailure() {
+        return false;
+    }
+
+    public static <T> @NotNull ReadResult<T> failedRead(String remaining, String message) {
+        return new Failed<>(remaining, message);
+    }
+    
+    public static <T> @NotNull ReadResult<T> successfulRead(String remaining, T value) {
+        return new Successful<>(remaining, value);
+    }
+
+    public <R> ReadResult<R> replaceValueIfSuccess(R val) {
+        if (isSuccess())
+            return successfulRead(this.remaining, val);
+        return failedRead(this.remaining, getFailureMessage());
+    }
+
+    public <R> ReadResult<R> mapValueIfSuccess(Function<? super V, ? extends R> mapper) {
+        if (isSuccess())
+            return replaceValueIfSuccess(mapper.apply(this.getValue()));
+        return failedRead(this.remaining, getFailureMessage());
     }
 
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReadResult that = (ReadResult) o;
+        ReadResult<?> that = (ReadResult<?>) o;
         return Objects.equals(remaining, that.remaining);
     }
 
@@ -45,7 +67,7 @@ public abstract class ReadResult {
         return Objects.hash(remaining);
     }
 
-    private static class Failed extends ReadResult {
+    private final static class Failed<V> extends ReadResult<V> {
         private final String message;
         
         public Failed(String remaining, String message) {
@@ -54,12 +76,12 @@ public abstract class ReadResult {
         }
 
         @Override
-        public @NotNull Optional<HonsValue> getValue() {
-            return Optional.empty();
+        public boolean isFailure() {
+            return true;
         }
-        
+
         @Override
-        public String getMessage() {
+        public @NotNull String getFailureMessage() {
             return message;
         }
 
@@ -68,7 +90,7 @@ public abstract class ReadResult {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
-            Failed failed = (Failed) o;
+            Failed<?> failed = (Failed<?>) o;
             return Objects.equals(message, failed.message);
         }
 
@@ -86,17 +108,22 @@ public abstract class ReadResult {
         }
     }
     
-    private static class Successful extends ReadResult {
-        private final HonsValue value;
+    private final static class Successful<V> extends ReadResult<V> {
+        private final V value;
         
-        public Successful(String remaining, HonsValue value) {
+        public Successful(String remaining, V value) {
             super(remaining);
             this.value = value;
         }
 
         @Override
-        public @NotNull Optional<HonsValue> getValue() {
-            return Optional.of(value);
+        public boolean isSuccess() {
+            return true;
+        }
+
+        @Override
+        public @NotNull V getValue() {
+            return value;
         }
 
         @Override
@@ -104,7 +131,7 @@ public abstract class ReadResult {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             if (!super.equals(o)) return false;
-            Successful that = (Successful) o;
+            Successful<?> that = (Successful<?>) o;
             return Objects.equals(value, that.value);
         }
 

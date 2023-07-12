@@ -15,6 +15,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
@@ -237,6 +238,7 @@ public class App {
         return true;
     }
 
+    @Blocking
     public void run() {
         if (showHelp)
             throw new IllegalStateException("Help should be shown without running app");
@@ -276,16 +278,16 @@ public class App {
             else {
                 Reader reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
                 var readResult = reader.read(source);
-                if (readResult.getValue().isEmpty()) {
-                    System.err.println("Failed to read program: " + readResult.getMessage());
+                if (readResult.isFailure()) {
+                    System.err.println("Failed to read program: " + readResult.getFailureMessage());
                 }
                 else {
                     HonsValue result;
                     if (readMode) {
-                        result = readResult.getValue().get();
+                        result = readResult.getValue();
                     } else {
                         LazyEvaluator evaluator = new LazyEvaluator(heap);
-                        result = evaluator.eval(readResult.getValue().get());
+                        result = evaluator.eval(readResult.getValue());
                     }
                     System.out.println(heap.valueToString(result));
                 }
@@ -299,6 +301,7 @@ public class App {
         }
     }
 
+    @Blocking
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());

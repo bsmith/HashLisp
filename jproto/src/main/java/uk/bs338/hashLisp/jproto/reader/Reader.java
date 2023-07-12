@@ -1,8 +1,8 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
@@ -10,22 +10,22 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
-public class Reader {
-    private final HonsHeap heap;
+public class Reader implements IReader<HonsValue> {
+    private final IHeap<HonsValue> heap;
     private final ITokeniserFactory tokeniserFactory;
-    private @Nullable List<String> errors;
+    private @NotNull List<String> errors;
 
-    public Reader(HonsHeap heap, ITokeniserFactory tokeniserFactory) {
+    public Reader(IHeap<HonsValue> heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
-        this.errors = null;
+        this.errors = new ArrayList<>();
     }
     
     private @NotNull Optional<HonsValue> interpretToken(@NotNull Iterator<Token> tokeniser, @NotNull Token token) {
-        assert errors != null;
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
@@ -51,7 +51,6 @@ public class Reader {
     }
 
     private @NotNull Optional<HonsValue> readListAfterOpenParens(@NotNull Iterator<Token> tokeniser) {
-        assert errors != null;
         ArrayList<HonsValue> listContents = new ArrayList<>();
         
         while (tokeniser.hasNext()) {
@@ -102,18 +101,30 @@ public class Reader {
         return interpretToken(tokeniser, token);
     }
     
-    public @NotNull ReadResult read(@NotNull String str) {
+    protected <T> T collectErrors(List<String> errors, Supplier<T> supplier) {
+        var oldErrors = this.errors;
+        this.errors = errors;
+        T retval;
+        try {
+            retval = supplier.get();
+        }
+        finally {
+            this.errors = oldErrors;
+        }
+        return retval;
+    }
+    
+    public @NotNull ReadResult<HonsValue> read(@NotNull String str) {
         Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
-        /* XXX something nicer */
-        var oldErrors = this.errors;
-        this.errors = new ArrayList<>();
-        var value = readOneValue(tokeniser);
-        /* if we read something, eat any whitespace after it */
-        if (value.isPresent())
-            tokeniser.eatWhitespace();
-        var errors = this.errors;
-        this.errors = oldErrors;
+        var errors = new ArrayList<String>();
+        var value = collectErrors(errors, () -> {
+            var retval = readOneValue(tokeniser);
+            /* if we read something, eat any whitespace after it */
+            if (retval.isPresent())
+                tokeniser.eatWhitespace();
+            return retval;
+        });
         
         if (value.isPresent()) {
             return ReadResult.successfulRead(tokeniser.getRemaining(), value.get());

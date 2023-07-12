@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -27,12 +28,12 @@ public class WrappedHeap implements IHeap<WrappedValue> {
         return heap;
     }
     
-    public WrappedValue wrap(HonsValue value) {
+    public @NotNull WrappedValue wrap(@NotNull HonsValue value) {
         return WrappedValue.wrap(heap, value);
     }
     
     /* was 'checkSameHeap' */
-    public HonsValue unwrap(WrappedValue wrapped) {
+    public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
         if (heap != wrapped.getHeap())
             throw new IllegalArgumentException("Mismatched heap between WrappedValue and WrappedHeap");
         return wrapped.getValue();
@@ -100,7 +101,7 @@ public class WrappedHeap implements IHeap<WrappedValue> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WrappedHeap that = (WrappedHeap) o;
