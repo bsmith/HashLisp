@@ -3,7 +3,6 @@
  */
 package uk.bs338.hashLisp.jproto;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +15,9 @@ import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.reader.CharClassifier;
+import uk.bs338.hashLisp.jproto.reader.Reader;
+import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -160,6 +162,19 @@ public class App {
         }
     }
 
+    private void validateFlagsAreValid()
+    {
+        int modeFlagsSet = 0;
+        if (demoMode)
+            modeFlagsSet++;
+        if (readMode)
+            modeFlagsSet++;
+        if (evalMode)
+            modeFlagsSet++;
+        if (modeFlagsSet > 1)
+            throw new ParameterException("--demo, --read and --eval are mutually exclusive: only supply one");
+    }
+
     /* Return false if the app doesn't need to run */
     public boolean parseArgs(String[] args)
     {
@@ -191,6 +206,7 @@ public class App {
         try {
             commander.parse(appArgs);
             parseUserArgs(userArgs);
+            validateFlagsAreValid();
         } catch (ParameterException e) {
             System.err.println(e.getLocalizedMessage());
             commander.usage();
@@ -225,6 +241,32 @@ public class App {
             demo();
             System.out.println();
             LazyEvaluator.demo(heap);
+        } else {
+            String source = sourceExpr;
+
+            if (source == null && sourceFilename != null)
+                // source = getContentsOfSourceFile(sourceFilename);
+                source = "(error \"reading source file not implemented\")";
+            if (source == null) {
+                System.out.println("No program supplied");
+            }
+            else {
+                Reader reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
+                var readResult = reader.read(source);
+                if (!readResult.getValue().isPresent()) {
+                    System.err.println("Failed to read program: " + readResult.getMessage());
+                }
+                else {
+                    HonsValue result;
+                    if (readMode) {
+                        result = readResult.getValue().get();
+                    } else {
+                        LazyEvaluator evaluator = new LazyEvaluator(heap);
+                        result = evaluator.eval(readResult.getValue().get());
+                    }
+                    System.out.println(heap.valueToString(result));
+                }
+            }
         }
 
         if (dumpHeap) {
