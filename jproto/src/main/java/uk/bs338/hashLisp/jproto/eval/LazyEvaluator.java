@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
-public class LazyEvaluator {
+public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final HonsHeap heap;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private boolean debug;
@@ -27,8 +28,9 @@ public class LazyEvaluator {
         primitives.put(heap.makeSymbol( "add"), this::add);
         primitives.put(heap.makeSymbol( "mul"), this::mul);
         primitives.put(heap.makeSymbol( "zerop"), this::zerop);
+        primitives.put(heap.makeSymbol( "quote"), this::quote);
         primitives.put(heap.makeSymbol( "lambda"), this::lambda);
-        primitives.put(heap.makeSymbol( "eval"), this::eval);
+        primitives.put(heap.makeSymbol( "eval"), this::eval_one);
     }
     
     public void setDebug(boolean flag) {
@@ -36,7 +38,7 @@ public class LazyEvaluator {
     }
     
     public @NotNull HonsValue fst(@NotNull HonsValue args) {
-        var arg = eval(heap.fst(args));
+        var arg = eval_one(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
@@ -44,7 +46,7 @@ public class LazyEvaluator {
     }
 
     public @NotNull HonsValue snd(@NotNull HonsValue args) {
-        var arg = eval(heap.fst(args));
+        var arg = eval_one(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
@@ -52,8 +54,8 @@ public class LazyEvaluator {
     }
     
     public @NotNull HonsValue cons(@NotNull HonsValue args) {
-        var fst = eval(heap.fst(args));
-        var snd = eval(heap.fst(heap.snd(args)));
+        var fst = eval_one(heap.fst(args));
+        var snd = eval_one(heap.fst(heap.snd(args)));
         return heap.cons(fst, snd);
     }
     
@@ -61,7 +63,7 @@ public class LazyEvaluator {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
-            var fst = eval(heap.fst(cur));
+            var fst = eval_one(heap.fst(cur));
             if (fst.isSmallInt())
                 sum += fst.toSmallInt();
             else {
@@ -78,7 +80,7 @@ public class LazyEvaluator {
         int product = 1;
         var cur = args;
         while (cur.isConsRef()) {
-            var fst = eval(heap.fst(cur));
+            var fst = eval_one(heap.fst(cur));
             if (fst.isSmallInt())
                 product *= fst.toSmallInt();
             else
@@ -94,16 +96,20 @@ public class LazyEvaluator {
         var cond = heap.fst(args);
         var t_val = heap.fst(heap.snd(args));
         var f_val = heap.fst(heap.snd(heap.snd(args)));
-        cond = eval(cond);
+        cond = eval_one(cond);
         if (!cond.isSmallInt()) {
             return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {
-            return eval(t_val);
+            return eval_one(t_val);
         }
         else {
-            return eval(f_val);
+            return eval_one(f_val);
         }
+    }
+    
+    public @NotNull HonsValue quote(@NotNull HonsValue args) {
+        return heap.fst(args);
     }
 
     /* XXX this does validation stuff? */
@@ -222,7 +228,7 @@ public class LazyEvaluator {
         
         var result = assignments.substitute(body);
         System.out.printf("result=%s%n", heap.valueToString(result));
-        return eval(result);
+        return eval_one(result);
 
 //        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
@@ -230,7 +236,7 @@ public class LazyEvaluator {
     public HonsValue apply(@NotNull HonsValue args) throws EvalException {
         /* cons */
         var uncons = heap.uncons(args);
-        var head = eval(uncons.fst());
+        var head = eval_one(uncons.fst());
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
@@ -249,9 +255,26 @@ public class LazyEvaluator {
         }
         return heap.cons(head, rest);
     }
+    
+    @Override
+    public @NotNull HonsValue apply_hnf(@NotNull HonsValue expr) {
+        try {
+            return apply(expr);
+        }
+        catch (EvalException e) {
+            throw new Error("Exception during apply", e); /* XXX */
+        }
+    }
+    
+    @Override
+    public @NotNull HonsValue eval_hnf(@NotNull HonsValue val) {
+        var uncons = heap.uncons(val);
+        var head_nf = eval_one(uncons.fst());
+        return heap.cons(head_nf, uncons.snd());
+    }
 
     static String evalIndent = "";
-    public HonsValue eval(@NotNull HonsValue val) {
+    public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
         var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
             public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
@@ -306,7 +329,7 @@ public class LazyEvaluator {
         heap.visitValue(value, heapVisitor);
         return heapVisitor.result;
     }
-    
+
     public static void demo(@NotNull HonsHeap heap) {
         System.out.println("Evaluator demo");
         
@@ -324,6 +347,6 @@ public class LazyEvaluator {
         );
         System.out.println(heap.valueToString(program));
 
-        System.out.println(heap.valueToString(evaluator.eval(program)));
+        System.out.println(heap.valueToString(evaluator.eval_one(program)));
     }
 }

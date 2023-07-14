@@ -30,19 +30,19 @@ public class LazyEvaluatorTest {
     
     @Test void nilEvalsToNil() {
         var nil = heap.nil();
-        var rv = eval.eval(nil);
+        var rv = eval.eval_one(nil);
         assertEquals(nil, rv);
     }
     
     @Test void intEvalsToInt() {
         var intval = heap.makeSmallInt(17);
-        var rv = eval.eval(intval);
+        var rv = eval.eval_one(intval);
         assertEquals(intval, rv);
     }
     
     @Test void symbolEvalsToSymbol() {
         var symval = heap.makeSymbol("example");
-        var rv = eval.eval(symval);
+        var rv = eval.eval_one(symval);
         assertEquals(symval, rv);
     }
 }

@@ -15,6 +15,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -81,10 +82,14 @@ public class App {
     }
 
     public @NotNull IReader<HonsValue> getReader() {
-        return new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
+        var reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
+        if (readMode)
+            return new PrintOnlyReader<>(heap, reader);
+        else
+            return reader;
     }
-
-    public @NotNull LazyEvaluator getEvaluator() {
+    
+    public @NotNull IEvaluator<HonsValue> getEvaluator() {
         return new LazyEvaluator(heap);
     }
     
@@ -271,8 +276,8 @@ public class App {
 
             var reader = getReader();
             var evaluator = getEvaluator();
-            if (debug)
-                evaluator.setDebug(true);
+            if (debug && evaluator instanceof LazyEvaluator)
+                ((LazyEvaluator) evaluator).setDebug(true);
 
             if (source == null && sourceFilename != null) {
                 try {
@@ -295,7 +300,7 @@ public class App {
                     if (readMode) {
                         result = readResult.getValue();
                     } else {
-                        result = evaluator.eval(readResult.getValue());
+                        result = evaluator.eval_one(readResult.getValue());
                     }
                     System.out.println(heap.valueToString(result));
                 }
