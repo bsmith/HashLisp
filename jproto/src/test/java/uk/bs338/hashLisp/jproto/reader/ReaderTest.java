@@ -154,7 +154,7 @@ class ReaderTest {
     class StringValues {
         void assertStringRead(@NotNull String expectedStr, @NotNull String input) {
             var actual = reader.read(input);
-            var expected = heap.cons(heap.makeSymbol("string"), stringAsList(heap, expectedStr));
+            var expected = heap.cons(heap.makeSymbol("*string"), stringAsList(heap, expectedStr));
             assertTrue(actual.isSuccess());
             assertEquals(expected, actual.getValue());
             assertEquals("", actual.getRemaining());

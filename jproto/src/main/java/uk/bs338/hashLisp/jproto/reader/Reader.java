@@ -28,7 +28,7 @@ public class Reader implements IReader<HonsValue> {
     
     private @NotNull HonsValue getStringSym() {
         if (stringSym == null)
-            stringSym = heap.makeSymbol("string");
+            stringSym = heap.makeSymbol("*string");
         return stringSym;
     }
     

@@ -65,11 +65,17 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
             if (prim.isEmpty()) {
-                /* treat as a strict constructor */
+                /* if the symbol starts with a *, then treat it a data head
+                 * otherwise, treat as a strict constructor.
+                 *   This means evaluate the args, and then prepend the *
+                 */
+                if (heap.fst(heap.symbolName(head)).toSmallInt() == '*')
+                    return heap.cons(head, rest);
                 List<HonsValue> constrArgs = new ArrayList<>();
                 unmakeList(heap, rest, constrArgs);
                 constrArgs = eval_multi(constrArgs);
-                return heap.cons(head, makeList(heap, constrArgs.toArray(new HonsValue[0])));
+                var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(head)));
+                return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));
             }
             try {
                 return prim.get().apply(this, rest);
