@@ -19,6 +19,10 @@ public class LazyEvaluatorTest {
     @BeforeAll void setUpHeap() {
         heap = new HonsHeap();
     }
+    
+    @AfterEach void validateHeap() {
+        heap.validateHeap();
+    }
 
     @BeforeEach void setUpEvaluator() {
         eval = new LazyEvaluator(heap);

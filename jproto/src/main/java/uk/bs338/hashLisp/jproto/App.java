@@ -308,6 +308,9 @@ public class App {
             heap.dumpHeap(System.err);
             System.err.printf("---%n");
         }
+        
+        /* Always try to validate the heap */
+        heap.validateHeap(dumpHeap || debug);
     }
 
     @Blocking
