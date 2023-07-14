@@ -13,7 +13,7 @@ import java.util.Map;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
-    private final HonsHeap heap;
+    private final @NotNull HonsHeap heap;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private boolean debug;
 

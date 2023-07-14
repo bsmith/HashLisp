@@ -10,8 +10,6 @@ import uk.bs338.hashLisp.jproto.reader.ReadResult;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedHeap;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedValue;
 
-import java.util.NoSuchElementException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class PrintOnlyReaderTest {

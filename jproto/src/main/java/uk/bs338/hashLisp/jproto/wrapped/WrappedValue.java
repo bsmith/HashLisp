@@ -17,11 +17,11 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
         this.value = value;
     }
     
-    public static WrappedValue wrap(HonsHeap heap, HonsValue value) {
+    public static @NotNull WrappedValue wrap(HonsHeap heap, HonsValue value) {
         return new WrappedValue(heap, value);
     }
     
-    private WrappedValue wrap(HonsValue newValue) {
+    private @NotNull WrappedValue wrap(HonsValue newValue) {
         return new WrappedValue(heap, newValue);
     }
     

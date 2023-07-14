@@ -26,6 +26,7 @@ import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
+@SuppressWarnings("CanBeFinal")
 public class App {
     private final @NotNull HonsHeap heap;
 
@@ -77,6 +78,7 @@ public class App {
         heap = new HonsHeap();
     }
 
+    @SuppressWarnings("SameReturnValue")
     public @NotNull String getGreeting() {
         return "jproto --- prototype for HashLisp";
     }
@@ -93,6 +95,7 @@ public class App {
         return new LazyEvaluator(heap);
     }
     
+    @SuppressWarnings({"UnnecessaryLabelOnContinueStatement", "UnnecessaryLabelOnBreakStatement"})
     public void forceCollision() {
         HonsCell cell = new HonsCell(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.println("Can we force a collision?");

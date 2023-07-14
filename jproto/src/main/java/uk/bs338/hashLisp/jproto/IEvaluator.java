@@ -20,7 +20,7 @@ public interface IEvaluator<V extends IValue> {
         return out;
     }
 
-    default void eval_multi_inplace(@NotNull V[] vals) {
+    default void eval_multi_inplace(@NotNull V @NotNull [] vals) {
         for (int i = 0; i < vals.length; i++) {
             vals[i] = eval_one(vals[i]);
         }

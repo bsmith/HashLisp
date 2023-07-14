@@ -92,7 +92,7 @@ public class Reader implements IReader<HonsValue> {
         return Optional.empty();
     }
 
-    private Optional<HonsValue> readOneValue(@NotNull Iterator<Token> tokeniser) {
+    private @NotNull Optional<HonsValue> readOneValue(@NotNull Iterator<Token> tokeniser) {
         if (!tokeniser.hasNext())
             return Optional.empty();
         
@@ -101,7 +101,7 @@ public class Reader implements IReader<HonsValue> {
         return interpretToken(tokeniser, token);
     }
     
-    protected <T> T collectErrors(List<String> errors, Supplier<T> supplier) {
+    protected <T> T collectErrors(@NotNull List<String> errors, @NotNull Supplier<T> supplier) {
         var oldErrors = this.errors;
         this.errors = errors;
         T retval;

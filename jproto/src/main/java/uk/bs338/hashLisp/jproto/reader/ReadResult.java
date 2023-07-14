@@ -42,13 +42,13 @@ public sealed abstract class ReadResult<V> {
         return new Successful<>(remaining, value);
     }
 
-    public <R> ReadResult<R> replaceValueIfSuccess(R val) {
+    public <R> @NotNull ReadResult<R> replaceValueIfSuccess(R val) {
         if (isSuccess())
             return successfulRead(this.remaining, val);
         return failedRead(this.remaining, getFailureMessage());
     }
 
-    public <R> ReadResult<R> mapValueIfSuccess(Function<? super V, ? extends R> mapper) {
+    public <R> ReadResult<R> mapValueIfSuccess(@NotNull Function<? super V, ? extends R> mapper) {
         if (isSuccess())
             return replaceValueIfSuccess(mapper.apply(this.getValue()));
         return failedRead(this.remaining, getFailureMessage());

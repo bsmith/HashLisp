@@ -20,7 +20,7 @@ public class WrappedHeap implements IHeap<WrappedValue> {
         this.heap = heap;
     }
     
-    public static WrappedHeap wrap(HonsHeap heap) {
+    public static @NotNull WrappedHeap wrap(HonsHeap heap) {
         return new WrappedHeap(heap);
     }
 
