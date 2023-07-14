@@ -18,11 +18,18 @@ public class Reader implements IReader<HonsValue> {
     private final IHeap<HonsValue> heap;
     private final ITokeniserFactory tokeniserFactory;
     private @NotNull List<String> errors;
+    private HonsValue stringSym = null;
 
     public Reader(IHeap<HonsValue> heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = new ArrayList<>();
+    }
+    
+    private @NotNull HonsValue getStringSym() {
+        if (stringSym == null)
+            stringSym = heap.makeSymbol("string");
+        return stringSym;
     }
     
     private @NotNull Optional<HonsValue> interpretToken(@NotNull Iterator<Token> tokeniser, @NotNull Token token) {
@@ -38,7 +45,7 @@ public class Reader implements IReader<HonsValue> {
             errors.add("Failed to parse after HASH: " + token);
             return Optional.empty();
         } else if (token.getType() == TokenType.STRING) {
-            return Optional.of(stringAsList(heap, token.getToken()));
+            return Optional.of(heap.cons(getStringSym(), stringAsList(heap, token.getToken())));
         } else if (token.getType() == TokenType.OPEN_PARENS) {
             var rv = readListAfterOpenParens(tokeniser);
             if (rv.isEmpty())
