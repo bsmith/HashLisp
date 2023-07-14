@@ -17,6 +17,12 @@ public class ExprToHeapVisitorAdapter<R> implements IHeapVisitor<HonsValue> {
         this.exprVisitor = exprVisitor;
         result = null;
     }
+    
+    public static <R> R visitExpr(@NotNull HonsHeap heap, HonsValue value, IExprVisitor<HonsValue, R> exprVisitor) {
+        var heapVisitor = new ExprToHeapVisitorAdapter<>(heap, exprVisitor);
+        heap.visitValue(value, heapVisitor);
+        return heapVisitor.result;
+    }
 
     @Override
     public void visitNil(@NotNull HonsValue visited) {

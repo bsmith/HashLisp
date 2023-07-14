@@ -6,38 +6,47 @@ import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReadResultTest {
     @Nested
     class FailedTest {
-        ReadResult result;
+        ReadResult<?> result;
         
         @BeforeEach void setUp() {
             result = ReadResult.failedRead("remaining", "message");
         }
         
+        @Test void is() {
+            assertTrue(result.isFailure());
+            assertFalse(result.isSuccess());
+        }
+        
         @Test void getRemaining() {
             assertEquals("remaining", result.getRemaining());
         }
         
         @Test void getValue() {
-            assertEquals(Optional.empty(), result.getValue());
+            assertThrows(NoSuchElementException.class, () -> result.getValue());
         }
         
-        @Test void getMessage() {
-            assertEquals("message", result.getMessage());
+        @Test void getFailureMessage() {
+            assertEquals("message", result.getFailureMessage());
         }
     }
     
     @Nested
     class SuccessfulTest {
-        ReadResult result;
+        ReadResult<HonsValue> result;
 
         @BeforeEach void setUp() {
             result = ReadResult.successfulRead("remaining", HonsValue.nil);
+        }
+
+        @Test void is() {
+            assertFalse(result.isFailure());
+            assertTrue(result.isSuccess());
         }
 
         @Test void getRemaining() {
@@ -45,11 +54,11 @@ class ReadResultTest {
         }
 
         @Test void getValue() {
-            assertEquals(Optional.of(HonsValue.nil), result.getValue());
+            assertEquals(HonsValue.nil, result.getValue());
         }
 
         @Test void getMessage() {
-            assertThrows(NoSuchElementException.class, () -> result.getMessage());
+            assertThrows(NoSuchElementException.class, () -> result.getFailureMessage());
         }
     }
 }

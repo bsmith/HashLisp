@@ -19,11 +19,19 @@ public interface IHeap<V extends IValue> extends IValueFactory<V> {
         return uncons(val).snd();
     }
 
-    V makeSymbol(V name);
+    @NotNull
+    V makeSymbol(@NotNull V name);
+    
+    @NotNull
+    V makeSymbol(@NotNull String name);
 
-    boolean isSymbol(V symbol);
+    boolean isSymbol(@NotNull V symbol);
 
-    V symbolName(V symbol);
+    @NotNull
+    V symbolName(@NotNull V symbol);
+
+    @NotNull
+    String symbolNameAsString(@NotNull V symbol);
 
     // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }
