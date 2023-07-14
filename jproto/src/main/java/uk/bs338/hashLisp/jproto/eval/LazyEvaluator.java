@@ -5,7 +5,8 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -63,8 +64,15 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
+            if (prim.isEmpty()) {
+                /* treat as a strict constructor */
+                List<HonsValue> constrArgs = new ArrayList<>();
+                unmakeList(heap, rest, constrArgs);
+                constrArgs = eval_multi(constrArgs);
+                return heap.cons(head, makeList(heap, constrArgs.toArray(new HonsValue[0])));
+            }
             try {
-                return prim.apply(this, rest);
+                return prim.get().apply(this, rest);
             }
             catch (EvalException e) {
                 e.setPrimitive(heap.symbolNameAsString(head));

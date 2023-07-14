@@ -34,14 +34,13 @@ public class Driver {
         var head_name = heap.symbolNameAsString(heap.fst(result)); 
         if (head_name.equals("io-print!")) {
             var value = heap.fst(heap.snd(result));
-            var evaled = evaluator.eval_one(value);
             /* XXX another bug in PrintOnlyEvaluator — it needs to quote its argument! */
             /* alternatively, ditch eval_hnf, and register the io-monad primitives? */
             /* I like the idea of unregistered symbols as constructors though, very Wolframish */
             /* eval rules for quote vs hold?  eval("(quote <x>)") == "<x>", eval("(hold <x>)") == "(hold <x>)"
              * actually the latter rule is for any unregistered symbol!
              */
-            System.out.println(heap.valueToString(evaled));
+            System.out.println(heap.valueToString(value));
             
             /* handle continuation, is it lambda wrapped? */
             /* XXX share a head with all IO?  eg (io! print <val> <cont>?) */

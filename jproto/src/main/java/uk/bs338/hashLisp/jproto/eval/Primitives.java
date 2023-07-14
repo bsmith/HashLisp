@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
@@ -34,8 +35,8 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
     }
 
     @Override
-    public @NotNull IPrimitive<HonsValue> get(@NotNull HonsValue name) {
-        return primitives.get(name);
+    public @NotNull Optional<IPrimitive<HonsValue>> get(@NotNull HonsValue name) {
+        return Optional.ofNullable(primitives.get(name));
     }
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
