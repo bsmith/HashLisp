@@ -25,6 +25,8 @@ public class LazyEvaluator {
         primitives.put(heap.makeSymbol( "snd"), this::snd);
         primitives.put(heap.makeSymbol( "cons"), this::cons);
         primitives.put(heap.makeSymbol( "add"), this::add);
+        primitives.put(heap.makeSymbol( "mul"), this::mul);
+        primitives.put(heap.makeSymbol( "zerop"), this::zerop);
         primitives.put(heap.makeSymbol( "lambda"), this::lambda);
         primitives.put(heap.makeSymbol( "eval"), this::eval);
     }
@@ -55,18 +57,53 @@ public class LazyEvaluator {
         return heap.cons(fst, snd);
     }
     
-    public @NotNull HonsValue add(HonsValue args) {
+    public @NotNull HonsValue add(HonsValue args) throws EvalException {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
             var fst = eval(heap.fst(cur));
             if (fst.isSmallInt())
                 sum += fst.toSmallInt();
+            else {
+                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, heap.valueToString(args), cur, heap.valueToString(cur), fst, heap.valueToString(fst), heap.getCell(fst)));
+            }
             cur = heap.snd(cur);
         }
-        if (cur.isSmallInt())
-            sum += cur.toSmallInt();
+        if (!cur.isNil())
+            throw new EvalException("args not terminated by nil");
         return heap.makeSmallInt(sum);
+    }
+
+    public HonsValue mul(HonsValue args) throws EvalException {
+        int product = 1;
+        var cur = args;
+        while (cur.isConsRef()) {
+            var fst = eval(heap.fst(cur));
+            if (fst.isSmallInt())
+                product *= fst.toSmallInt();
+            else
+                throw new EvalException("arg is not a smallint");
+            cur = heap.snd(cur);
+        }
+        if (!cur.isNil())
+            throw new EvalException("args not terminated by nil");
+        return heap.makeSmallInt(product);
+    }
+    
+    public HonsValue zerop(HonsValue args) {
+        var cond = heap.fst(args);
+        var t_val = heap.fst(heap.snd(args));
+        var f_val = heap.fst(heap.snd(heap.snd(args)));
+        cond = eval(cond);
+        if (!cond.isSmallInt()) {
+            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
+        }
+        else if (cond.toSmallInt() == 0) {
+            return eval(t_val);
+        }
+        else {
+            return eval(f_val);
+        }
     }
 
     /* XXX this does validation stuff? */
@@ -190,16 +227,22 @@ public class LazyEvaluator {
 //        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
 
-    public HonsValue apply(@NotNull HonsValue args) {
+    public HonsValue apply(@NotNull HonsValue args) throws EvalException {
         /* cons */
         var uncons = heap.uncons(args);
         var head = eval(uncons.fst());
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
-            if (prim != null) {
-                return prim.apply(rest);
-            }
+            if (prim != null)
+                try {
+                    return prim.apply(rest);
+                }
+                catch (EvalException e) {
+                    e.setPrimitive(heap.symbolNameAsString(head));
+                    e.setCurrentlyEvaluating(heap.valueToString(args));
+                    throw e;
+                }
         }
         else if (isLambda(head)) {
             return applyLambda(head, uncons.snd());
@@ -237,8 +280,13 @@ public class LazyEvaluator {
                 if (memoEval.isPresent()) {
                     result = memoEval.get();
                 } else {
-                    result = apply(val);
-                    heap.setMemoEval(val, result);
+                    try {
+                        result = apply(val);
+                        heap.setMemoEval(val, result);
+                    }
+                    catch (EvalException e) {
+                        throw new Error("Exception during apply in eval", e); /* XXX */
+                    }
                 }
 
                 if (debug) {

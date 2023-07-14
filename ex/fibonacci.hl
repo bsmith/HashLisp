@@ -1,0 +1,23 @@
+; NB. not checked for correctness
+; NB. uses top-level (let ...) syntax
+
+;(let (Y f) ((lambda (x) (f (x x))) (lambda (x) (f (x x))))
+
+;(let (fib$ fib$$) (lambda (n) (mul n fib$$ (add n -1)))))
+
+;(let (fib n) ((Y fib$) n)
+
+; fib 5 == 5*4*3*2*1 == 120
+
+( (lambda (Y fib$) ((Y fib$) 5))
+  ; Y =
+  (lambda (f) ((lambda (x) (f (x x))) (lambda (x) (f (x x)))))
+;  (lambda (f) ((lambda (x) ((f x) x)) (lambda (x) ((f x) x))))
+  ; fib$ =
+  (lambda (fib$$) (lambda (n) 
+    (zerop n
+      1
+      (mul n (fib$$ (add n -1)))
+      )
+    ))
+  )
