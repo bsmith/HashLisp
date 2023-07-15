@@ -33,7 +33,8 @@ public class App {
 
     @Parameter(
         names = {"--help"},
-        help = true
+        help = true,
+        description = "Show help and usage information"
     )
     public boolean showHelp = false;
     @Parameter(
@@ -158,8 +159,18 @@ public class App {
 
         forceCollision();
     }
+    
+    private void checkForUnrecognisedArgs()
+    {
+        /* Look in userArguments for items that 'look like flags' ie start with - */
+        if (userArguments == null)
+            return;
+        for (var arg : userArguments) {
+            if (arg.startsWith("-"))
+                throw new ParameterException("Unrecognised flag: " + arg);
+        }
+    }
 
-    @Blocking
     private void parseUserArgs(String[] args)
     {
         /* Complicated logic:
@@ -204,7 +215,6 @@ public class App {
     }
 
     /* Return false if the app doesn't need to run */
-    @Blocking
     public boolean parseArgs(String[] args)
     {
         if (argsParsed)
@@ -238,6 +248,7 @@ public class App {
             .build();
         try {
             commander.parse(appArgs);
+            checkForUnrecognisedArgs();
             parseUserArgs(userArgs);
             validateFlagsAreValid();
         } catch (ParameterException e) {
@@ -262,6 +273,7 @@ public class App {
             throw new IllegalStateException("Please App.parseArgs before App.run");
 
         if (debug) {
+            System.out.flush();
             System.err.printf("App flags: %n");
             System.err.printf("           debug=%s%n", debug);
             System.err.printf("           dumpHeap=%s%n", dumpHeap);
@@ -271,6 +283,7 @@ public class App {
             System.err.printf("           sourceFilename=%s%n", sourceFilename);
             System.err.printf("           sourceExpr=%s%n", sourceExpr);
             System.err.printf("           userArguments=%s%n", userArguments);
+            System.err.flush();
         }
 
         if (demoMode) {
@@ -300,17 +313,23 @@ public class App {
             }
             else {
                 driver.runSource(source);
+                System.out.flush();
             }
         }
 
         if (dumpHeap) {
+            System.out.flush();
             System.err.printf("%n---%nHeap dump:%n");
             heap.dumpHeap(System.err);
             System.err.printf("---%n");
+            System.err.flush();
         }
+        
+        /* Always try to validate the heap */
+        heap.validateHeap(dumpHeap || debug);
     }
 
-    @Blocking
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());

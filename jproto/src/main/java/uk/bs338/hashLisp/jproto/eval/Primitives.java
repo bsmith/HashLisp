@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
@@ -24,6 +25,7 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         put("add", this::add);
         put("mul", this::mul);
         put("zerop", this::zerop);
+        put("eq?", this::eqp);
         put("quote", this::quote);
         put("eval", this::eval);
     }
@@ -33,8 +35,8 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
     }
 
     @Override
-    public @NotNull IPrimitive<HonsValue> get(@NotNull HonsValue name) {
-        return primitives.get(name);
+    public @NotNull Optional<IPrimitive<HonsValue>> get(@NotNull HonsValue name) {
+        return Optional.ofNullable(primitives.get(name));
     }
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
@@ -101,6 +103,21 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
             return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {
+            return evaluator.eval_one(t_val);
+        }
+        else {
+            return evaluator.eval_one(f_val);
+        }
+    }
+    
+    public @NotNull HonsValue eqp(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
+        var left = heap.fst(args);
+        var right = heap.fst(heap.snd(args));
+        var t_val = heap.fst(heap.snd(heap.snd(args)));
+        var f_val = heap.fst(heap.snd(heap.snd(heap.snd(args))));
+        left = evaluator.eval_one(left);
+        right = evaluator.eval_one(right);
+        if (left.equals(right)) {
             return evaluator.eval_one(t_val);
         }
         else {

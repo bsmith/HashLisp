@@ -1,10 +1,12 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.IHeapVisitor;
+import uk.bs338.hashLisp.jproto.Utilities;
 
 import java.util.Optional;
 
@@ -20,6 +22,25 @@ class HonsHeapTest {
         two = HonsValue.fromSmallInt(2);
         sym = heap.makeSymbol("sym");
         cons = heap.cons(one, two);
+    }
+    
+    @AfterEach void validateHeap() {
+        heap.validateHeap();
+    }
+    
+    @Test void canGetCell() {
+        var cell = heap.getCell(cons);
+        assertNotNull(cell);
+        assertEquals(one, cell.getFst());
+        assertEquals(two, cell.getSnd());
+    }
+    
+    @Test void canHandleHundredCells() {
+        var tail = HonsValue.nil;
+        for (var i = 1; i <= 100; i++) {
+            tail = heap.cons(HonsValue.fromSmallInt(i), tail);
+        }
+        assertEquals(HonsValue.fromSmallInt(5050), Utilities.sumList(heap, tail));
     }
     
     @Nested

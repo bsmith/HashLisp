@@ -5,7 +5,8 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -63,8 +64,21 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         var rest = uncons.snd();
         if (heap.isSymbol(head)) {
             var prim = primitives.get(head);
+            if (prim.isEmpty()) {
+                /* if the symbol starts with a *, then treat it a data head
+                 * otherwise, treat as a strict constructor.
+                 *   This means evaluate the args, and then prepend the *
+                 */
+                if (heap.fst(heap.symbolName(head)).toSmallInt() == '*')
+                    return heap.cons(head, rest);
+                List<HonsValue> constrArgs = new ArrayList<>();
+                unmakeList(heap, rest, constrArgs);
+                constrArgs = eval_multi(constrArgs);
+                var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(head)));
+                return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));
+            }
             try {
-                return prim.apply(this, rest);
+                return prim.get().apply(this, rest);
             }
             catch (EvalException e) {
                 e.setPrimitive(heap.symbolNameAsString(head));

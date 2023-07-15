@@ -8,6 +8,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     private final HonsHeap heap;
     private final HonsValue value;
