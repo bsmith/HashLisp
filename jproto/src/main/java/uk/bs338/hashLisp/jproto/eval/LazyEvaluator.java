@@ -14,12 +14,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
+    private final @NotNull HonsValue lambdaTag;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
         primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(heap);
+        lambdaTag = heap.makeSymbol("lambda");
         debug = false;
     }
     
@@ -27,34 +29,20 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         debug = flag;
     }
 
-    /* XXX this does validation stuff? */
-    /* XXX alpha convert early? */
-    public @NotNull HonsValue lambda(@NotNull HonsValue args) {
-        System.out.printf("lambda: %s%n", heap.valueToString(args));
-        var argSpec = heap.fst(args);
-        var body = heap.fst(heap.snd(args));
-        return heap.cons(heap.makeSymbol("lambda"), heap.cons(argSpec, heap.cons(body, heap.nil())));
-    }
-
     public boolean isLambda(@NotNull HonsValue value) {
         if (!value.isConsRef())
             return false;
-        var head = heap.fst(value);
-        return heap.isSymbol(head) && heap.symbolNameAsString(head).equals("lambda");
+        return heap.fst(value).equals(lambdaTag);
     }
 
     public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) throws EvalException {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
-//        System.out.printf("args=%s%nargSpec=%s%nbody=%s%n", heap.valueToString(args), heap.valueToString(argSpec), heap.valueToString(body));
         
         var assignments = argSpecCache.match(argSpec, args);
         
         var result = assignments.substitute(body);
-//        System.out.printf("result=%s%n", heap.valueToString(result));
         return eval_one(result);
-
-//        return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("failed to apply lambda"));
     }
 
     public HonsValue apply(@NotNull HonsValue args) throws EvalException {

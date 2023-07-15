@@ -10,11 +10,13 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 public class ExprToHeapVisitorAdapter<R> implements IHeapVisitor<HonsValue> {
     private final HonsHeap heap;
     private final IExprVisitor<HonsValue, R> exprVisitor;
+    private final @NotNull HonsValue lambdaTag;
     public @Nullable R result;
 
     public ExprToHeapVisitorAdapter(HonsHeap heap, IExprVisitor<HonsValue, R> exprVisitor) {
         this.heap = heap;
         this.exprVisitor = exprVisitor;
+        lambdaTag = heap.makeSymbol("lambda");
         result = null;
     }
     
@@ -39,14 +41,17 @@ public class ExprToHeapVisitorAdapter<R> implements IHeapVisitor<HonsValue> {
         result = exprVisitor.visitSymbol(visited);
     }
 
+    private boolean isLambda(@NotNull HonsValue value) {
+        if (!value.isConsRef())
+            return false;
+        return heap.fst(value).equals(lambdaTag);
+    }
+
     @Override
     public void visitCons(@NotNull HonsValue visited, @NotNull HonsValue fst, @NotNull HonsValue snd) {
-        if (heap.isSymbol(fst)) {
-            String symbolName = heap.symbolNameAsString(fst);
-            if (symbolName.equals("lambda")) {
-                result = exprVisitor.visitLambda(visited, heap.fst(snd), heap.fst(heap.snd(snd)));
-                return;
-            }
+        if (isLambda(visited)) {
+            result = exprVisitor.visitLambda(visited, heap.fst(snd), heap.fst(heap.snd(snd)));
+            return;
         }
         /* should be an application */
         result = exprVisitor.visitApply(visited, fst, snd);
