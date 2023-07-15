@@ -77,4 +77,8 @@ class PrettyPrinterTest {
     @Test void pairOfNil() {
         assertEquals("(nil)", prettyPrinter.valueToString(heap.cons(HonsValue.nil, HonsValue.nil)));
     }
+    
+    @Test void string() {
+        assertEquals("\"\\\\\\\"abc\"", prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, "\\\"abc"))));
+    }
 }
