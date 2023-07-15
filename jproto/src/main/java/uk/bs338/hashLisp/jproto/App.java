@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,7 +29,7 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 @SuppressWarnings("CanBeFinal")
 public class App {
-    private final @NotNull HonsHeap heap;
+    private @NotNull HonsHeap heap;
 
     @Parameter(
         names = {"--help"},
@@ -45,6 +46,11 @@ public class App {
         description = "Dump the heap at the end of the run"
     )
     public boolean dumpHeap = false;
+    @Parameter(
+        names = {"--benchmark"},
+        description = "Run the program repeatedly as a benchmark"
+    )
+    public boolean benchmark = false;
     @Parameter(
         names = {"--demo"},
         description = "Enable a short demonstration"
@@ -81,6 +87,11 @@ public class App {
     @SuppressWarnings("SameReturnValue")
     public @NotNull String getGreeting() {
         return "jproto --- prototype for HashLisp";
+    }
+    
+    /* NB All HonsValues, Readers, Evaluators, etc become invalid when you do this */
+    public void replaceHeap() {
+        heap = new HonsHeap();
     }
 
     public @NotNull IReader<HonsValue> getReader() {
@@ -250,6 +261,81 @@ public class App {
         
         return true;
     }
+    
+    private PrintStream getNullPrintStream() {
+        /* See https://stackoverflow.com/a/34839209 */
+        return new java.io.PrintStream(new java.io.OutputStream() {
+            @Override public void write(int b) {}
+        }) {
+            @Override public void flush() {}
+            @Override public void close() {}
+            @Override public void write(int b) {}
+            @Override public void write(byte[] b) {}
+            @Override public void write(byte[] buf, int off, int len) {}
+            @Override public void print(boolean b) {}
+            @Override public void print(char c) {}
+            @Override public void print(int i) {}
+            @Override public void print(long l) {}
+            @Override public void print(float f) {}
+            @Override public void print(double d) {}
+            @Override public void print(char[] s) {}
+            @Override public void print(String s) {}
+            @Override public void print(Object obj) {}
+            @Override public void println() {}
+            @Override public void println(boolean x) {}
+            @Override public void println(char x) {}
+            @Override public void println(int x) {}
+            @Override public void println(long x) {}
+            @Override public void println(float x) {}
+            @Override public void println(double x) {}
+            @Override public void println(char[] x) {}
+            @Override public void println(String x) {}
+            @Override public void println(Object x) {}
+            @Override public java.io.PrintStream printf(String format, Object... args) { return this; }
+            @Override public java.io.PrintStream printf(java.util.Locale l, String format, Object... args) { return this; }
+            @Override public java.io.PrintStream format(String format, Object... args) { return this; }
+            @Override public java.io.PrintStream format(java.util.Locale l, String format, Object... args) { return this; }
+            @Override public java.io.PrintStream append(CharSequence csq) { return this; }
+            @Override public java.io.PrintStream append(CharSequence csq, int start, int end) { return this; }
+            @Override public java.io.PrintStream append(char c) { return this; }
+        };
+    }
+    
+    public void runBenchmark() {
+        boolean savedDebug = debug;
+        boolean savedDumpHeap = dumpHeap;
+        boolean savedBenchmark = benchmark;
+        PrintStream savedOut = System.out;
+        
+        try {
+            debug = dumpHeap = benchmark = false;
+            System.setOut(getNullPrintStream());
+            
+            long startTime = System.nanoTime();
+            System.err.println("Benchmark will run for 10s");
+            System.err.flush();
+            
+            long loops = 0;
+            while (System.nanoTime() - startTime < 10e9) {
+                /* Use a fresh Heap for each run */
+                replaceHeap();
+                
+                run();
+                loops++;
+            }
+            
+            double runTime = (System.nanoTime() - startTime)/1.e9;
+            System.err.printf("Benchmark ran for %.9f%n", runTime);
+            System.err.printf("Completed %d loops @ %.9f loops/sec%n", loops, loops/runTime);
+            System.err.flush();
+        }
+        finally {
+            debug = savedDebug;
+            dumpHeap = savedDumpHeap;
+            benchmark = savedBenchmark;
+            System.setOut(savedOut);
+        }
+    }
 
     @Blocking
     public void run() {
@@ -257,6 +343,11 @@ public class App {
             throw new IllegalStateException("Help should be shown without running app");
         if (!argsParsed)
             throw new IllegalStateException("Please App.parseArgs before App.run");
+        
+        if (benchmark) {
+            runBenchmark();
+            return;
+        }
 
         if (debug) {
             System.err.printf("App flags: %n");
