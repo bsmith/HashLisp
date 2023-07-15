@@ -124,10 +124,11 @@ public class HonsHeap implements
     
     public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
         stream.printf("HonsHeap.dumpHeap(size=%d,load=%d)%n", table.length, tableLoad);
-        
-        for (var cell : table) {
+
+        for (int idx = 0; idx < table.length; idx++) {
+            var cell = table[idx];
             if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null))
-                stream.printf("%s: %s%n  %s%n", cell.getObjectHash(), cell, valueToString(cell.toValue()));
+                stream.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
         }
     }
     
@@ -154,23 +155,29 @@ public class HonsHeap implements
          *     1. Each cell is retrievable by calling getCell with its objectHash (via a HonsValue)
          *     2. Each cell is retrievable by constructing a new Cell with the same fst & snd
          */
-        var brokenCells = new ArrayList<HonsCell>();
+        var brokenCells = new ArrayList<Integer>();
 
-        for (var cell : table) {
+        for (int idx = 0; idx < table.length; idx++) {
+            var cell = table[idx];
             if (cell == null)
                 continue;
             var val = cell.toValue();
             assert val.toObjectHash() == cell.getObjectHash();
             var retrievedByObjectHash = getCell(val);
-            if (cell != retrievedByObjectHash)
-                brokenCells.add(cell);
+            if (cell != retrievedByObjectHash) {
+                System.err.printf("  failed by ObjectHash at 0x%x: %s != %s%n", idx, cell, retrievedByObjectHash);
+                brokenCells.add(idx);
+            }
             
             /* Special cells are checked above, and do not have fst/snd values stored */
             if (!cell.toValue().isSpecial()) {
-                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
-                var retrievedByCell = getCell(newCell.getObjectHash());
-                if (cell != retrievedByCell)
-                    brokenCells.add(cell);
+//                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
+//                var retrievedByCell = getCell(newCell.getObjectHash());
+                var retrievedByCell = getCell(cons(cell.getFst(), cell.getSnd()));
+                if (cell != retrievedByCell) {
+                    System.err.printf("  failed by Cell at 0x%x: %s != %s%n", idx, cell, retrievedByCell);
+                    brokenCells.add(idx);
+                }
             }
         }
         
@@ -178,10 +185,12 @@ public class HonsHeap implements
             System.err.printf("*** HEAP FAILED VALIDATION ***%n");
             System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
             
-            brokenCells.sort(Comparator.comparing(HonsCell::getObjectHash));
-            for (var cell : brokenCells) {
-                System.err.printf("%s: %s%n  %s%n", cell.getObjectHash(), cell, valueToString(cell.toValue()));
+            for (var idx : brokenCells) {
+                var cell = table[idx];
+                System.err.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
             }
+            
+            dumpHeap(System.err);
             
             throw new HeapValidationError();
         } else {
