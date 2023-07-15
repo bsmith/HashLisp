@@ -22,14 +22,14 @@
   * [ ] Add documentation to project
   * [ ] Workflow to build javadocs and push to GH Pages
 * [ ] Syntax:
-  * [ ] Comments
-  * [ ] Strings
+  * [x] Comments
+  * [x] Strings
 * [ ] Semantics:
   * [ ] Clear spec for evaluation
   * [ ] Checks implementation matches spec
 * [ ] Monadic IO system using free monads
 * [ ] RTEnvironment for dependency injection
 * [ ] Exception class
-* [ ] Command-line argument handling (similar to perl/python)
+* [x] Command-line argument handling (similar to perl/python)
 * [ ] Publish to maven central or github
 
