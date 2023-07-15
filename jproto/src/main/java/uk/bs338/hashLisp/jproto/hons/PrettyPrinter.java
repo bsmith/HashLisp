@@ -17,17 +17,27 @@ public class PrettyPrinter<V extends IValue> {
         this.heap = heap;
         stringTag = heap.makeSymbol("*string");
     }
+
+    private @NotNull IntStream quoteChar(@NotNull int ch) {
+        /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
+        return switch (ch) {
+            case '\t' -> IntStream.of('\\', 't');
+            case '\b' -> IntStream.of('\\', 'b');
+            case '\n' -> IntStream.of('\\', 'n');
+            case '\r' -> IntStream.of('\\', 'r');
+            case '\f' -> IntStream.of('\\', 'f');
+            case '\'' -> IntStream.of('\\', '\'');
+            case '"' -> IntStream.of('\\', '"');
+            case '\\' -> IntStream.of('\\', '\\');
+            default ->
+                /* NB. doesn't quote non-printable */
+                IntStream.of(ch);
+        };
+    }
     
     public @NotNull String quoteString(@NotNull String str) {
         /* Slow(?) but elegant */
-        var escaped = str.codePoints().flatMap(ch -> {
-            if (ch == '"')
-                return IntStream.of('\\', '"');
-            else if (ch == '\\')
-                return IntStream.of('\\', '\\');
-            else
-                return IntStream.of(ch);
-        });
+        var escaped = str.codePoints().flatMap(this::quoteChar);
         int[] result = IntStream.concat(IntStream.of('"'), IntStream.concat(escaped, IntStream.of('"'))).toArray();
         return new String(result, 0, result.length);
     }

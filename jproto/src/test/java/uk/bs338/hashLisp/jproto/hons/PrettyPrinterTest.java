@@ -81,4 +81,11 @@ class PrettyPrinterTest {
     @Test void string() {
         assertEquals("\"\\\\\\\"abc\"", prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, "\\\"abc"))));
     }
+    
+    @Test void stringWithMoreEscapes() {
+        /* \t, \b, \n, \r, \f, \' */
+        var input = "\t\b\n\r\f'";
+        var expected = "\"\\t\\b\\n\\r\\f\\'\"";
+        assertEquals(expected, prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, input))));
+    }
 }
