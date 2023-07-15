@@ -26,6 +26,10 @@ class ReaderTest {
         reader = new Reader(heap, tokeniserFactory);
     }
     
+    @AfterEach void validateHeap() {
+        heap.validateHeap();
+    }
+    
     @Nested
     class SimpleValues {
         @Test void smallInt() {

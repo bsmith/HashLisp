@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,11 @@ class HonsHeapTest {
         two = HonsValue.fromSmallInt(2);
         sym = heap.makeSymbol("sym");
         cons = heap.cons(one, two);
+    }
+
+    @AfterEach
+    void validateHeap() {
+        heap.validateHeap();
     }
     
     @Test void canGetCell() {

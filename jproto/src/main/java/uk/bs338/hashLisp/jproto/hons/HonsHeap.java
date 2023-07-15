@@ -7,6 +7,8 @@ import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Optional;
 
 public class HonsHeap implements
@@ -126,6 +128,65 @@ public class HonsHeap implements
         for (var cell : table) {
             if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null))
                 stream.printf("%s: %s%n  %s%n", cell.getObjectHash(), cell, valueToString(cell.toValue()));
+        }
+    }
+    
+    public void validateHeap() {
+        validateHeap(false);
+    }
+    
+    public void validateHeap(boolean verbose) {
+        if (verbose)
+            System.err.println("Starting heap validation");
+        
+        /* Validate that special entries are still correct */
+        for (HonsValue special : HonsValue.getAllSpecials()) {
+            var cellByObjectHash = getCell(special);
+            if (!(cellByObjectHash != null &&
+                    cellByObjectHash.getMemoEval() == null &&
+                    cellByObjectHash.getObjectHash() == special.toObjectHash() &&
+                    cellByObjectHash.getFst() == HonsValue.nil &&
+                    cellByObjectHash.getSnd() == HonsValue.nil))
+                throw new HeapValidationError("Heap validation failed while validating special: " + special + "; got cell: " + cellByObjectHash);
+        }
+
+        /* The heap is valid if two conditions pass:
+         *     1. Each cell is retrievable by calling getCell with its objectHash (via a HonsValue)
+         *     2. Each cell is retrievable by constructing a new Cell with the same fst & snd
+         */
+        var brokenCells = new ArrayList<HonsCell>();
+
+        for (var cell : table) {
+            if (cell == null)
+                continue;
+            var val = cell.toValue();
+            assert val.toObjectHash() == cell.getObjectHash();
+            var retrievedByObjectHash = getCell(val);
+            if (cell != retrievedByObjectHash)
+                brokenCells.add(cell);
+            
+            /* Special cells are checked above, and do not have fst/snd values stored */
+            if (!cell.toValue().isSpecial()) {
+                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
+                var retrievedByCell = getCell(newCell.getObjectHash());
+                if (cell != retrievedByCell)
+                    brokenCells.add(cell);
+            }
+        }
+        
+        if (brokenCells.size() > 0) {
+            System.err.printf("*** HEAP FAILED VALIDATION ***%n");
+            System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
+            
+            brokenCells.sort(Comparator.comparing(HonsCell::getObjectHash));
+            for (var cell : brokenCells) {
+                System.err.printf("%s: %s%n  %s%n", cell.getObjectHash(), cell, valueToString(cell.toValue()));
+            }
+            
+            throw new HeapValidationError();
+        } else {
+            if (verbose)
+                System.err.println("Heap validation completed successfully");
         }
     }
 
