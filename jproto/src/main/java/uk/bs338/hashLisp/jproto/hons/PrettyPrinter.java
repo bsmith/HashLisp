@@ -18,7 +18,7 @@ public class PrettyPrinter<V extends IValue> {
         stringTag = heap.makeSymbol("*string");
     }
 
-    private @NotNull IntStream quoteChar(@NotNull int ch) {
+    private @NotNull IntStream quoteChar(int ch) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
         return switch (ch) {
             case '\t' -> IntStream.of('\\', 't');
@@ -42,7 +42,7 @@ public class PrettyPrinter<V extends IValue> {
         return new String(result, 0, result.length);
     }
     
-    private @NotNull Optional<String> commonNonList(@NotNull V val) {
+    private @NotNull Optional<String> stringifyNonList(@NotNull V val) {
         if (!val.isConsRef())
             return Optional.of(val.toString());
 
@@ -54,33 +54,38 @@ public class PrettyPrinter<V extends IValue> {
         
         return Optional.empty();
     }
-
-    private @NotNull StringBuilder listToString(@NotNull V head, @NotNull V rest, @NotNull StringBuilder builder) {
-        valueToString(head, builder);
-        while (!rest.isNil()) {
-            var common = commonNonList(rest);
-            if (common.isPresent()) {
-                return builder.append(" . ").append(common.get());
-            }
-
-            var uncons = heap.uncons(rest);
-            builder.append(" ");
-            valueToString(uncons.fst(), builder);
-            rest = uncons.snd();
-        }
-        return builder;
-    }
     
-    public @NotNull StringBuilder valueToString(@NotNull V val, @NotNull StringBuilder builder) {
-        var common = commonNonList(val);
+    private @NotNull StringBuilder stringifyOneValue(@NotNull V val, @NotNull StringBuilder builder) {
+        var common = stringifyNonList(val);
         if (common.isPresent()) {
             return builder.append(common.get());
         }
-        
+
         var uncons = heap.uncons(val);
         builder.append("(");
-        listToString(uncons.fst(), uncons.snd(), builder);
+        stringifyOneValue(uncons.fst(), builder);
+        listToString(uncons.snd(), builder);
         return builder.append(")");
+    }
+
+    private void listToString(@NotNull V rest, @NotNull StringBuilder builder) {
+        while (!rest.isNil()) {
+            var tailNonList = stringifyNonList(rest);
+            if (tailNonList.isPresent()) {
+                builder.append(" . ").append(tailNonList.get());
+                return;
+            }
+            
+            var uncons = heap.uncons(rest);
+            rest = uncons.snd();
+
+            builder.append(" ");
+            stringifyOneValue(uncons.fst(), builder);
+        }
+    }
+    
+    public @NotNull StringBuilder valueToString(@NotNull V val, @NotNull StringBuilder builder) {
+        return stringifyOneValue(val, builder);
     }
 
     public @NotNull String valueToString(@NotNull V val) {
