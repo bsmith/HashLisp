@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IValue;
 
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
@@ -42,23 +42,28 @@ public class PrettyPrinter<V extends IValue> {
         return new String(result, 0, result.length);
     }
     
-    public @NotNull String listToString(@NotNull V head, @NotNull V rest) {
-        return listToString(head, rest, new StringBuilder()).toString();
+    private @NotNull Optional<String> commonNonList(@NotNull V val) {
+        if (!val.isConsRef())
+            return Optional.of(val.toString());
+
+        var uncons = heap.uncons(val);
+        if (uncons.fst().isSymbolTag())
+            return Optional.of(listAsString(heap, uncons.snd()));
+        if (uncons.fst().equals(stringTag))
+            return Optional.of(quoteString(listAsString(heap, uncons.snd())));
+        
+        return Optional.empty();
     }
 
-    public @NotNull StringBuilder listToString(@NotNull V head, @NotNull V rest, @NotNull StringBuilder builder) {
+    private @NotNull StringBuilder listToString(@NotNull V head, @NotNull V rest, @NotNull StringBuilder builder) {
         valueToString(head, builder);
         while (!rest.isNil()) {
-            if (!rest.isConsRef())
-                return valueToString(rest, builder.append(" . "));
+            var common = commonNonList(rest);
+            if (common.isPresent()) {
+                return builder.append(" . ").append(common.get());
+            }
 
             var uncons = heap.uncons(rest);
-
-            if (uncons.fst().isSymbolTag())
-                return builder.append(" . ").append(listAsString(heap, uncons.snd()));
-            if (uncons.fst().equals(stringTag))
-                return builder.append(" . ").append(quoteString(listAsString(heap, uncons.snd())));
-
             builder.append(" ");
             valueToString(uncons.fst(), builder);
             rest = uncons.snd();
@@ -67,15 +72,12 @@ public class PrettyPrinter<V extends IValue> {
     }
     
     public @NotNull StringBuilder valueToString(@NotNull V val, @NotNull StringBuilder builder) {
-        if (!val.isConsRef())
-            return builder.append(val);
+        var common = commonNonList(val);
+        if (common.isPresent()) {
+            return builder.append(common.get());
+        }
         
         var uncons = heap.uncons(val);
-        if (uncons.fst().isSymbolTag())
-            return builder.append(listAsString(heap, uncons.snd()));
-        if (uncons.fst().equals(stringTag))
-            return builder.append(quoteString(listAsString(heap, uncons.snd())));
-
         builder.append("(");
         listToString(uncons.fst(), uncons.snd(), builder);
         return builder.append(")");
