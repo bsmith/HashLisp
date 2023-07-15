@@ -6,9 +6,9 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 public class Driver {
-    private HonsHeap heap;
-    private IReader<HonsValue> reader;
-    private IEvaluator<HonsValue> evaluator;
+    private final HonsHeap heap;
+    private final IReader<HonsValue> reader;
+    private final IEvaluator<HonsValue> evaluator;
 
     public Driver(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
         this.heap = heap;

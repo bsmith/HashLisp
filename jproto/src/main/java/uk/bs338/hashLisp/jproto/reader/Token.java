@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("ClassCanBeRecord")
 public /*abstract*/ class Token {
     enum TokenType {
         UNKNOWN,

@@ -39,12 +39,8 @@ class WrappedHeapTest {
         WrappedHeap wrap2 = WrappedHeap.wrap(new HonsHeap());
         var val1 = wrap.wrap(HonsValue.fromSmallInt(123));
         var val2 = wrap2.wrap(HonsValue.fromSmallInt(456));
-        assertThrows(IllegalArgumentException.class, () -> {
-            wrap2.unwrap(val1);
-        });
-        assertThrows(IllegalArgumentException.class, () -> {
-            wrap.unwrap(val2);
-        });
+        assertThrows(IllegalArgumentException.class, () -> wrap2.unwrap(val1));
+        assertThrows(IllegalArgumentException.class, () -> wrap.unwrap(val2));
         assertEquals(123, wrap.unwrap(val1).toSmallInt());
         assertEquals(456, wrap2.unwrap(val2).toSmallInt());
     }

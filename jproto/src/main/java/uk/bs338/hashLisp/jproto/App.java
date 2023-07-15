@@ -160,7 +160,6 @@ public class App {
         forceCollision();
     }
     
-    @Blocking
     private void checkForUnrecognisedArgs()
     {
         /* Look in userArguments for items that 'look like flags' ie start with - */
@@ -172,7 +171,6 @@ public class App {
         }
     }
 
-    @Blocking
     private void parseUserArgs(String[] args)
     {
         /* Complicated logic:
@@ -217,7 +215,6 @@ public class App {
     }
 
     /* Return false if the app doesn't need to run */
-    @Blocking
     public boolean parseArgs(String[] args)
     {
         if (argsParsed)
@@ -332,7 +329,7 @@ public class App {
         heap.validateHeap(dumpHeap || debug);
     }
 
-    @Blocking
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());

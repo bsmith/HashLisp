@@ -21,7 +21,7 @@ class ArgSpecTest {
             heap.makeSymbol("rest")));
     }
     
-    @Test void fourArgsMatchAndFillsRest() throws EvalException {
+    @Test void fourArgsMatchAndFillsRest() {
         var args = Utilities.intList(heap, new int[]{1, 2, 3, 4});
         var expectedRest = heap.snd(heap.snd(args));
         var assignments = argSpec.match(args);
@@ -30,7 +30,7 @@ class ArgSpecTest {
         assertEquals(expectedRest, assignments.get(heap.makeSymbol("rest")));
     }
     
-    @Test void twoArgsMatchAndNilRest() throws EvalException {
+    @Test void twoArgsMatchAndNilRest() {
         var args = Utilities.intList(heap, new int[]{1, 2});
         var assignments = argSpec.match(args);
         assertEquals(HonsValue.fromSmallInt(1), assignments.get(heap.makeSymbol("a")));
@@ -38,7 +38,7 @@ class ArgSpecTest {
         assertEquals(HonsValue.nil, assignments.get(heap.makeSymbol("rest")));
     }
     
-    @Test void oneArgMatchesAndSecondIsNilAndNilRest() throws EvalException {
+    @Test void oneArgMatchesAndSecondIsNilAndNilRest() {
         var args = Utilities.intList(heap, new int[]{1});
         var assignments = argSpec.match(args);
         assertEquals(HonsValue.fromSmallInt(1), assignments.get(heap.makeSymbol("a")));
@@ -46,7 +46,7 @@ class ArgSpecTest {
         assertEquals(HonsValue.nil, assignments.get(heap.makeSymbol("rest")));
     }
     
-    @Test void noArgsAndAllAreNil() throws EvalException {
+    @Test void noArgsAndAllAreNil() {
         var args = HonsValue.nil;
         var assignments = argSpec.match(args);
         assertEquals(HonsValue.nil, assignments.get(heap.makeSymbol("a")));

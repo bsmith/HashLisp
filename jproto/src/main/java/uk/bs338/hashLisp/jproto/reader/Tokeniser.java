@@ -79,8 +79,7 @@ public class Tokeniser implements Iterator<Token> {
                 /* consume characters that don't end a line */
                 eatExceptClasses(EnumSet.of(CharClass.END_OF_LINE_CHARS));
                 /* eat more whitespace! */
-                /* we're assuming that WHITESPACE includes END_OF_LINE_CHARS */ 
-                continue;
+                /* we're assuming that WHITESPACE includes END_OF_LINE_CHARS */
             }
             else {
                 break;
