@@ -22,6 +22,10 @@ public final class HonsValue implements IValue {
     private HonsValue(int value) {
         this.value = value;
     }
+    
+    public int getValue() {
+        return value;
+    }
 
     /* nil is the object hash 0 */
     public final static HonsValue nil = HonsValue.fromObjectHash(0);

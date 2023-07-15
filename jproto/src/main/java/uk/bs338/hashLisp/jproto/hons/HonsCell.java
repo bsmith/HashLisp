@@ -14,36 +14,36 @@ public class HonsCell {
     /* mutable */
     @Nullable
     private HonsValue memoEval;
-    private int collision;
     
     /* for special values */
     public HonsCell(@NotNull HonsValue special)  {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
-        this.collision = 0;
     }
 
     public HonsCell(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
-        this.collision = 0;
         calcObjectHash();
+    }
+    
+    private int hashFunction(int fst, int snd)
+    {
+        return Objects.hash(fst, snd);
     }
 
     /* The complexity is that this must not be zero, and is signed int31 */
     private void calcObjectHash() {
         /* XXX sign bit */
-        var newHash = Objects.hash(fst, snd, collision) & 0x3fffffff;
-        while (newHash == 0)
-            newHash = Objects.hash(newHash) & 0x3fffffff;
-        this.objectHash = newHash;
+        this.objectHash = hashFunction(fst.getValue(), snd.getValue()) & 0x3fffffff;
+        while (this.objectHash == 0)
+            bumpObjectHash();
     }
 
     public void bumpObjectHash() {
-        collision++;
-        calcObjectHash();
+        this.objectHash = hashFunction(this.objectHash, 0) & 0x3fffffff;
     }
 
     public int getObjectHash() {
@@ -76,7 +76,7 @@ public class HonsCell {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.objectHash, this.fst, this.snd);
+        return this.objectHash;
     }
 
     @Override
@@ -99,8 +99,8 @@ public class HonsCell {
     public @NotNull String toString() {
         var special = getSpecial();
         if (special != null)
-            return "HonsCell{objectHash=" + objectHash + ", special=" + special + "}";
-        return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";
+            return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", special=" + special + "}";
+        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + "}";
     }
 
     @NotNull

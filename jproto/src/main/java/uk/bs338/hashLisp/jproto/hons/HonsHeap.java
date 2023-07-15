@@ -1,39 +1,87 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class HonsHeap implements
     IHeap<HonsValue>,
     ISymbolMixin<HonsValue>
 {
-    private final @NotNull HashMap<Integer, HonsCell> heap;
+    private HonsCell[] table;
+    private int tableLoad;
     
     public HonsHeap() {
-        heap = new HashMap<>();
+        this(2048);
+    }
+    
+    public HonsHeap(int initialSize) {
+        table = new HonsCell[initialSize];
+        tableLoad = 0;
         for (HonsValue special : HonsValue.getAllSpecials()) {
             putCell(new HonsCell(special));
         }
     }
     
-    public HonsCell getCell(@NotNull HonsValue obj) {
-        return heap.get(obj.toObjectHash());
-    }
-
-    private void putCell(@NotNull HonsCell cell) {
-        heap.put(cell.getObjectHash(), cell);
+    public @Nullable HonsCell getCell(@NotNull HonsValue obj) {
+        return getCell(obj.toObjectHash());
     }
     
-    private HonsCell getCell(@NotNull HonsCell cell) {
-        return heap.get(cell.getObjectHash());
+    private void expandTable() {
+        if (table.length > 1024*1024)
+            throw new Error("Refusing to increase the heap over 1Mi cells");
+        
+        HonsCell[] oldTable = table;
+        table = new HonsCell[oldTable.length * 2];
+        tableLoad = 0;
+        
+        for (final HonsCell cell : oldTable) {
+            if (cell != null)
+                putCell(cell);
+        }
+    }
+    
+    /* Mix up the high-order bits into the low-order bits for a bit more entropy */
+    private int mixHash(int objectHash) {
+        return objectHash | (objectHash >> 10);
+    }
+
+    /* putCell and getCell implement our hash table */
+    private @NotNull HonsCell putCell(@NotNull HonsCell cell) {
+        if (tableLoad > table.length / 2)
+            expandTable();
+        int objectHash = cell.getObjectHash();
+        int hash = mixHash(objectHash);
+        for (int offset = 0; offset < table.length; offset++) {
+            int tableIdx = (hash + offset) % table.length;
+            HonsCell tableCell = table[tableIdx];
+            if (tableCell == null) {
+                table[tableIdx] = cell;
+                tableLoad++;
+                return cell;
+            }
+            if (tableCell.getObjectHash() == objectHash)
+                return tableCell;
+        }
+        throw new Error("Table full");
+    }
+    
+    private @Nullable HonsCell getCell(int objectHash) {
+        int hash = mixHash(objectHash);
+        for (int offset = 0; offset < table.length; offset++) {
+            HonsCell cell = table[(hash + offset) % table.length];
+            if (cell == null)
+                return null;
+            if (cell.getObjectHash() == objectHash)
+                return cell;
+        }
+        return null;
     }
 
     @Override
@@ -55,15 +103,14 @@ public class HonsHeap implements
     public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
         do {
-            HonsCell heapCell = getCell(cell);
+            HonsCell heapCell = getCell(cell.getObjectHash());
             /* equals compares the hash, fst, and snd, so we can return this cell as our value */
             if (heapCell != null && heapCell.equals(cell)) {
                 return cell.toValue();
             }
             /* need to put the cell into the heap */
             if (heapCell == null) {
-                putCell(cell);
-                return cell.toValue();
+                return putCell(cell).toValue();
             }
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
@@ -75,14 +122,12 @@ public class HonsHeap implements
     }
     
     public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
-        stream.printf("HonsHeap.dumpHeap(size=%d)%n", heap.size());
+        stream.printf("HonsHeap.dumpHeap(size=%d,load=%d)%n", table.length, tableLoad);
 
-        var sortedHeap = heap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-        
-        for (var entry : sortedHeap) {
-            HonsCell cell = entry.getValue();
-            if (!onlyWithMemoValues || cell.getMemoEval() != null)
-                stream.printf("%s: %s%n  %s%n", entry.getKey(), cell, valueToString(cell.toValue()));
+        for (int idx = 0; idx < table.length; idx++) {
+            var cell = table[idx];
+            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null))
+                stream.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
         }
     }
     
@@ -97,43 +142,54 @@ public class HonsHeap implements
         /* Validate that special entries are still correct */
         for (HonsValue special : HonsValue.getAllSpecials()) {
             var cellByObjectHash = getCell(special);
-            var cellByCell = getCell(new HonsCell(special));
-            if (cellByObjectHash != cellByCell)
-                throw new HeapValidationError("Heap validation failed while validating special: " + special);
+            if (!(cellByObjectHash != null &&
+                    cellByObjectHash.getMemoEval() == null &&
+                    cellByObjectHash.getObjectHash() == special.toObjectHash() &&
+                    cellByObjectHash.getFst() == HonsValue.nil &&
+                    cellByObjectHash.getSnd() == HonsValue.nil))
+                throw new HeapValidationError("Heap validation failed while validating special: " + special + "; got cell: " + cellByObjectHash);
         }
 
         /* The heap is valid if two conditions pass:
          *     1. Each cell is retrievable by calling getCell with its objectHash (via a HonsValue)
          *     2. Each cell is retrievable by constructing a new Cell with the same fst & snd
          */
-        var brokenEntries = new ArrayList<Map.Entry<Integer, HonsCell>>();
+        var brokenCells = new ArrayList<Integer>();
 
-        for (var entry : heap.entrySet()) {
-            var cell = entry.getValue();
-            
+        for (int idx = 0; idx < table.length; idx++) {
+            var cell = table[idx];
+            if (cell == null)
+                continue;
             var val = cell.toValue();
             assert val.toObjectHash() == cell.getObjectHash();
             var retrievedByObjectHash = getCell(val);
-            if (cell != retrievedByObjectHash)
-                brokenEntries.add(entry);
+            if (cell != retrievedByObjectHash) {
+                System.err.printf("  failed by ObjectHash at 0x%x: %s != %s%n", idx, cell, retrievedByObjectHash);
+                brokenCells.add(idx);
+            }
             
             /* Special cells are checked above, and do not have fst/snd values stored */
             if (!cell.toValue().isSpecial()) {
-                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
-                var retrievedByCell = getCell(newCell);
-                if (cell != retrievedByCell)
-                    brokenEntries.add(entry);
+//                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
+//                var retrievedByCell = getCell(newCell.getObjectHash());
+                var retrievedByCell = getCell(cons(cell.getFst(), cell.getSnd()));
+                if (cell != retrievedByCell) {
+                    System.err.printf("  failed by Cell at 0x%x: %s != %s%n", idx, cell, retrievedByCell);
+                    brokenCells.add(idx);
+                }
             }
         }
         
-        if (brokenEntries.size() > 0) {
+        if (brokenCells.size() > 0) {
             System.err.printf("*** HEAP FAILED VALIDATION ***%n");
-            System.err.printf("  Found %d broken cells%n%n", brokenEntries.size());
+            System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
             
-            brokenEntries.sort(Map.Entry.comparingByKey());
-            for (var entry : brokenEntries) {
-                System.err.printf("%s: %s%n  %s%n", entry.getKey(), entry.getValue(), valueToString(entry.getValue().toValue()));
+            for (var idx : brokenCells) {
+                var cell = table[idx];
+                System.err.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
             }
+            
+            dumpHeap(System.err);
             
             throw new HeapValidationError();
         } else {

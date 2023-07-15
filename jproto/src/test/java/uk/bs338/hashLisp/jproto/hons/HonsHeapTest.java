@@ -15,13 +15,13 @@ class HonsHeapTest {
     HonsValue one, two, cons, sym;
 
     @BeforeEach void setUp() {
-        heap = new HonsHeap();
+        heap = new HonsHeap(8);
         one = HonsValue.fromSmallInt(1);
         two = HonsValue.fromSmallInt(2);
         sym = heap.makeSymbol("sym");
         cons = heap.cons(one, two);
     }
-    
+
     @AfterEach void validateHeap() {
         heap.validateHeap();
     }
@@ -39,6 +39,16 @@ class HonsHeapTest {
             tail = heap.cons(HonsValue.fromSmallInt(i), tail);
         }
         assertEquals(HonsValue.fromSmallInt(5050), Utilities.sumList(heap, tail));
+    }
+    
+    @Test void checkForcedCollision() {
+        /* XXX not complete */
+        var cons2 = heap.cons(one, HonsValue.fromSmallInt(3));
+        var k = cons2.toObjectHash() - cons.toObjectHash();
+        System.out.println(cons);
+        System.out.println(k);
+        var cons3 = heap.cons(one, HonsValue.fromSmallInt(-cons.toObjectHash()/k));
+        System.out.println(cons3);
     }
     
     @Nested
