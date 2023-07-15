@@ -66,7 +66,11 @@ public class Driver {
         var iterator = new ReaderIterator<>(reader, source);
         iterator.forEachRemaining(this::runOneProgram);
         /* XXX handle failure to read */
-        if (iterator.getCurResult().getRemaining().length() != 0)
-            throw new Error("Reading failed: " + iterator.getCurResult());
+        if (iterator.getCurResult().getRemaining().length() != 0) {
+            System.out.flush();
+            System.err.flush();
+            System.err.println("Reading failed:");
+            System.err.println(iterator.getCurResult().getFailureMessage());
+        }
     }
 }

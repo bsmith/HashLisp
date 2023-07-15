@@ -38,7 +38,15 @@ public /*abstract*/ class Token {
     public int getTokenAsInt() {
         return Integer.parseInt(token);
     }
-    
+
+    public int getStartPos() {
+        return startPos;
+    }
+
+    public int getEndPos() {
+        return endPos;
+    }
+
     public String getPositionAsString() {
         return String.format("%d-%d", startPos, endPos);
     }
