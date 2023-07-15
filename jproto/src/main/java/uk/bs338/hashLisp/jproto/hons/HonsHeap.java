@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.IHeapVisitor;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
@@ -11,8 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
 public class HonsHeap implements
     IHeap<HonsValue>,
@@ -71,49 +68,6 @@ public class HonsHeap implements
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
         } while (true);
-    }
-
-    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest) {
-        return listToString(head, rest, "");
-    }
-
-    public String listToString(@NotNull HonsValue head, @NotNull HonsValue rest, String accum) {
-        var str = valueToString(head, accum);
-        
-        if (rest.isNil())
-            return str;
-
-        if (!rest.isObjectHash())
-            // return accum + String.format("%s . %s", str, valueToString(rest));
-            return valueToString(rest, str + " . ");
-
-        var restCell = getCell(rest);
-        if (restCell == null)
-            return valueToString(rest, str + " . ");
-        
-        return listToString(restCell.getFst(), restCell.getSnd(), str + " ");
-    }
-
-    public String valueToString(@NotNull HonsValue val) {
-        return valueToString(val, "");
-    }
-
-    public String valueToString(@NotNull HonsValue val, String accum) {
-        if (val.isObjectHash()) {
-            var cell = getCell(val);
-            if (cell == null)
-                return accum + val;
-            var special = cell.getSpecial();
-            if (special != null)
-                return String.format("#%d:%s", cell.getObjectHash(), special);
-            if (cell.getFst().equals(HonsValue.symbolTag)) {
-                String symName = listAsString(this, cell.getSnd());
-                return accum + symName;
-            }
-            return accum + "(" + listToString(cell.getFst(), cell.getSnd()) + ")";
-        } else {
-            return accum + val;
-        }
     }
 
     public void dumpHeap(@NotNull PrintStream stream) {
@@ -198,33 +152,18 @@ public class HonsHeap implements
         return cell.getPair();
     }
     
-    /* XXX getCell is buggy?  What if it's called with a Value that's not a cons? */
     public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
         if (!val.isConsRef())
             return Optional.empty();
-        var cell = getCell(val);
-        return Optional.ofNullable(cell.getMemoEval());
+        return Optional.ofNullable(getCell(val)).map(HonsCell::getMemoEval);
     }
     
-    /* XXX what if the cell doesn't exist? */
     public void setMemoEval(@NotNull HonsValue val, @NotNull HonsValue evalResult) {
+        if (!val.isConsRef())
+            throw new IllegalArgumentException("can't setMemoEval if its not a ConsRef");
         var cell = getCell(val);
+        if (cell == null)
+            throw new IllegalStateException("can't find cell for ConsRef: " + val);
         cell.setMemoEval(evalResult);
-    }
-    
-    public void visitValue(@NotNull HonsValue val, @NotNull IHeapVisitor<HonsValue> visitor) {
-        if (val.isNil())
-            visitor.visitNil(val);
-        else if (val.isSmallInt())
-            visitor.visitSmallInt(val, val.toSmallInt());
-        else if (this.isSymbol(val))
-            visitor.visitSymbol(val, this.symbolName(val));
-        else if (val.isConsRef()) {
-            var uncons = this.uncons(val);
-            visitor.visitCons(val, uncons.fst(), uncons.snd());
-        }
-        else {
-            throw new IllegalArgumentException("couldn't identify value: " + val);
-        }
     }
 }

@@ -14,7 +14,6 @@ public class HonsCell {
     /* mutable */
     @Nullable
     private HonsValue memoEval;
-    private final @Nullable String special;
     private int collision;
     
     /* for special values */
@@ -22,7 +21,6 @@ public class HonsCell {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
-        this.special = special.getSpecialName();
         this.collision = 0;
     }
 
@@ -30,7 +28,6 @@ public class HonsCell {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
-        this.special = null;
         this.collision = 0;
         calcObjectHash();
     }
@@ -70,7 +67,7 @@ public class HonsCell {
     public @NotNull ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
 
     public @Nullable String getSpecial() {
-        return special;
+        return HonsValue.fromObjectHash(objectHash).getSpecialName();
     }
 
     public void setMemoEval(@NotNull HonsValue memoEval) {
@@ -100,7 +97,8 @@ public class HonsCell {
 
     @Override
     public @NotNull String toString() {
-        if (this.special != null)
+        var special = getSpecial();
+        if (special != null)
             return "HonsCell{objectHash=" + objectHash + ", special=" + special + "}";
         return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";
     }
