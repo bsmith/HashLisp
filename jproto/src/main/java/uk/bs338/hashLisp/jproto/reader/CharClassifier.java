@@ -23,7 +23,7 @@ public class CharClassifier {
         WHITESPACE
     }
     
-    private final static String symbolChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-?!$@";
+    private final static String symbolChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-?!$@*";
     private final static String digits = "0123456789";
     private final static String whitespace = " \t\r\n";
     

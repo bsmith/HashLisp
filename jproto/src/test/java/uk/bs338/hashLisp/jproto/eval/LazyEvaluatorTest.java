@@ -70,9 +70,10 @@ public class LazyEvaluatorTest {
         @Test void lambda() {
             var args = makeList(heap, heap.makeSymbol("a"), heap.makeSymbol("b"));
             var body = makeList(heap, heap.makeSymbol("add"), heap.makeSymbol("a"), heap.makeSymbol("b"));
-            var lambda = makeList(heap, heap.makeSymbol("lambda"), args, body); 
+            var lambda = makeList(heap, heap.makeSymbol("lambda"), args, body);
+            var expected = makeList(heap, heap.makeSymbol("*lambda"), args, body);
             var rv = eval.eval_one(lambda);
-            assertEquals(lambda, rv);
+            assertEquals(expected, rv);
         }
     }
     

@@ -275,7 +275,8 @@ public class App {
         
         return true;
     }
-    
+
+    @SuppressWarnings("NullableProblems")
     private PrintStream getNullPrintStream() {
         /* See https://stackoverflow.com/a/34839209 */
         return new java.io.PrintStream(new java.io.OutputStream() {
