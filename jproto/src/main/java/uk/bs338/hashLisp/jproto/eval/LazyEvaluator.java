@@ -21,7 +21,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         this.heap = heap;
         primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(heap);
-        lambdaTag = heap.makeSymbol("lambda");
+        lambdaTag = heap.makeSymbol("*lambda");
         debug = false;
     }
     
@@ -94,12 +94,18 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             }
             
             @Override
-            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) { return visited; }
+            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
+                try {
+                    return apply(val);
+                } catch (EvalException e) {
+                    throw new Error("Exception during apply (lambda) in eval", e); /* XXX */
+                }
+            }
 
             @Override
             public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
                 var savedIndent = evalIndent; // XXX add try/finally for this!  maybe an auxiallary function that takes a lambda
-                var result = (HonsValue)null;
+                var result = (HonsValue) null;
 
                 if (debug) {
                     System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
@@ -113,8 +119,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                     try {
                         result = apply(val);
                         heap.setMemoEval(val, result);
-                    }
-                    catch (EvalException e) {
+                    } catch (EvalException e) {
                         throw new Error("Exception during apply in eval", e); /* XXX */
                     }
                 }

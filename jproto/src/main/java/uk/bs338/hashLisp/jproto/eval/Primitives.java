@@ -14,10 +14,12 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 public class Primitives implements IPrimitives<HonsValue, HonsValue> {
     private final @NotNull HonsHeap heap;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
+    private final @NotNull HonsValue lambdaTag;
 
     public Primitives(@NotNull HonsHeap heap) {
         this.heap = heap;
         this.primitives = new HashMap<>();
+        lambdaTag = heap.makeSymbol("*lambda");
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -28,6 +30,7 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         put("eq?", this::eqp);
         put("quote", this::quote);
         put("eval", this::eval);
+        put("lambda", this::lambda);
     }
     
     public void put(@NotNull String name, @NotNull IPrimitive<HonsValue> prim) {
@@ -131,5 +134,11 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         return evaluator.eval_one(heap.fst(args));
+    }
+    
+    public @NotNull HonsValue lambda(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
+        var argSpec = heap.fst(args);
+        var body = heap.fst(heap.snd(args));
+        return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
     }
 }

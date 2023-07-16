@@ -32,6 +32,7 @@ public class LispExamplesTest {
         var expected = reader.read(expectedStr).getValue();
         var program = reader.read(programStr).getValue();
         var actual = evaluator.eval_one(program);
+        assertEquals(heap.valueToString(expected), heap.valueToString(actual));
         assertEquals(expected, actual);
     }
     
@@ -41,7 +42,7 @@ public class LispExamplesTest {
     }
     
     @Test void lambda() {
-        assertEval("(lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
+        assertEval("(*lambda (x) (add 1 x))", "(lambda (x) (add 1 x))");
         assertEval("1", "((lambda (x) (add 1 x)) 0)");
         assertEval("2", "((lambda (f) (f 1)) (lambda (x) (add 1 x)))");
     }
