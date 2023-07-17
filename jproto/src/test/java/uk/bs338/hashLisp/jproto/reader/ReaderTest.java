@@ -156,6 +156,8 @@ class ReaderTest {
             var actual = reader.read(input);
             var expected = heap.cons(heap.makeSymbol("*string"), stringAsList(heap, expectedStr));
             assertTrue(actual.isSuccess());
+            /* test this in two ways, as it gives nicer failure reporting! */
+            assertEquals(heap.valueToString(expected), heap.valueToString(actual.getValue()));
             assertEquals(expected, actual.getValue());
             assertEquals("", actual.getRemaining());
         }
@@ -173,7 +175,9 @@ class ReaderTest {
         }
         
         @Test void backquoteString() {
+            /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
             assertStringRead("abc\"xyz", "\"abc\\\"xyz\"");
+            assertStringRead("\t\b\n\r\f'\"", "\"\\t\\b\\n\\r\\f\\'\\\"\"");
         }
         
         @Test void emojiString() {

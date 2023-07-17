@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.hons.Strings;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
 import java.util.ArrayList;
@@ -52,7 +53,8 @@ public class Reader implements IReader<HonsValue> {
             addError("Failed to parse after HASH: ", token);
             return Optional.empty();
         } else if (token.getType() == TokenType.STRING) {
-            return Optional.of(heap.cons(getStringSym(), stringAsList(heap, token.getToken())));
+            var string = Strings.unescapeString(token.getToken());
+            return Optional.of(heap.cons(getStringSym(), stringAsList(heap, string)));
         } else if (token.getType() == TokenType.OPEN_PARENS) {
             var rv = readListAfterOpenParens(tokeniser);
             if (rv.isEmpty())

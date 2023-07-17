@@ -127,27 +127,21 @@ public class Tokeniser implements Iterator<Token> {
         else if (charClass.contains(CharClass.STRING_QUOTE_CHAR)) {
             advancePosition();
             var specialChars = EnumSet.of(CharClass.STRING_ESCAPE_CHAR, CharClass.STRING_QUOTE_CHAR);
-            int segmentStartOffset = curOffset;
-            StringBuilder collectedString = new StringBuilder();
+            int stringStartOffset = curOffset;
             while (!isAtEnd()) {
                 eatExceptClasses(specialChars);
-                collectedString.append(source.subSequence(segmentStartOffset, curOffset));
-//                segmentStartOffset = curOffset;   // XXX
                 var nextCharClass = classifyFirstChar();
                 if (nextCharClass.contains(CharClass.STRING_ESCAPE_CHAR)) {
                     advancePosition(); /* eat the backslash */
-                    segmentStartOffset = curOffset;
                     advancePosition(); /* eat the char escaped */
-                    var escapedChar = source.subSequence(segmentStartOffset, curOffset);
-                    collectedString.append(Strings.interpretEscapedChar(escapedChar.toString()));
-                    segmentStartOffset = curOffset;
                     /* continue */
                 }
                 else if (nextCharClass.contains(CharClass.STRING_QUOTE_CHAR)) {
                     /* end of string, break the loop */
                     if (!isAtEnd() && classifyFirstChar().contains(CharClass.STRING_QUOTE_CHAR)) {
                         type = TokenType.STRING;
-                        tokenStr = collectedString.toString();
+                        /* the tokenStr is the string between the " characters */
+                        tokenStr = source.subSequence(stringStartOffset, curOffset).toString();
                         advancePosition();
                     }
                     break;
