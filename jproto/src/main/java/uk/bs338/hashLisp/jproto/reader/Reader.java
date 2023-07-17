@@ -53,8 +53,14 @@ public class Reader implements IReader<HonsValue> {
             addError("Failed to parse after HASH: ", token);
             return Optional.empty();
         } else if (token.getType() == TokenType.STRING) {
-            var string = Strings.unescapeString(token.getToken());
-            return Optional.of(heap.cons(getStringSym(), stringAsList(heap, string)));
+            try {
+                var string = Strings.unescapeString(token.getToken());
+                return Optional.of(heap.cons(getStringSym(), stringAsList(heap, string)));
+            }
+            catch (Exception e) {
+                addError("Failed to parse STRING token due to exception: " + e, token);
+                return Optional.empty();
+            }
         } else if (token.getType() == TokenType.OPEN_PARENS) {
             var rv = readListAfterOpenParens(tokeniser);
             if (rv.isEmpty())
