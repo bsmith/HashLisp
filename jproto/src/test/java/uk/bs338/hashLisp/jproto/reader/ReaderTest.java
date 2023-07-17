@@ -181,7 +181,10 @@ class ReaderTest {
         }
         
         @Test void emojiString() {
-            /* TODO */
+            /* "🇬🇧" == "\\u{1F1EC}\\u{1f1e7}" */
+            /* Build the string explicitly using codepoints not UTF-16 */
+            var expectedStr = new String(new int[]{0x1f1ec, 0x1f1e7}, 0, 2);
+            assertStringRead(expectedStr, "\"\\u{1F1EC}\\u{1f1e7}\"");
         }
     }
     

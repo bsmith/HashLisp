@@ -20,9 +20,12 @@ public final class Strings {
             case '\'' -> IntStream.of('\\', '\'');
             case '"' -> IntStream.of('\\', '"');
             case '\\' -> IntStream.of('\\', '\\');
-            default ->
-                /* NB. doesn't quote non-printable */
-                IntStream.of(ch);
+            default -> {
+                /* NB. doesn't quote 'non-printable' per se, but covers a lot of stuff */
+                if (Character.isISOControl(ch) || !Character.isBmpCodePoint(ch))
+                    yield String.format("\\u{%x}", ch).codePoints();
+                yield IntStream.of(ch);
+            }
         };
     }
 
@@ -33,21 +36,34 @@ public final class Strings {
         return new String(result, 0, result.length);
     }
 
-    public static @NotNull String interpretEscapedChar(@NotNull String ch) {
+    private record InterpretedEscapeChar(String interpreted, int charsConsumed) { }
+
+    private static @NotNull InterpretedEscapeChar interpretEscapeChar(@NotNull String ch) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
-        return switch (ch) {
-            case "t" -> "\t";
-            case "b" -> "\b";
-            case "n" -> "\n";
-            case "r" -> "\r";
-            case "f" -> "\f";
-            case "'" -> "'";
-            case "\"" -> "\"";
-            case "\\" -> "\\";
+        /* We add \\u{ABCDE} where ABCDE are hex characters (with length 1 to 5) */
+        if (ch.charAt(0) == 'u') {
+            assert ch.charAt(1) == '{';
+            var closingPos = ch.indexOf('}');
+            assert closingPos != -1;
+            /* throws exception on parse error */
+            int codepoint = Integer.parseInt(ch, 2, closingPos, 16);
+            return new InterpretedEscapeChar(new String(new int[]{codepoint}, 0, 1), closingPos + 1);
+        }
+        
+        var singleChar = switch (ch.charAt(0)) {
+            case 't' -> "\t";
+            case 'b' -> "\b";
+            case 'n' -> "\n";
+            case 'r' -> "\r";
+            case 'f' -> "\f";
+            case '\'' -> "'";
+            case '"' -> "\"";
+            case '\\' -> "\\";
             default ->
                 /* We're liberal here and return accept anything */
                 ch;
         };
+        return new InterpretedEscapeChar(singleChar, 1);
     }
     
     public static @NotNull CharSequence unescapeString(@NotNull String str) {
@@ -58,9 +74,9 @@ public final class Strings {
             if (posFirstBackslash == -1)
                 break;
             builder.append(str, pos, posFirstBackslash);
-            var ch = interpretEscapedChar(str.substring(posFirstBackslash + 1, posFirstBackslash + 2));
-            builder.append(ch);
-            pos = posFirstBackslash + 2;
+            var result = interpretEscapeChar(str.substring(posFirstBackslash + 1));
+            builder.append(result.interpreted);
+            pos = posFirstBackslash + result.charsConsumed + 1;
         }
         if (pos < str.length())
             builder.append(str.substring(pos));

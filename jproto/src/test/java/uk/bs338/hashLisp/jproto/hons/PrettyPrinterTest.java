@@ -88,4 +88,12 @@ class PrettyPrinterTest {
         var expected = "\"\\t\\b\\n\\r\\f\\'\"";
         assertEquals(expected, prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, input))));
     }
+    
+    @Test void stringWithEmojis() {
+        /* "🇬🇧" == "\\u{1F1EC}\\u{1f1e7}" */
+        /* Build the string explicitly using codepoints not UTF-16 */
+        var stringVal = heap.cons(heap.makeSymbol("*string"), intList(heap, new int[]{0x1f1ec, 0x1f1e7}));
+        var expected = "\"\\u{1f1ec}\\u{1f1e7}\"";
+        assertEquals(expected, prettyPrinter.valueToString(stringVal));
+    }
 }
