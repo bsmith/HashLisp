@@ -57,8 +57,7 @@ public /*abstract*/ class Token {
         return "Token{" +
             "type=" + type +
             ", token='" + token + '\'' +
-            ", startPos=" + startPos +
-            ", endPos=" + endPos +
+            ", position=" + getPositionAsString() +
             '}';
     }
 

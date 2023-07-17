@@ -55,7 +55,7 @@ public final class Utilities {
     }
 
     @NotNull
-    public static <V extends IValue> V stringAsList(@NotNull IHeap<V> heap, @NotNull String str) {
+    public static <V extends IValue> V stringAsList(@NotNull IHeap<V> heap, @NotNull CharSequence str) {
         return intList(heap, str.codePoints().toArray());
     }
     

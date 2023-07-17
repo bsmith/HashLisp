@@ -245,45 +245,47 @@ class TokeniserTest {
         }
         
         @Test void includesNewline() {
+            /* literal, not escaped newline */
             testOneToken("\"\n\"", "\n");
             testOneToken("\"\r\n\"", "\r\n");
         }
         
         @Test void escapedLiteralNewLine() {
-            testOneToken("\"\\\n\"", "\n");
+            /* the newline is still literal, but escaped too */
+            testOneToken("\"\\\n\"", "\\\n");
         }
         
         @Test void backslashTab() {
-            testOneToken("\"\\t\"", "\t");
+            testOneToken("\"\\t\"", "\\t");
         }
         
         @Test void backslashBackspace() {
-            testOneToken("\"\\b\"", "\b");
+            testOneToken("\"\\b\"", "\\b");
         }
         
         @Test void backslashNewline() {
-            testOneToken("\"\\n\"", "\n");
+            testOneToken("\"\\n\"", "\\n");
         }
         
         @Test void backslashCarriageReturn() {
-            testOneToken("\"\\r\"", "\r");
+            testOneToken("\"\\r\"", "\\r");
         }
         
         @Test void backslashFormfeed() {
-            testOneToken("\"\\f\"", "\f");
+            testOneToken("\"\\f\"", "\\f");
         }
 
         @Test void escapedSingleQuote() {
-            testOneToken("\"\\'\"", "'");
+            testOneToken("\"\\'\"", "\\'");
         }
 
         @Test void escapedDoubleQuote() {
             /* source === "\"" */
-            testOneToken("\"\\\"\"", "\"");
+            testOneToken("\"\\\"\"", "\\\"");
         }
         
         @Test void escapedBackslash() {
-            testOneToken("\"\\\\\"", "\\");
+            testOneToken("\"\\\\\"", "\\\\");
         }
     }
 }
