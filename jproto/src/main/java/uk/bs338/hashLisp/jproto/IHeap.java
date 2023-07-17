@@ -34,7 +34,7 @@ public interface IHeap<V extends IValue> extends IValueFactory<V> {
     @NotNull
     String symbolNameAsString(@NotNull V symbol);
     
-    default @NotNull String valueToString(@NotNull V val) {
+    default @NotNull String valueToString(V val) {
         return PrettyPrinter.valueToString(this, val);
     }
 

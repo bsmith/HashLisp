@@ -21,4 +21,8 @@ public interface IEvaluator<V> {
             vals[i] = eval_one(vals[i]);
         }
     }
+
+    default void eval_multi_inplace(@NotNull List<V> vals) {
+        vals.replaceAll(this::eval_one);
+    }
 }
