@@ -61,4 +61,11 @@ public class LispExamplesTest {
             "((lambda (x y) y) (add 1 2) (add 3 4))"
         );
     }
+    
+    @Test void fibonacci() {
+        assertEval(
+            "120", 
+            "((lambda (Y fib$) ((Y fib$) 5)) (lambda (f) ((lambda (x) (f (x x))) (lambda (x) (f (x x))))) (lambda (fib$$) (lambda (n) (zerop n 1 (mul n (fib$$ (add n -1)))))))"
+        );
+    }
 }
