@@ -59,8 +59,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                  */
                 if (heap.fst(heap.symbolName(head)).toSmallInt() == '*')
                     return heap.cons(head, rest);
-                List<HonsValue> constrArgs = new ArrayList<>();
-                unmakeList(heap, rest, constrArgs);
+                var constrArgs = unmakeList(heap, rest);
                 constrArgs = eval_multi(constrArgs);
                 var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(head)));
                 return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));

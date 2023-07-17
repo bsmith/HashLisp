@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +31,10 @@ class Assignments {
             assignmentsList = heap.cons(heap.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
         }
         return assignmentsAsValue = assignmentsList;
+    }
+    
+    public @NotNull Map<HonsValue, HonsValue> getAssignmentsAsMap() {
+        return Map.copyOf(assignments);
     }
 
     public @NotNull String toString() {
@@ -62,15 +66,10 @@ class Assignments {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, just return visited */
             /* otherwise, apply the reduced assignments map to the body */
-            var reducedAssignments = new HashMap<>(assignments);
-            var argsList = new ArrayList<HonsValue>();
-            unmakeList(heap, argSpec, argsList);
-            for (var arg : argsList) {
-                reducedAssignments.remove(arg);
-            }
+            var argsList = unmakeList(heap, argSpec);
             if (argsList.isEmpty())
                 return visited;
-            var newAssignments = new Assignments(heap, reducedAssignments);
+            var newAssignments = withoutNames(argsList);
             var newBody = newAssignments.substitute(body);
             return makeList(heap, heap.makeSymbol("lambda"), argSpec, newBody);
         }
@@ -83,5 +82,11 @@ class Assignments {
     
     public @Nullable HonsValue get(@NotNull HonsValue name) {
         return assignments.get(name);
+    }
+    
+    public @NotNull Assignments withoutNames(Collection<HonsValue> names) {
+        var reducedAssignments = new HashMap<>(assignments);
+        reducedAssignments.keySet().removeAll(names);
+        return new Assignments(heap, reducedAssignments);
     }
 }
