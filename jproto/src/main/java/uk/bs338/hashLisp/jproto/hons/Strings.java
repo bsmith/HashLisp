@@ -2,13 +2,11 @@ package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.stream.IntStream;
-
 public final class Strings {
     private Strings() {
         throw new AssertionError("No Strings instances for you!");
     }
-    
+
     /* this used to use an IntStream, but a StringBuilder seems simpler */
     private static void escapeChar(int ch, StringBuilder builder) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
@@ -28,18 +26,24 @@ public final class Strings {
                 else
                     builder.appendCodePoint(ch);
             }
-        };
+        }
     }
 
-    public static @NotNull String quoteString(@NotNull String str) {
-        /* Slow(?) but elegant */
-        StringBuilder builder = new StringBuilder(str.length() * 2 + 2);
+    public static @NotNull StringBuilder quoteString(@NotNull String str, @NotNull StringBuilder builder) {
+        /* this ensures the minimum necessary, rather than the str.length() * 2 guess */
+        builder.ensureCapacity(builder.capacity() + str.length() + 2);
         builder.append('"');
         str.codePoints().forEach(ch -> escapeChar(ch, builder));
         builder.append('"');
-        return builder.toString();
+        return builder;
     }
-    
+
+    public static @NotNull String quoteString(@NotNull String str) {
+        /* this tries to be a worst-case guess, but not for \\u{ABCDE} escapes */
+        StringBuilder builder = new StringBuilder(str.length() * 2 + 2);
+        return quoteString(str, builder).toString();
+    }
+
     /* returns the number of chars consumed */
     private static int interpretEscapeChar(@NotNull String rest, @NotNull StringBuilder builder) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
@@ -53,7 +57,7 @@ public final class Strings {
             builder.appendCodePoint(codepoint);
             return closingPos + 1;
         }
-        
+
         builder.append(switch (rest.charAt(0)) {
             case 't' -> "\t";
             case 'b' -> "\b";
@@ -69,9 +73,8 @@ public final class Strings {
         });
         return 1;
     }
-    
-    public static @NotNull String unescapeString(@NotNull String str) {
-        StringBuilder builder = new StringBuilder(str.length());
+
+    public static @NotNull StringBuilder unescapeString(@NotNull String str, @NotNull StringBuilder builder) {
         int pos = 0;
         while (pos < str.length()) {
             var posFirstBackslash = str.indexOf('\\', pos);
@@ -83,6 +86,11 @@ public final class Strings {
         }
         if (pos < str.length())
             builder.append(str.substring(pos));
-        return builder.toString();
+        return builder;
+    }
+
+    public static @NotNull String unescapeString(@NotNull String str) {
+        StringBuilder builder = new StringBuilder(str.length());
+        return unescapeString(str, builder).toString();
     }
 }
