@@ -70,7 +70,7 @@ public class HonsCell {
         return HonsValue.fromObjectHash(objectHash).getSpecialName();
     }
 
-    public void setMemoEval(@NotNull HonsValue memoEval) {
+    public void setMemoEval(@Nullable HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 

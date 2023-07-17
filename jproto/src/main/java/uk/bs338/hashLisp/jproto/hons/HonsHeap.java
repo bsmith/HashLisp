@@ -214,7 +214,7 @@ public class HonsHeap implements
         return Optional.ofNullable(getCell(val)).map(HonsCell::getMemoEval);
     }
     
-    public void setMemoEval(@NotNull HonsValue val, @NotNull HonsValue evalResult) {
+    public void setMemoEval(@NotNull HonsValue val, @Nullable HonsValue evalResult) {
         if (!val.isConsRef())
             throw new IllegalArgumentException("can't setMemoEval if its not a ConsRef");
         var cell = getCell(val);
