@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
+import com.beust.jcommander.internal.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -20,5 +21,9 @@ public interface IEvaluator<V> {
         for (int i = 0; i < vals.length; i++) {
             vals[i] = eval_one(vals[i]);
         }
+    }
+
+    default void eval_multi_inplace(@NotNull List<V> vals) {
+        vals.replaceAll(this::eval_one);
     }
 }

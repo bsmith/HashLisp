@@ -38,6 +38,31 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return heap.fst(value).equals(lambdaTag);
     }
 
+    public @NotNull HonsValue applyPrimitive(@NotNull HonsValue function, @NotNull HonsValue args) throws EvalException {
+        var prim = primitives.get(function);
+        if (prim.isEmpty()) {
+            /* if the symbol starts with a *, then treat it a data head
+             * otherwise, treat as a strict constructor.
+             *   This means evaluate the args, and then prepend the *
+             */
+            if (heap.fst(heap.symbolName(function)).toSmallInt() == '*')
+                return heap.cons(function, args);
+            List<HonsValue> constrArgs = new ArrayList<>();
+            unmakeList(heap, args, constrArgs);
+            eval_multi_inplace(constrArgs);
+            var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(function)));
+            return heap.cons(starredSymbol, makeList(heap, constrArgs));
+        }
+        try {
+            return prim.get().apply(this, args);
+        }
+        catch (EvalException e) {
+            e.setPrimitive(heap.symbolNameAsString(function));
+            e.setCurrentlyEvaluating(heap.valueToString(args));
+            throw e;
+        }
+    }
+
     public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) throws EvalException {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
@@ -45,39 +70,25 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         var assignments = argSpecCache.match(argSpec, args);
         
         var result = assignments.substitute(body);
-        return eval_one(result);
+//        return eval_one(result);
+        return result;
     }
 
     public HonsValue apply(@NotNull HonsValue function, @NotNull HonsValue args) throws EvalException {
+        if (debug)
+            System.out.printf("%sapply %s to %s%n", evalIndent, heap.valueToString(function), heap.valueToString(args));
+        
         if (heap.isSymbol(function)) {
-            var prim = primitives.get(function);
-            if (prim.isEmpty()) {
-                /* if the symbol starts with a *, then treat it a data head
-                 * otherwise, treat as a strict constructor.
-                 *   This means evaluate the args, and then prepend the *
-                 */
-                if (heap.fst(heap.symbolName(function)).toSmallInt() == '*')
-                    return heap.cons(function, args);
-                List<HonsValue> constrArgs = new ArrayList<>();
-                unmakeList(heap, args, constrArgs);
-                constrArgs = eval_multi(constrArgs);
-                var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(function)));
-                return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));
-            }
-            try {
-                return prim.get().apply(this, args);
-            }
-            catch (EvalException e) {
-                e.setPrimitive(heap.symbolNameAsString(function));
-                e.setCurrentlyEvaluating(heap.valueToString(args));
-                throw e;
-            }
+            return applyPrimitive(function, args);
         }
         else if (isLambda(function)) {
             return applyLambda(function, args);
         }
-        /* XXX Probably should be an error */
-        return heap.cons(function, args);
+        else {
+            var e = new EvalException("Cannot apply something that is not a symbol or lambda");
+            e.setCurrentlyEvaluating(heap.valueToString(function));
+            throw e;
+        }
     }
     
     private @NotNull Optional<HonsValue> evalOnlyIfSimple(@NotNull HonsValue val) {
@@ -96,32 +107,26 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     
     private @NotNull HonsValue eval_application(@NotNull HonsValue val) throws EvalException {
         Deque<HonsValue> argsStack = new ArrayDeque<>();
-        
         HonsValue focus = val;
-        while (true) {
+        
+        Optional<HonsValue> function = Optional.empty();
+        do {
             var uncons = heap.uncons(focus);
-            var function = evalOnlyIfSimple(uncons.fst());
+            function = evalOnlyIfSimple(uncons.fst());
             argsStack.addLast(uncons.snd());
-            if (function.isPresent()) {
-                if (debug) {
+            focus = function.orElse(uncons.fst());
+            if (debug) {
+                if (function.isPresent()) {
                     System.out.printf("%seval_application: head is in normal form%n", evalIndent);
-                }
-                focus = function.get();
-                break;
-            } else {
-                focus = uncons.fst();
-                if (debug) {
+                } else {
                     System.out.printf("%seval_application: head is not in normal form%n", evalIndent);
                     System.out.printf("%s  new focus: %s%n", evalIndent, heap.valueToString(focus));
                 }
-                continue;
             }
-        }
+        } while (function.isEmpty());
         
         while (argsStack.size() > 0) {
             var args = argsStack.removeLast();
-            if (debug)
-                System.out.printf("%sapply %s to %s%n", evalIndent, heap.valueToString(focus), heap.valueToString(args));
             focus = apply(focus, args);
         }
         
@@ -130,32 +135,46 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
     static String evalIndent = "";
     public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
-        var simple = evalOnlyIfSimple(val);
-        if (simple.isPresent())
-            return simple.get();
-        
-        var savedIndent = evalIndent; // XXX add try/finally for this!  maybe an auxiallary function that takes a lambda
-        var result = (HonsValue) null;
+        /* quickly handle simple cases including memoisation */
+        {
+            var simple = evalOnlyIfSimple(val);
+            if (simple.isPresent())
+                return simple.get();
+        }
 
-        if (debug) {
-            System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
-            evalIndent += "  ";
-        }
-        
-        try {
-            try {
-                result = eval_application(val);
-                heap.setMemoEval(val, result);
-            } catch (EvalException e) {
-                throw new Error("Exception during apply in eval: " + heap.valueToString(val), e); /* XXX */
+        var currentlyEvaluating = val;
+        while (true) {
+            var simple = evalOnlyIfSimple(currentlyEvaluating);
+            if (simple.isPresent()) {
+                currentlyEvaluating = simple.get();
+                break;
             }
-        } finally {
-            if (debug)
-                evalIndent = savedIndent;
+            
+            var savedIndent = evalIndent;
+
+            if (debug) {
+                System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(currentlyEvaluating));
+                evalIndent += "  ";
+            }
+
+            try {
+                try {
+                    var result = eval_application(currentlyEvaluating);
+                    currentlyEvaluating = result;
+                } catch (EvalException e) {
+                    throw new Error("Exception during apply in eval: " + heap.valueToString(currentlyEvaluating), e); /* XXX */
+                }
+            } finally {
+                if (debug)
+                    evalIndent = savedIndent;
+            }
         }
         
+        var result = currentlyEvaluating;
+        heap.setMemoEval(val, result);
+
         if (debug)
-            System.out.printf("%s==> %s%n", evalIndent, result == null ? "null" : heap.valueToString(result));
+            System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
         
         return result;
     }

@@ -89,15 +89,21 @@ public class PrettyPrinter<V extends IValue> {
         }
     }
     
-    public @NotNull StringBuilder valueToString(@NotNull V val, @NotNull StringBuilder builder) {
+    public @NotNull StringBuilder valueToString(V val, @NotNull StringBuilder builder) {
+        if (val == null)
+            return builder.append("<null>");
         return stringifyOneValue(val, builder);
     }
 
-    public @NotNull String valueToString(@NotNull V val) {
+    public @NotNull String valueToString(V val) {
+        if (val == null)
+            return "<null>";
         return valueToString(val, new StringBuilder()).toString();
     }
     
-    public static <V extends IValue> @NotNull String valueToString(@NotNull IHeap<V> heap, @NotNull V val) {
+    public static <V extends IValue> @NotNull String valueToString(@NotNull IHeap<V> heap, V val) {
+        if (val == null)
+            return "<null>";
         return new PrettyPrinter<>(heap).valueToString(val);
     }
 }

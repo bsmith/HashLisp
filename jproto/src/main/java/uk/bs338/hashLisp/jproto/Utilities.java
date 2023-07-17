@@ -93,6 +93,24 @@ public final class Utilities {
         }
         return list;
     }
+
+    @NotNull
+    public static <V extends IValue> V makeList(@NotNull IHeap<V> heap, @NotNull List<V> elements) {
+        var list = heap.nil();
+        for (int index = elements.size() - 1; index >= 0; index--) {
+            list = heap.cons(elements.get(index), list);
+        }
+        return list;
+    }
+
+    @NotNull
+    public static <V extends IValue> V makeListWithDot(@NotNull IHeap<V> heap, @NotNull List<V> elements) {
+        var list = elements.get(elements.size() - 1);
+        for (int index = elements.size() - 2; index >= 0; index--) {
+            list = heap.cons(elements.get(index), list);
+        }
+        return list;
+    }
     
     public static <V extends IValue> void unmakeList(@NotNull IHeap<V> heap, V list, @NotNull List<V> dst) {
         V cur = list;
