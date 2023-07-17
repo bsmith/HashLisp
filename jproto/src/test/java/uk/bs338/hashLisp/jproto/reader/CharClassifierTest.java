@@ -90,39 +90,4 @@ class CharClassifierTest {
             assertNotNull(classes);
         }
     }
-    
-    @Nested
-    class interpretingEscapeChars {
-        @Test void tab() {
-            assertEquals("\t", classifier.interpretEscapedChar("t"));
-        }
-
-        @Test void backspace() {
-            assertEquals("\b", classifier.interpretEscapedChar("b"));
-        }
-
-        @Test void newline() {
-            assertEquals("\n", classifier.interpretEscapedChar("n"));
-        }
-
-        @Test void carriageReturn() {
-            assertEquals("\r", classifier.interpretEscapedChar("r"));
-        }
-
-        @Test void formfeed() {
-            assertEquals("\f", classifier.interpretEscapedChar("f"));
-        }
-
-        @Test void singleQuote() {
-            assertEquals("'", classifier.interpretEscapedChar("'"));
-        }
-
-        @Test void doubleQuote() {
-            assertEquals("\"", classifier.interpretEscapedChar("\""));
-        }
-
-        @Test void backslash() {
-            assertEquals("\\", classifier.interpretEscapedChar("\\"));
-        }
-    }
 }

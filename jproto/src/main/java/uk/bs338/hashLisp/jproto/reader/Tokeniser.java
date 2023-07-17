@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.hons.Strings;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier.CharClass;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
@@ -138,7 +139,7 @@ public class Tokeniser implements Iterator<Token> {
                     segmentStartOffset = curOffset;
                     advancePosition(); /* eat the char escaped */
                     var escapedChar = source.subSequence(segmentStartOffset, curOffset);
-                    collectedString.append(charClassifier.interpretEscapedChar(escapedChar.toString()));
+                    collectedString.append(Strings.interpretEscapedChar(escapedChar.toString()));
                     segmentStartOffset = curOffset;
                     /* continue */
                 }
