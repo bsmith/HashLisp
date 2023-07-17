@@ -5,7 +5,6 @@ import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IValue;
 
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 

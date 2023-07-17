@@ -91,7 +91,7 @@ public class App {
         return "jproto --- prototype for HashLisp";
     }
     
-    /* NB All HonsValues, Readers, Evaluators, etc become invalid when you do this */
+    /* NB All HonsValues, Readers, Evaluators, etc. become invalid when you do this */
     public void replaceHeap() {
         heap = new HonsHeap();
     }
@@ -278,6 +278,7 @@ public class App {
     
     private PrintStream getNullPrintStream() {
         /* See https://stackoverflow.com/a/34839209 */
+        //noinspection NullableProblems
         return new java.io.PrintStream(new java.io.OutputStream() {
             @Override public void write(int b) {}
         }) {
@@ -315,6 +316,7 @@ public class App {
         };
     }
     
+    @Blocking
     public void runBenchmark() {
         boolean savedDebug = debug;
         boolean savedDumpHeap = dumpHeap;
