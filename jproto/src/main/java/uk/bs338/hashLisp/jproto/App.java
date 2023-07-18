@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.driver.Driver;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
@@ -420,6 +421,10 @@ public class App {
         
         /* Always try to validate the heap */
         heap.validateHeap(dumpHeap || debug);
+        
+        /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
+        if (dumpHeap || debug)
+            heap.iterateHeap(new MemoEvalChecker(heap, getEvaluator(), dumpHeap || debug));
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")

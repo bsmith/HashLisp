@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
@@ -26,6 +27,12 @@ public class LispExamplesTest {
     
     @AfterAll void dumpHeap() {
         heap.dumpHeap(System.out, true);
+    }
+
+    @AfterEach
+    void validateHeap() {
+        heap.validateHeap();
+        MemoEvalChecker.checkHeap(heap, evaluator);
     }
     
     void assertEval(@NotNull String expectedStr, @NotNull String programStr) {

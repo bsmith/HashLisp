@@ -126,8 +126,11 @@ public class HonsHeap implements
 
         for (int idx = 0; idx < table.length; idx++) {
             var cell = table[idx];
-            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null))
+            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null)) {
                 stream.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
+                if (cell.getMemoEval() != null)
+                    stream.printf("  memoEval: %s%n", valueToString(cell.getMemoEval()));
+            }
         }
     }
     
@@ -196,6 +199,15 @@ public class HonsHeap implements
             if (verbose)
                 System.err.println("Heap validation completed successfully");
         }
+    }
+    
+    public void iterateHeap(@NotNull IIterateHeapVisitor visitor) {
+        for (int idx = 0; idx < table.length; idx++) {
+            var cell = table[idx];
+            if (cell != null)
+                visitor.visit(idx, cell);
+        }
+        visitor.finished();
     }
 
     @NotNull

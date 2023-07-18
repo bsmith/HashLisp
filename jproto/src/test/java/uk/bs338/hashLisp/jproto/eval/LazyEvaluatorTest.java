@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -31,6 +32,7 @@ public class LazyEvaluatorTest {
 
     @AfterEach
     void tearDownEvaluator() {
+        MemoEvalChecker.checkHeap(heap, eval);
         eval = null;
     }
 
