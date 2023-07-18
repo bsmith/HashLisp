@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 
 public interface IExpr {
     HonsValue getValue();
-    
+
     default boolean isSimple() {
         return false;
     }
@@ -21,20 +21,34 @@ public interface IExpr {
     }
 
     void visit(IExprVisitor2 visitor);
-    
+
     boolean isNormalForm();
     boolean isHeadNormalForm();
-    
-    default boolean isLambda() { return false; }
 
-    default boolean isLambdaTag() { return false; }
+    default boolean isLambda() {
+        return false;
+    }
 
-    default boolean isBlackholeSentinel() { return false; }
-    
+    default boolean isLambdaTag() {
+        return false;
+    }
+
+    default boolean isBlackholeSentinel() {
+        return false;
+    }
+
     /* XXX is this the best exception?  I just copied Optional/ReadResult */
-    default ISimpleExpr asSimpleExpr() { throw new NoSuchElementException(); }
-    default ISymbolExpr asSymbolExpr() { throw new NoSuchElementException(); }
-    default IConsExpr asConsExpr() { throw new NoSuchElementException(); }
-    
+    default ISimpleExpr asSimpleExpr() {
+        throw new NoSuchElementException();
+    }
+
+    default ISymbolExpr asSymbolExpr() {
+        throw new NoSuchElementException();
+    }
+
+    default IConsExpr asConsExpr() {
+        throw new NoSuchElementException();
+    }
+
     @NotNull String valueToString();
 }

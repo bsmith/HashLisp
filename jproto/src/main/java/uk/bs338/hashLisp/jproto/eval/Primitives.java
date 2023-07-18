@@ -31,6 +31,7 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         put("quote", this::quote);
         put("eval", this::eval);
         put("lambda", this::lambda);
+        put("error", this::error);
     }
     
     public void put(@NotNull String name, @NotNull IPrimitive<HonsValue> prim) {
@@ -140,5 +141,9 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         var argSpec = heap.fst(args);
         var body = heap.fst(heap.snd(args));
         return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+    }
+    
+    public @NotNull HonsValue error(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException{
+        throw new EvalException("error primitive");
     }
 }

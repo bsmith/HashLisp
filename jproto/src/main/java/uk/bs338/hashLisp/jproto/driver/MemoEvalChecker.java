@@ -76,6 +76,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
                 reason = "not-hnf";
         }
         catch (Exception e) {
+            System.err.println(e);
             reason = "exception";
         }
         

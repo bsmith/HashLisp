@@ -424,7 +424,7 @@ public class App {
         
         /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
         if (dumpHeap || debug)
-            heap.iterateHeap(new MemoEvalChecker(heap, getEvaluator(), dumpHeap || debug));
+            MemoEvalChecker.checkHeap(heap, getEvaluator(), dumpHeap || debug);
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -36,16 +37,35 @@ public class ExprFactory {
         return new SimpleExpr(value);
     }
 
-    public @NotNull HonsValue unwrap(@NotNull IExpr wrapped) {
+    @Contract("null -> null; !null -> !null")
+    public HonsValue unwrap(IExpr wrapped) {
+        if (wrapped == null)
+            return null;
         if (!(wrapped instanceof ExprBase))
-            throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactor.ExprBase");
+            throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactory.ExprBase");
         if (heap != ((ExprBase)wrapped).getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
         return wrapped.getValue();
     }
     
-    public IExpr getBlackholeSentinel() {
+    public @NotNull IExpr getBlackholeSentinel() {
         return wrap(blackholeSentinel);
+    }
+    
+    public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
+        return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
+    }
+    
+    public @NotNull ISimpleExpr nil() {
+        return wrap(HonsValue.nil).asSimpleExpr();
+    }
+    
+    public @NotNull ISymbolExpr makeSymbol(@NotNull IConsExpr name) {
+        return wrap(heap.makeSymbol(unwrap(name))).asSymbolExpr();
+    }
+    
+    public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
+        return wrap(heap.makeSymbol(name)).asSymbolExpr();
     }
 
     @Override
@@ -136,6 +156,13 @@ public class ExprFactory {
         @Override
         public boolean isDataHead() {
             return heap.fst(heap.symbolName(value)).toSmallInt() == '*';
+        }
+
+        @Override
+        public ISymbolExpr makeDataHead() {
+            if (isDataHead())
+                return this;
+            return wrap(heap.makeSymbol(heap.cons(HonsValue.fromSmallInt('*'), heap.symbolName(value)))).asSymbolExpr();
         }
 
         @Override

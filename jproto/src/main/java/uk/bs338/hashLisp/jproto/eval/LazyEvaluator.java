@@ -9,8 +9,6 @@ import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.function.Supplier;
-
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
@@ -31,7 +29,12 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     public void setDebug(boolean flag) {
         debug = flag;
     }
+    
+    private IExpr wrap(HonsValue value) {
+        return exprFactory.wrap(value);
+    }
 
+    /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
     public @NotNull IExpr applyPrimitive(@NotNull ISymbolExpr function, @NotNull IExpr args) throws EvalException {
         var prim = primitives.get(function.getValue());
         if (prim.isEmpty()) {
@@ -40,14 +43,18 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
              *   This means evaluate the args, and then prepend the *
              */
             if (function.isDataHead())
-                return exprFactory.wrap(heap.cons(function.getValue(), args.getValue()));
+                return wrap(heap.cons(function.getValue(), args.getValue()));
+            
+            /* recursively evaluate */
             var constrArgs = unmakeList(heap, args.getValue());
             constrArgs = eval_multi(constrArgs);
-            var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), function.symbolName().getValue()));
-            return exprFactory.wrap(heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0]))));
+            
+            var starredSymbol = function.makeDataHead();
+            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs.toArray(new HonsValue[0]))));
         }
         try {
-            return exprFactory.wrap(prim.get().apply(this, args.getValue()));
+            /* may recursively evaluate */
+            return wrap(prim.get().apply(this, args.getValue()));
         }
         catch (EvalException e) {
             e.setPrimitive(function.symbolNameAsString());
@@ -56,25 +63,28 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
 
-    public @NotNull IExpr applyLambda(@NotNull IConsExpr lambda, @NotNull IExpr args) throws EvalException {
+    /* result needs further evaluation */
+    public @NotNull IExpr applyLambdaOnce(@NotNull IConsExpr lambda, @NotNull IExpr args) throws EvalException {
         IExpr argSpec = lambda.snd().asConsExpr().fst();
         IExpr body = lambda.snd().asConsExpr().snd().asConsExpr().fst();
         
         var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
         
         var result = assignments.substitute(body.getValue());
-        return eval_expr(exprFactory.wrap(result));
+        return wrap(result);
     }
 
-    public IExpr apply(@NotNull IExpr function, @NotNull IExpr args) throws EvalException {
+    /* result needs further evaluation */
+    public IExpr apply_hnf(@NotNull IExpr function, @NotNull IExpr args) throws EvalException {
         if (debug)
             System.out.printf("%sapply %s to %s%n", evalIndent, function.valueToString(), args.valueToString());
-        var head = eval_expr(function);
-        if (head.isSymbol()) {
-            return applyPrimitive(head.asSymbolExpr(), args);
+        if (!function.isNormalForm())
+            throw new EvalException("apply_hnf called but function not in normal form");
+        if (function.isSymbol()) {
+            return applyPrimitive(function.asSymbolExpr(), args);
         }
-        else if (head.isLambda()) {
-            return applyLambda(head.asConsExpr(), args);
+        else if (function.isLambda()) {
+            return applyLambdaOnce(function.asConsExpr(), args);
         }
         else {
             var e = new EvalException("Cannot apply something that is not a symbol or lambda");
@@ -82,9 +92,13 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             throw e;
         }
     }
-
+    
+    private interface IWithEvalIndent<T> {
+        T get() throws EvalException;
+    }
+    
     String evalIndent = "";
-    <T> T withEvalIndent(Supplier<T> func) {
+    private <T> T withEvalIndent(IWithEvalIndent<T> func) throws EvalException {
         T result;
         var savedIndent = evalIndent;
         evalIndent += "  ";
@@ -97,7 +111,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return result;
     }
     
-    public @NotNull IExpr eval_cons(@NotNull IConsExpr expr) {
+    public @NotNull IExpr eval_cons(@NotNull IConsExpr expr) throws EvalException {
         
         /* Do this early */
         var memoEval = expr.getMemoEval();
@@ -107,20 +121,17 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             return memoEval.get();
         }
         
+        /* Set the sentinel: clear it in the finally below */
         expr.setMemoEval(exprFactory.getBlackholeSentinel());
         
-        IExpr result;
+        IExpr result = null;
         try {
             if (debug) {
                 System.out.printf("%seval: %s%n", evalIndent, expr.valueToString());
             }
 
             result = withEvalIndent(() -> {
-                try {
-                    return apply(expr.fst(), expr.snd());
-                } catch (EvalException e) {
-                    throw new RuntimeException("Exception during apply in eval", e); /* XXX */
-                }
+                return eval_expr(apply_hnf(eval_expr(expr.fst()), expr.snd()));
             });
 
             if (debug) {
@@ -132,25 +143,34 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             if (prevMemo.isEmpty() || !prevMemo.get().isBlackholeSentinel())
                 //noinspection ThrowFromFinallyBlock
                 throw new AssertionError("Didn't find blackhole sentinel when expected");
+            expr.setMemoEval(result);
         }
 
-        expr.setMemoEval(result);
         return result;
     }
     
-    public @NotNull IExpr eval_expr(@NotNull IExpr expr) {
+    public @NotNull IExpr eval_expr(@NotNull IExpr expr) throws EvalException {
         /* Simple values are already in normal form */
         if (expr.isNormalForm())
             return expr;
         
         assert expr.isCons();
         var consExpr = expr.asConsExpr();
-        return eval_cons(consExpr);
+        var result = eval_cons(consExpr);
+        if (!result.isNormalForm())
+            throw new AssertionError("expression not evaluated to normal form");
+        return result;
     }
     
     public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
-        var expr = exprFactory.wrap(val);
-        return eval_expr(expr).getValue();
+        var expr = wrap(val);
+        try {
+            return eval_expr(expr).getValue();
+        }
+        catch (EvalException e) { /* XXX */
+            e.printStackTrace();
+            return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+        }
     }
 
     public static void demo(@NotNull HonsHeap heap) {

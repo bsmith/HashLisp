@@ -112,7 +112,7 @@ public final class Utilities {
         return list;
     }
     
-    public static <V extends IValue> List<V> unmakeList(@NotNull IHeap<V> heap, V list) {
+    public static <V extends IValue> List<V> unmakeList(@NotNull IHeap<V> heap, @NotNull V list) {
         var dst = new ArrayList<V>();
         V cur = list;
         while (cur != null) {
