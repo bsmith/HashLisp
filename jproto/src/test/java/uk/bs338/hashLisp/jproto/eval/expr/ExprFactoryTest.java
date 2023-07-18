@@ -19,10 +19,10 @@ class ExprFactoryTest {
     void setUp() {
         heap = new HonsHeap();
         factory = new ExprFactory(heap);
-        nil = factory.of(HonsValue.nil);
-        smallInt = factory.of(HonsValue.fromSmallInt(123));
-        sym = factory.of(heap.makeSymbol("symbol"));
-        cons = factory.of(heap.cons(sym.getValue(), smallInt.getValue()));
+        nil = factory.wrap(HonsValue.nil);
+        smallInt = factory.wrap(HonsValue.fromSmallInt(123));
+        sym = factory.wrap(heap.makeSymbol("symbol"));
+        cons = factory.wrap(heap.cons(sym.getValue(), smallInt.getValue()));
     }
     
     @AfterEach
@@ -34,38 +34,38 @@ class ExprFactoryTest {
     class Equals {
         @Test
         void equalsSameFactory() {
-            assertEquals(nil, factory.of(HonsValue.nil));
-            assertEquals(smallInt, factory.of(HonsValue.fromSmallInt(123)));
-            assertEquals(sym, factory.of(heap.makeSymbol("symbol")));
-            assertEquals(cons, factory.of(heap.cons(sym.getValue(), smallInt.getValue())));
+            assertEquals(nil, factory.wrap(HonsValue.nil));
+            assertEquals(smallInt, factory.wrap(HonsValue.fromSmallInt(123)));
+            assertEquals(sym, factory.wrap(heap.makeSymbol("symbol")));
+            assertEquals(cons, factory.wrap(heap.cons(sym.getValue(), smallInt.getValue())));
         }
         
         @Test
         void equalsDifferentFactory() {
             var factory2 = new ExprFactory(heap);
             assertEquals(factory2, factory);
-            assertEquals(nil, factory2.of(HonsValue.nil));
-            assertEquals(smallInt, factory2.of(HonsValue.fromSmallInt(123)));
-            assertEquals(sym, factory2.of(heap.makeSymbol("symbol")));
-            assertEquals(cons, factory2.of(heap.cons(sym.getValue(), smallInt.getValue())));
+            assertEquals(nil, factory2.wrap(HonsValue.nil));
+            assertEquals(smallInt, factory2.wrap(HonsValue.fromSmallInt(123)));
+            assertEquals(sym, factory2.wrap(heap.makeSymbol("symbol")));
+            assertEquals(cons, factory2.wrap(heap.cons(sym.getValue(), smallInt.getValue())));
         }
 
         @Test
         void hashCodeSameFactory() {
-            assertEquals(nil.hashCode(), factory.of(HonsValue.nil).hashCode());
-            assertEquals(smallInt.hashCode(), factory.of(HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), factory.of(heap.makeSymbol("symbol")).hashCode());
-            assertEquals(cons.hashCode(), factory.of(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
+            assertEquals(nil.hashCode(), factory.wrap(HonsValue.nil).hashCode());
+            assertEquals(smallInt.hashCode(), factory.wrap(HonsValue.fromSmallInt(123)).hashCode());
+            assertEquals(sym.hashCode(), factory.wrap(heap.makeSymbol("symbol")).hashCode());
+            assertEquals(cons.hashCode(), factory.wrap(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
 
         @Test
         void hashCodeDifferentFactory() {
             var factory2 = new ExprFactory(heap);
             assertEquals(factory2.hashCode(), factory.hashCode());
-            assertEquals(nil.hashCode(), factory2.of(HonsValue.nil).hashCode());
-            assertEquals(smallInt.hashCode(), factory2.of(HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), factory2.of(heap.makeSymbol("symbol")).hashCode());
-            assertEquals(cons.hashCode(), factory2.of(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
+            assertEquals(nil.hashCode(), factory2.wrap(HonsValue.nil).hashCode());
+            assertEquals(smallInt.hashCode(), factory2.wrap(HonsValue.fromSmallInt(123)).hashCode());
+            assertEquals(sym.hashCode(), factory2.wrap(heap.makeSymbol("symbol")).hashCode());
+            assertEquals(cons.hashCode(), factory2.wrap(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
     }
     

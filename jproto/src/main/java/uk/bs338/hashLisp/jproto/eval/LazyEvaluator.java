@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -13,6 +14,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
+    private final @NotNull ExprFactory exprFactory;
     private final @NotNull HonsValue lambdaTag;
     private final @NotNull HonsValue blackholeSentinel;
     private boolean debug;
@@ -21,6 +23,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         this.heap = heap;
         primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(heap);
+        exprFactory = new ExprFactory(heap);
         lambdaTag = heap.makeSymbol("*lambda");
         blackholeSentinel = heap.makeSymbol("***BLACKHOLE");
         debug = false;
@@ -102,65 +105,41 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
     
     public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
+        var expr = exprFactory.wrap(val);
+        
+        /* Simple values are already in normal form */
+        if (expr.isNormalForm())
+            return val;
+        assert val.isConsRef();
+        var consExpr = expr.asConsExpr();
+        
         /* Do this early */
-        var memoEval = heap.getMemoEval(val);
+        var memoEval = consExpr.getMemoEval();
         if (memoEval.isPresent()) {
-            if (memoEval.get().equals(blackholeSentinel))
+            if (memoEval.get().getValue().equals(blackholeSentinel))
                 throw new IllegalStateException("Encountered blackhole when evaluating");
-            return memoEval.get();
+            return memoEval.get().getValue();
         }
         
-        if (val.isConsRef())
-            heap.setMemoEval(val, blackholeSentinel);
-        
-        var visitor = new IExprVisitor<HonsValue, HonsValue>() {
-            @Override
-            public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
-                return visited;
-            }
-            
-            @Override
-            public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
-                return visited;
-            }
-            
-            @Override
-            public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
-                try {
-                    var uncons = heap.uncons(visited);
-                    return apply(uncons.fst(), uncons.snd());
-                } catch (EvalException e) {
-                    throw new RuntimeException("Exception during apply (lambda) in eval", e); /* XXX */
-                }
-            }
-
-            @Override
-            public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
-                var result = (HonsValue) null;
-
-                if (debug) {
-                    System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
-                }
-                
-                result = withEvalIndent(() -> {
-                    try {
-                        return apply(head, args);
-                    } catch (EvalException e) {
-                        throw new RuntimeException("Exception during apply in eval", e); /* XXX */
-                    }
-                });
-
-                if (debug) {
-                    System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
-                }
-                
-                return result;
-            }
-        };
+        consExpr.setMemoEval(exprFactory.wrap(blackholeSentinel));
         
         HonsValue result;
         try {
-            result = ExprToHeapVisitorAdapter.visitExpr(heap, val, visitor);
+            if (debug) {
+                System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
+            }
+
+            result = withEvalIndent(() -> {
+                try {
+                    return apply(consExpr.fst().getValue(), consExpr.snd().getValue());
+                } catch (EvalException e) {
+                    throw new RuntimeException("Exception during apply in eval", e); /* XXX */
+                }
+            });
+
+            if (debug) {
+                System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
+            }        
         }
         finally {
             var prevMemo = heap.getMemoEval(val);
@@ -168,8 +147,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 //noinspection ThrowFromFinallyBlock
                 throw new AssertionError("Didn't find blackhole sentinel when expected");
         }
-        if (val.isConsRef())
-            heap.setMemoEval(val, result);
+
+        heap.setMemoEval(val, result);
         return result;
     }
 
