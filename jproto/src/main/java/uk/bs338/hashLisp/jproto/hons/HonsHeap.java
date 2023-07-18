@@ -234,4 +234,16 @@ public class HonsHeap implements
             throw new IllegalStateException("can't find cell for ConsRef: " + val);
         cell.setMemoEval(evalResult);
     }
+    
+    /* This is an optimisation!
+     * symbols evaluate to themselves
+     */
+    /* Really, we shouldn't be evaluating symbols but short-circuiting elsewhere */
+//    @Override
+//    public @NotNull HonsValue makeSymbol(@NotNull HonsValue name) {
+//        var symbol = ISymbolMixin.super.makeSymbol(name);
+//        assert getCell(symbol) != null;
+//        getCell(symbol).setMemoEval(symbol);
+//        return symbol;
+//    }
 }

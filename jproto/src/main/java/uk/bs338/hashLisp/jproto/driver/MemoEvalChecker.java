@@ -69,11 +69,11 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
              *      consider (cons '(1 . 2) 3)
              *      this evaluates once to ((1 . 2) . 3)
              *      then the eval fails as (1 . 2) is not applicable/normal-form
-             *      This is a design issue as we could design cons differently!
+             * Current compromise: cons is effectively apply
              */
             /* even more strict! be in head normal form */
-//            if (!isHeadNormalForm(memoEval))
-//                reason = "not-hnf";
+            if (!isHeadNormalForm(memoEval))
+                reason = "not-hnf";
         }
         catch (Exception e) {
             reason = "exception";

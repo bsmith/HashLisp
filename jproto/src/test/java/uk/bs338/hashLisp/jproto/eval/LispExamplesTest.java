@@ -44,8 +44,8 @@ public class LispExamplesTest {
     }
     
     @Test void fstSndCons() {
-        assertEval("1", "(fst (cons 1 2))");
-        assertEval("2", "(snd (cons 1 2))");
+        assertEval("*head", "(fst (cons *head *tail))");
+        assertEval("*tail", "(snd (cons *head *tail))");
     }
     
     @Test void lambda() {
@@ -56,16 +56,15 @@ public class LispExamplesTest {
     
     @Test void nestedLambdas() {
         assertEval(
-            "(1 . 2)",
-            "((lambda (x) (cons ((lambda (x) x) 1) x)) 2)"
+            "(*data 1 2)",
+            "((lambda (x) (data ((lambda (x) x) 1) x)) 2)"
         );
     }
     
-    /* XXX not actually lazy! */
     @Test void laziness() {
         assertEval(
             "7",
-            "((lambda (x y) y) (add 1 2) (add 3 4))"
+            "((lambda (x y) y) (error \"lazy\") (add 3 4))"
         );
     }
     
