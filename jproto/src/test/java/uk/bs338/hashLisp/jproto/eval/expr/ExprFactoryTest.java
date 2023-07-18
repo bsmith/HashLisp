@@ -110,7 +110,7 @@ class ExprFactoryTest {
         void symbolName() {
             assertInstanceOf(ISymbolExpr.class, sym);
             var symExpr = (ISymbolExpr)sym;
-            assertEquals(Utilities.stringAsList(heap, "symbol"), symExpr.symbolName());
+            assertEquals(Utilities.stringAsList(heap, "symbol"), symExpr.symbolName().getValue());
         }
         
         @Test

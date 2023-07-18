@@ -7,13 +7,16 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import java.util.Objects;
 import java.util.Optional;
 
+/* XXX: make this just a specialisation of WrappedHeap/WrappedValue! */
 public class ExprFactory {
     protected final @NotNull HonsHeap heap;
     protected final @NotNull HonsValue lambdaTag;
+    protected final @NotNull HonsValue blackholeSentinel;
     
     public ExprFactory(@NotNull HonsHeap heap) {
         this.heap = heap;
         lambdaTag = heap.makeSymbol("*lambda");
+        blackholeSentinel = heap.makeSymbol("***BLACKHOLE");
     }
 
     public @NotNull HonsHeap getHeap() {
@@ -39,6 +42,10 @@ public class ExprFactory {
         if (heap != ((ExprBase)wrapped).getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
         return wrapped.getValue();
+    }
+    
+    public IExpr getBlackholeSentinel() {
+        return wrap(blackholeSentinel);
     }
 
     @Override
@@ -117,14 +124,25 @@ public class ExprFactory {
         }
 
         @Override
-        public @NotNull HonsValue symbolName() {
-            return heap.symbolName(value);
+        public @NotNull IConsExpr symbolName() {
+            return (IConsExpr)wrap(heap.symbolName(value));
         }
 
         @Override
         public @NotNull String symbolNameAsString() {
             return heap.symbolNameAsString(value);
         }
+
+        @Override
+        public boolean isDataHead() {
+            return heap.fst(heap.symbolName(value)).toSmallInt() == '*';
+        }
+
+        @Override
+        public boolean isLambdaTag() { return value.equals(lambdaTag); }
+        
+        @Override
+        public boolean isBlackholeSentinel() { return value.equals(blackholeSentinel); }
     }
     
     /* XXX how is this different from ConsPair?! */
@@ -169,6 +187,11 @@ public class ExprFactory {
         public void setMemoEval(IExpr expr) {
             var memo = unwrap(expr);
             heap.setMemoEval(value, memo);
+        }
+
+        @Override
+        public boolean isLambda() {
+            return fst().isLambdaTag();
         }
     }
 }

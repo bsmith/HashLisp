@@ -18,7 +18,8 @@ public interface IConsExpr extends IExpr {
      */
     @Override
     default boolean isNormalForm() {
-        return fst().isSymbol() && fst().asSymbolExpr().symbolNameAsString().startsWith("*");
+        return fst().isSymbol() && fst().asSymbolExpr().isDataHead();
+//        return fst().isSymbol() && fst().asSymbolExpr().symbolNameAsString().startsWith("*");
 //        return fst().isSymbol() && fst().asSymbolExpr().symbolName().fst().toSmallInt() == '*'; // XXX
     }
 
@@ -29,6 +30,6 @@ public interface IConsExpr extends IExpr {
 
     @Override
     default IConsExpr asConsExpr() {
-        return (IConsExpr)this;
+        return this;
     }
 }

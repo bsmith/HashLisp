@@ -1,6 +1,5 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -25,6 +24,12 @@ public interface IExpr {
     
     boolean isNormalForm();
     boolean isHeadNormalForm();
+    
+    default boolean isLambda() { return false; }
+
+    default boolean isLambdaTag() { return false; }
+
+    default boolean isBlackholeSentinel() { return false; }
     
     /* XXX is this the best exception?  I just copied Optional/ReadResult */
     default ISimpleExpr asSimpleExpr() { throw new NoSuchElementException(); }
