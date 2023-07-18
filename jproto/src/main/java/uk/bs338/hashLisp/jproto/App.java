@@ -343,7 +343,7 @@ public class App {
             
             double runTime = (System.nanoTime() - startTime)/1.e9;
             System.err.printf("Benchmark ran for %.9f%n", runTime);
-            System.err.printf("Completed %d loops @ %.9f loops/sec%n", loops, loops/runTime);
+            System.err.printf("Completed %d loops @ %.9f loops/sec.  %.1f ns/loop%n", loops, loops/runTime, runTime/loops*1e9);
             System.err.flush();
         }
         finally {

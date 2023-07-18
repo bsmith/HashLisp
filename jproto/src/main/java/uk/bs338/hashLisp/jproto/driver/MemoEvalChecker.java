@@ -28,7 +28,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
     }
     
     public static void checkHeap(HonsHeap heap, IEvaluator<HonsValue> evaluator) {
-        heap.iterateHeap(new MemoEvalChecker(heap, evaluator, false));
+        checkHeap(heap, evaluator, false);
     }
     
     private boolean isNormalForm(HonsValue val) {
@@ -65,7 +65,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
             if (!memoEval.equals(evaluated))
                 reason = "eval-diff";
             
-            /* XXX: Not sure this is correct, need to consult the specification:
+            /* XXX: Not sure that this is correct, need to consult the specification:
              *      consider (cons '(1 . 2) 3)
              *      this evaluates once to ((1 . 2) . 3)
              *      then the eval fails as (1 . 2) is not applicable/normal-form
@@ -93,7 +93,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
             return;
         }
 
-        System.err.printf("*** MEMO EVAL CHECKER FOUND BROKEN CELS ***%n");
+        System.err.printf("*** MEMO EVAL CHECKER FOUND BROKEN CELLS ***%n");
         System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
 
         for (int idx = 0; idx < brokenCells.size(); idx++) {
