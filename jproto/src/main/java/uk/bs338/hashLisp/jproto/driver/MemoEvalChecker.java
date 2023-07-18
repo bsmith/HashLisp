@@ -31,6 +31,26 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         heap.iterateHeap(new MemoEvalChecker(heap, evaluator, false));
     }
     
+    private boolean isNormalForm(HonsValue val) {
+        if (val.isNil() || val.isSmallInt() || val.isSpecial())
+            return true;
+        else if (heap.isSymbol(val))
+            return true;
+        
+        if (val.isConsRef()) {
+            if (heap.isSymbol(heap.fst(val)) && heap.symbolNameAsString(heap.fst(val)).startsWith("*"))
+                return true;
+        }
+        
+        return false;
+    }
+    
+    private boolean isHeadNormalForm(HonsValue val) {
+        if (!val.isConsRef())
+            return true;
+        return isNormalForm(heap.fst(val));
+    }
+    
     @Override
     public void visit(int idx, @NotNull HonsCell cell) {
         var memoEval = cell.getMemoEval();
@@ -39,23 +59,25 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         
         String reason = null;
         
-        /* valid if you can eval the program and get the same thing! */
-        var evaluated = evaluator.eval_one(cell.toValue());
-        if (!memoEval.equals(evaluated))
-            reason = "eval-diff";
-        
-        /* valid if it's in normal form s.t. eval as identity on it */
-        var evaluatedAgain = evaluator.eval_one(evaluated);
-        if (!memoEval.equals(evaluatedAgain))
-            reason = "not-normal";
-        
-        /* even more strict! be a specific kind of value */
-        if (memoEval.isNil() || memoEval.isSmallInt() || memoEval.isSpecial())
-            /* no op */;
-        else if (memoEval.isConsRef() && heap.isSymbol(heap.fst(memoEval)) && heap.symbolNameAsString(heap.fst(memoEval)).startsWith("*"))
-            /* no op */;
-        else
-            reason = "data-type";
+        try {
+            /* valid if you can eval the program and get the same thing! */
+            var evaluated = evaluator.eval_one(cell.toValue());
+            if (!memoEval.equals(evaluated))
+                reason = "eval-diff";
+            
+            /* XXX: Not sure this is correct, need to consult the specification:
+             *      consider (cons '(1 . 2) 3)
+             *      this evaluates once to ((1 . 2) . 3)
+             *      then the eval fails as (1 . 2) is not applicable/normal-form
+             *      This is a design issue as we could design cons differently!
+             */
+            /* even more strict! be in head normal form */
+//            if (!isHeadNormalForm(memoEval))
+//                reason = "not-hnf";
+        }
+        catch (Exception e) {
+            reason = "exception";
+        }
         
         if (reason != null) {
             brokenCells.add(cell);
