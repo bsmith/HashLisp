@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
+import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 public class Primitives {
     private final @NotNull HonsHeap heap;
@@ -30,7 +31,7 @@ public class Primitives {
         put("eq?", this::eqp);
         put("quote", this::quote);
         put("eval", this::eval);
-        put("lambda", this::lambda);
+        put("lambda", new Lambda());
         put("error", this::error);
     }
     
@@ -136,10 +137,27 @@ public class Primitives {
         return evaluator.eval_one(heap.fst(args));
     }
     
-    public @NotNull HonsValue lambda(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var argSpec = heap.fst(args);
-        var body = heap.fst(heap.snd(args));
-        return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+    private class Lambda implements IPrimitive<HonsValue> {
+        @Override
+        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+            var argSpec = heap.fst(args);
+            var body = heap.fst(heap.snd(args));
+            return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+        }
+
+        @Override
+        public @NotNull Optional<HonsValue> substitute(@NotNull ISubstitutor<HonsValue> substitutor, @NotNull HonsValue args) {
+            /* we want to remove from our assignments map any var mentioned in argSpec */
+            /* if our assignments map becomes empty, skip recursion */
+            /* otherwise, apply the reduced assignments map to the body */
+            var argSpec = heap.fst(args);
+            var body = heap.fst(heap.snd(args));
+
+            var argsList = unmakeList(heap, argSpec);
+            var newAssignments = substitutor.getAssignments().withoutNames(argsList);
+            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? substitutor.substitute(newAssignments, body) : body;
+            return Optional.of(makeList(heap, argSpec, newBody));
+        }
     }
     
     public @NotNull HonsValue error(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException{

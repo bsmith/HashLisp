@@ -35,6 +35,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private IExpr wrap(HonsValue value) {
         return exprFactory.wrap(value);
     }
+    
+    public @NotNull ExprFactory getExprFactory() {
+        return exprFactory;
+    }
+    
+    public @NotNull Primitives getPrimitives() {
+        return primitives;
+    }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
     public @NotNull IExpr applyPrimitive(@NotNull ISymbolExpr function, @NotNull IExpr args) throws EvalException {
@@ -65,15 +73,18 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
 
+    public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
+        return SubstituteVisitor.substitute(exprFactory, primitives, this, assignments, body);
+    }
+
     /* result needs further evaluation */
     public @NotNull IExpr applyLambdaOnce(@NotNull IConsExpr lambda, @NotNull IExpr args) throws EvalException {
         IExpr argSpec = lambda.snd().asConsExpr().fst();
         IExpr body = lambda.snd().asConsExpr().snd().asConsExpr().fst();
         
         var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
-        
-        var result = assignments.substitute(body.getValue());
-        return wrap(result);
+
+        return substitute(assignments, body);
     }
 
     /* result needs further evaluation */
