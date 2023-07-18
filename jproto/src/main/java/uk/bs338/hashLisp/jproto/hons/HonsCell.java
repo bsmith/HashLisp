@@ -70,7 +70,7 @@ public class HonsCell {
         return HonsValue.fromObjectHash(objectHash).getSpecialName();
     }
 
-    public void setMemoEval(@NotNull HonsValue memoEval) {
+    public void setMemoEval(@Nullable HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
@@ -98,9 +98,10 @@ public class HonsCell {
     @Override
     public @NotNull String toString() {
         var special = getSpecial();
-        if (special != null)
-            return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", special=" + special + "}";
-        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + "}";
+        String body = special != null ?
+            "special=" + special :
+            "memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd;
+        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + " (#" + objectHash + "), " + body + "}";
     }
 
     @NotNull

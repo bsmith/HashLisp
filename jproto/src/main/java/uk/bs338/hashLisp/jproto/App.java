@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.driver.Driver;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
@@ -91,7 +92,7 @@ public class App {
         return "jproto --- prototype for HashLisp";
     }
     
-    /* NB All HonsValues, Readers, Evaluators, etc become invalid when you do this */
+    /* NB All HonsValues, Readers, Evaluators, etc. become invalid when you do this */
     public void replaceHeap() {
         heap = new HonsHeap();
     }
@@ -276,9 +277,9 @@ public class App {
         return true;
     }
 
-    @SuppressWarnings("NullableProblems")
     private PrintStream getNullPrintStream() {
         /* See https://stackoverflow.com/a/34839209 */
+        //noinspection NullableProblems
         return new java.io.PrintStream(new java.io.OutputStream() {
             @Override public void write(int b) {}
         }) {
@@ -316,6 +317,7 @@ public class App {
         };
     }
     
+    @Blocking
     public void runBenchmark() {
         boolean savedDebug = debug;
         boolean savedDumpHeap = dumpHeap;
@@ -419,6 +421,10 @@ public class App {
         
         /* Always try to validate the heap */
         heap.validateHeap(dumpHeap || debug);
+        
+        /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
+        if (dumpHeap || debug)
+            heap.iterateHeap(new MemoEvalChecker(heap, getEvaluator(), dumpHeap || debug));
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")

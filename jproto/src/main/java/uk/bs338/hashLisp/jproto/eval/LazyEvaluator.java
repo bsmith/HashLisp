@@ -5,8 +5,7 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Supplier;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -15,6 +14,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
     private final @NotNull HonsValue lambdaTag;
+    private final @NotNull HonsValue blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
@@ -22,6 +22,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(heap);
         lambdaTag = heap.makeSymbol("*lambda");
+        blackholeSentinel = heap.makeSymbol("***BLACKHOLE");
         debug = false;
     }
     
@@ -35,6 +36,30 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return heap.fst(value).equals(lambdaTag);
     }
 
+    public @NotNull HonsValue applyPrimitive(@NotNull HonsValue function, @NotNull HonsValue args) throws EvalException {
+        var prim = primitives.get(function);
+        if (prim.isEmpty()) {
+            /* if the symbol starts with a *, then treat it a data head
+             * otherwise, treat as a strict constructor.
+             *   This means evaluate the args, and then prepend the *
+             */
+            if (heap.fst(heap.symbolName(function)).toSmallInt() == '*')
+                return heap.cons(function, args);
+            var constrArgs = unmakeList(heap, args);
+            constrArgs = eval_multi(constrArgs);
+            var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(function)));
+            return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));
+        }
+        try {
+            return prim.get().apply(this, args);
+        }
+        catch (EvalException e) {
+            e.setPrimitive(heap.symbolNameAsString(function));
+            e.setCurrentlyEvaluating(heap.valueToString(function));
+            throw e;
+        }
+    }
+
     public @NotNull HonsValue applyLambda(@NotNull HonsValue lambda, @NotNull HonsValue args) throws EvalException {
         HonsValue argSpec = heap.fst(heap.snd(lambda));
         HonsValue body = heap.fst(heap.snd(heap.snd(lambda)));
@@ -45,43 +70,49 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return eval_one(result);
     }
 
-    public HonsValue apply(@NotNull HonsValue args) throws EvalException {
-        /* cons */
-        var uncons = heap.uncons(args);
-        var head = eval_one(uncons.fst());
-        var rest = uncons.snd();
+    public HonsValue apply(@NotNull HonsValue function, @NotNull HonsValue args) throws EvalException {
+        if (debug)
+            System.out.printf("%sapply %s to %s%n", evalIndent, heap.valueToString(function), heap.valueToString(args));
+        var head = eval_one(function);
         if (heap.isSymbol(head)) {
-            var prim = primitives.get(head);
-            if (prim.isEmpty()) {
-                /* if the symbol starts with a *, then treat it a data head
-                 * otherwise, treat as a strict constructor.
-                 *   This means evaluate the args, and then prepend the *
-                 */
-                if (heap.fst(heap.symbolName(head)).toSmallInt() == '*')
-                    return heap.cons(head, rest);
-                List<HonsValue> constrArgs = new ArrayList<>();
-                unmakeList(heap, rest, constrArgs);
-                constrArgs = eval_multi(constrArgs);
-                var starredSymbol = heap.makeSymbol(heap.cons(heap.makeSmallInt('*'), heap.symbolName(head)));
-                return heap.cons(starredSymbol, makeList(heap, constrArgs.toArray(new HonsValue[0])));
-            }
-            try {
-                return prim.get().apply(this, rest);
-            }
-            catch (EvalException e) {
-                e.setPrimitive(heap.symbolNameAsString(head));
-                e.setCurrentlyEvaluating(heap.valueToString(args));
-                throw e;
-            }
+            return applyPrimitive(head, args);
         }
         else if (isLambda(head)) {
-            return applyLambda(head, uncons.snd());
+            return applyLambda(head, args);
         }
-        return heap.cons(head, rest);
+        else {
+            var e = new EvalException("Cannot apply something that is not a symbol or lambda");
+            e.setCurrentlyEvaluating(heap.valueToString(function));
+            throw e;
+        }
     }
 
-    static String evalIndent = "";
+    String evalIndent = "";
+    <T> T withEvalIndent(Supplier<T> func) {
+        T result;
+        var savedIndent = evalIndent;
+        evalIndent += "  ";
+        try {
+            result = func.get();
+        }
+        finally {
+            evalIndent = savedIndent;
+        }
+        return result;
+    }
+    
     public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
+        /* Do this early */
+        var memoEval = heap.getMemoEval(val);
+        if (memoEval.isPresent()) {
+            if (memoEval.get().equals(blackholeSentinel))
+                throw new IllegalStateException("Encountered blackhole when evaluating");
+            return memoEval.get();
+        }
+        
+        if (val.isConsRef())
+            heap.setMemoEval(val, blackholeSentinel);
+        
         var visitor = new IExprVisitor<HonsValue, HonsValue>() {
             @Override
             public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
@@ -96,37 +127,30 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             @Override
             public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
                 try {
-                    return apply(val);
+                    var uncons = heap.uncons(visited);
+                    return apply(uncons.fst(), uncons.snd());
                 } catch (EvalException e) {
-                    throw new Error("Exception during apply (lambda) in eval", e); /* XXX */
+                    throw new RuntimeException("Exception during apply (lambda) in eval", e); /* XXX */
                 }
             }
 
             @Override
             public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
-                var savedIndent = evalIndent; // XXX add try/finally for this!  maybe an auxiallary function that takes a lambda
-                var result = (HonsValue)null;
+                var result = (HonsValue) null;
 
                 if (debug) {
                     System.out.printf("%seval: %s%n", evalIndent, heap.valueToString(val));
-                    evalIndent += "  ";
                 }
                 
-                var memoEval = heap.getMemoEval(val);
-                if (memoEval.isPresent()) {
-                    result = memoEval.get();
-                } else {
+                result = withEvalIndent(() -> {
                     try {
-                        result = apply(val);
-                        heap.setMemoEval(val, result);
+                        return apply(head, args);
+                    } catch (EvalException e) {
+                        throw new RuntimeException("Exception during apply in eval", e); /* XXX */
                     }
-                    catch (EvalException e) {
-                        throw new Error("Exception during apply in eval", e); /* XXX */
-                    }
-                }
+                });
 
                 if (debug) {
-                    evalIndent = savedIndent;
                     System.out.printf("%s==> %s%n", evalIndent, heap.valueToString(result));
                 }
                 
@@ -134,7 +158,19 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             }
         };
         
-        return ExprToHeapVisitorAdapter.visitExpr(heap, val, visitor);
+        HonsValue result;
+        try {
+            result = ExprToHeapVisitorAdapter.visitExpr(heap, val, visitor);
+        }
+        finally {
+            var prevMemo = heap.getMemoEval(val);
+            if (prevMemo.isPresent() && !prevMemo.get().equals(blackholeSentinel))
+                //noinspection ThrowFromFinallyBlock
+                throw new AssertionError("Didn't find blackhole sentinel when expected");
+        }
+        if (val.isConsRef())
+            heap.setMemoEval(val, result);
+        return result;
     }
 
     public static void demo(@NotNull HonsHeap heap) {

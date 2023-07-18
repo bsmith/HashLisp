@@ -112,18 +112,20 @@ public final class Utilities {
         return list;
     }
     
-    public static <V extends IValue> void unmakeList(@NotNull IHeap<V> heap, V list, @NotNull List<V> dst) {
+    public static <V extends IValue> List<V> unmakeList(@NotNull IHeap<V> heap, V list) {
+        var dst = new ArrayList<V>();
         V cur = list;
         while (cur != null) {
             if (cur.isNil())
-                return;
+                return dst;
             if (!cur.isConsRef()) {
                 dst.add(cur);
-                return;
+                return dst;
             }
             var uncons = heap.uncons(cur);
             dst.add(uncons.fst());
             cur = uncons.snd();
         }
+        return dst;
     }
 }
