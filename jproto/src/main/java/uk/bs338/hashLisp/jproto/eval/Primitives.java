@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
-public class Primitives implements IPrimitives<HonsValue, HonsValue> {
+public class Primitives {
     private final @NotNull HonsHeap heap;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private final @NotNull HonsValue lambdaTag;
@@ -38,7 +38,6 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         primitives.put(heap.makeSymbol(name), prim);
     }
 
-    @Override
     public @NotNull Optional<IPrimitive<HonsValue>> get(@NotNull HonsValue name) {
         return Optional.ofNullable(primitives.get(name));
     }

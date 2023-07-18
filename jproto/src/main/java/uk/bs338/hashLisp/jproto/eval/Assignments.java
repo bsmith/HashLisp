@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.eval.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -13,12 +14,14 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 class Assignments {
+    private final ExprFactory exprFactory;
     private final HonsHeap heap;
     private @Nullable HonsValue assignmentsAsValue;
     private final Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(HonsHeap heap, Map<HonsValue, HonsValue> assignments) {
-        this.heap = heap;
+    public Assignments(ExprFactory exprFactory, Map<HonsValue, HonsValue> assignments) {
+        this.exprFactory = exprFactory;
+        this.heap = exprFactory.getHeap();
         this.assignmentsAsValue = null;
         this.assignments = assignments;
     }
@@ -41,19 +44,30 @@ class Assignments {
         return "Assignments{" + heap.valueToString(getAssignmentsAsValue()) + "}";
     }
 
-    private class SubstituteVisitor implements IExprVisitor<HonsValue, HonsValue> {
+    private class SubstituteVisitor implements IExprVisitor2 {
+        HonsValue result;
+
         @Override
-        public @NotNull HonsValue visitConstant(@NotNull HonsValue visited) {
-            return visited;
+        public void visitSimple(ISimpleExpr simpleExpr) {
+            result = simpleExpr.getValue();
         }
 
         @Override
-        public @NotNull HonsValue visitSymbol(@NotNull HonsValue visited) {
-            var assignedValue = assignments.get(visited);
-            return assignedValue == null ? visited : assignedValue;
+        public void visitSymbol(ISymbolExpr symbolExpr) {
+            var assignedValue = assignments.get(symbolExpr.getValue());
+            result = assignedValue == null ? symbolExpr.getValue() : assignedValue;
         }
 
         @Override
+        public void visitCons(IConsExpr consExpr) {
+            /* XXX isLambda is not useful.  Maybe a more general API for tag symbols on the ExprFactory, so it's the cache of tag symbols? */
+            if (consExpr.fst().isSymbol() && consExpr.fst().asSymbolExpr().symbolNameAsString().equals("lambda")) {
+                result = visitLambda(consExpr.getValue(), consExpr.snd().asConsExpr().fst().getValue(), consExpr.snd().asConsExpr().snd().asConsExpr().fst().getValue());
+            } else {
+                result = visitApply(consExpr.getValue(), consExpr.fst().getValue(), consExpr.snd().getValue());
+            }
+        }
+
         public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
             return heap.cons(
                 substitute(head),
@@ -61,7 +75,6 @@ class Assignments {
             );
         }
 
-        @Override
         public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, just return visited */
@@ -76,8 +89,8 @@ class Assignments {
     }
 
     public HonsValue substitute(@NotNull HonsValue body) {
-        var visitor = new SubstituteVisitor();
-        return ExprToHeapVisitorAdapter.visitExpr(heap, body, visitor);
+        return exprFactory.wrap(body).visit(new SubstituteVisitor()).result;
+//        return ExprToHeapVisitorAdapter.visitExpr(heap, body, new SubstituteVisitor());
     }
     
     public @Nullable HonsValue get(@NotNull HonsValue name) {
@@ -87,6 +100,6 @@ class Assignments {
     public @NotNull Assignments withoutNames(Collection<HonsValue> names) {
         var reducedAssignments = new HashMap<>(assignments);
         reducedAssignments.keySet().removeAll(names);
-        return new Assignments(heap, reducedAssignments);
+        return new Assignments(exprFactory, reducedAssignments);
     }
 }

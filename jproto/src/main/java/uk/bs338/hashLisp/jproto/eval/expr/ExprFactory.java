@@ -124,8 +124,9 @@ public class ExprFactory {
             return true;
         }
 
-        @Override public void visit(IExprVisitor2 visitor) {
+        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
             visitor.visitSimple(this);
+            return visitor;
         }
     }
     
@@ -139,8 +140,9 @@ public class ExprFactory {
             return true;
         }
 
-        @Override public void visit(IExprVisitor2 visitor) {
+        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
             visitor.visitSymbol(this);
+            return visitor;
         }
 
         @Override
@@ -191,8 +193,9 @@ public class ExprFactory {
             return true;
         }
 
-        @Override public void visit(IExprVisitor2 visitor) {
+        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
             visitor.visitCons(this);
+            return visitor;
         }
 
         @Override

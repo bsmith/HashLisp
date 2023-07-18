@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -9,20 +10,18 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ArgSpec {
+    private final @NotNull ExprFactory exprFactory;
     private final @NotNull HonsHeap heap;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
     private HonsValue slurpyName;
 
-    public ArgSpec(@NotNull HonsHeap heap, @NotNull HonsValue argSpec) throws EvalException {
-        this.heap = heap;
+    public ArgSpec(@NotNull ExprFactory exprFactory, @NotNull HonsValue argSpec) throws EvalException {
+        this.exprFactory = exprFactory;
+        this.heap = exprFactory.getHeap();
         this.origArgSpec = argSpec;
         
         parseArgSpec(argSpec);
-    }
-    
-    public static @NotNull Assignments match(@NotNull HonsHeap heap, @NotNull HonsValue argSpec, @NotNull HonsValue args) throws EvalException {
-        return new ArgSpec(heap, argSpec).match(args);
     }
 
     public @NotNull HonsValue getOrigArgSpec() {
@@ -69,7 +68,7 @@ public class ArgSpec {
         }
         if (slurpyName != null)
             assignmentsMap.put(slurpyName, curArg);
-        return new Assignments(heap, assignmentsMap);
+        return new Assignments(exprFactory, assignmentsMap);
     }
 
     @Override

@@ -13,16 +13,16 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
+    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
-    private final @NotNull ExprFactory exprFactory;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
-        primitives = new Primitives(heap);
-        argSpecCache = new ArgSpecCache(heap);
         exprFactory = new ExprFactory(heap);
+        primitives = new Primitives(heap);
+        argSpecCache = new ArgSpecCache(exprFactory);
         debug = false;
     }
     

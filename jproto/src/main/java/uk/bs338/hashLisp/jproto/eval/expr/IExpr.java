@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -20,7 +21,8 @@ public interface IExpr {
         return false;
     }
 
-    void visit(IExprVisitor2 visitor);
+    @Contract("_->param1")
+    <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
     boolean isHeadNormalForm();

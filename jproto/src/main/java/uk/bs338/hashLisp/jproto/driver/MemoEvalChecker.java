@@ -76,13 +76,13 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
                 reason = "not-hnf";
         }
         catch (Exception e) {
-            System.err.println(e);
+            e.printStackTrace();
             reason = "exception";
         }
         
         if (reason != null) {
             brokenCells.add(cell);
-            brokenCellReasons.add(reason);
+            brokenCellReasons.add(idx + ": " + reason);
         }
     }
 

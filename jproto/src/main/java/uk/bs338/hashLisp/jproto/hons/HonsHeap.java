@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
@@ -201,13 +202,15 @@ public class HonsHeap implements
         }
     }
     
-    public void iterateHeap(@NotNull IIterateHeapVisitor visitor) {
+    @Contract("_ -> param1")
+    public <V extends IIterateHeapVisitor> @NotNull V iterateHeap(@NotNull V visitor) {
         for (int idx = 0; idx < table.length; idx++) {
             var cell = table[idx];
             if (cell != null)
                 visitor.visit(idx, cell);
         }
         visitor.finished();
+        return visitor;
     }
 
     @NotNull
