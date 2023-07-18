@@ -2,9 +2,11 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -12,12 +14,12 @@ import java.util.Optional;
 public class ExprFactory {
     protected final @NotNull HonsHeap heap;
     protected final @NotNull HonsValue lambdaTag;
-    protected final @NotNull HonsValue blackholeSentinel;
+    protected final @NotNull EnumMap<Tag, ISymbolExpr> tagSymbols;
     
     public ExprFactory(@NotNull HonsHeap heap) {
         this.heap = heap;
         lambdaTag = heap.makeSymbol("*lambda");
-        blackholeSentinel = heap.makeSymbol("***BLACKHOLE");
+        tagSymbols = new EnumMap<>(Tag.class);
     }
 
     public @NotNull HonsHeap getHeap() {
@@ -48,10 +50,6 @@ public class ExprFactory {
         return wrapped.getValue();
     }
     
-    public @NotNull IExpr getBlackholeSentinel() {
-        return wrap(blackholeSentinel);
-    }
-    
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
         return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
     }
@@ -66,6 +64,10 @@ public class ExprFactory {
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
         return wrap(heap.makeSymbol(name)).asSymbolExpr();
+    }
+    
+    public @NotNull ISymbolExpr makeSymbol(@NotNull Tag tag) {
+        return tagSymbols.computeIfAbsent(tag, t -> makeSymbol(t.getSymbolStr()));
     }
 
     @Override
@@ -168,10 +170,9 @@ public class ExprFactory {
         }
 
         @Override
-        public boolean isLambdaTag() { return value.equals(lambdaTag); }
-        
-        @Override
-        public boolean isBlackholeSentinel() { return value.equals(blackholeSentinel); }
+        public boolean isTag(Tag tag) {
+            return value.equals(makeSymbol(tag).getValue());
+        }
     }
     
     /* XXX how is this different from ConsPair?! */
@@ -220,8 +221,8 @@ public class ExprFactory {
         }
 
         @Override
-        public boolean isLambda() {
-            return fst().isLambdaTag();
+        public boolean hasHeadTag(Tag tag) {
+            return fst().isTag(tag);
         }
     }
 }

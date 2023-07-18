@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
@@ -27,18 +28,14 @@ public interface IExpr {
     boolean isNormalForm();
     boolean isHeadNormalForm();
 
-    default boolean isLambda() {
+    default boolean hasHeadTag(Tag tag) {
         return false;
     }
 
-    default boolean isLambdaTag() {
+    default boolean isTag(Tag tag) {
         return false;
     }
-
-    default boolean isBlackholeSentinel() {
-        return false;
-    }
-
+    
     /* XXX is this the best exception?  I just copied Optional/ReadResult */
     default ISimpleExpr asSimpleExpr() {
         throw new NoSuchElementException();

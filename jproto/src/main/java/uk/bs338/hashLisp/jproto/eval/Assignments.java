@@ -60,28 +60,27 @@ class Assignments {
 
         @Override
         public void visitCons(IConsExpr consExpr) {
-            /* XXX isLambda is not useful.  Maybe a more general API for tag symbols on the ExprFactory, so it's the cache of tag symbols? */
-            if (consExpr.fst().isSymbol() && consExpr.fst().asSymbolExpr().symbolNameAsString().equals("lambda")) {
-                result = visitLambda(consExpr.getValue(), consExpr.snd().asConsExpr().fst().getValue(), consExpr.snd().asConsExpr().snd().asConsExpr().fst().getValue());
+            if (consExpr.hasHeadTag(Tag.LAMBDA_SYN)) {
+                result = visitLambda(consExpr, consExpr.snd().asConsExpr().fst().getValue(), consExpr.snd().asConsExpr().snd().asConsExpr().fst().getValue());
             } else {
-                result = visitApply(consExpr.getValue(), consExpr.fst().getValue(), consExpr.snd().getValue());
+                result = visitApply(consExpr);
             }
         }
 
-        public @NotNull HonsValue visitApply(@NotNull HonsValue visited, @NotNull HonsValue head, @NotNull HonsValue args) {
+        public @NotNull HonsValue visitApply(@NotNull IConsExpr consExpr) {
             return heap.cons(
-                substitute(head),
-                substitute(args)
+                substitute(consExpr.fst().getValue()),
+                substitute(consExpr.snd().getValue())
             );
         }
 
-        public @NotNull HonsValue visitLambda(@NotNull HonsValue visited, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
+        public @NotNull HonsValue visitLambda(@NotNull IConsExpr consExpr, @NotNull HonsValue argSpec, @NotNull HonsValue body) {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, just return visited */
             /* otherwise, apply the reduced assignments map to the body */
             var argsList = unmakeList(heap, argSpec);
             if (argsList.isEmpty())
-                return visited;
+                return consExpr.getValue();
             var newAssignments = withoutNames(argsList);
             var newBody = newAssignments.substitute(body);
             return makeList(heap, heap.makeSymbol("lambda"), argSpec, newBody);

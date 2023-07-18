@@ -16,6 +16,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
+    protected final @NotNull IExpr blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
@@ -23,6 +24,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         exprFactory = new ExprFactory(heap);
         primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(exprFactory);
+        blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
         debug = false;
     }
     
@@ -83,7 +85,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (function.isSymbol()) {
             return applyPrimitive(function.asSymbolExpr(), args);
         }
-        else if (function.isLambda()) {
+        else if (function.hasHeadTag(Tag.LAMBDA)) {
             return applyLambdaOnce(function.asConsExpr(), args);
         }
         else {
@@ -116,13 +118,13 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         /* Do this early */
         var memoEval = expr.getMemoEval();
         if (memoEval.isPresent()) {
-            if (memoEval.get().isBlackholeSentinel())
+            if (memoEval.get().equals(blackholeSentinel))
                 throw new IllegalStateException("Encountered blackhole when evaluating");
             return memoEval.get();
         }
         
         /* Set the sentinel: clear it in the finally below */
-        expr.setMemoEval(exprFactory.getBlackholeSentinel());
+        expr.setMemoEval(blackholeSentinel);
         
         IExpr result = null;
         try {
@@ -140,7 +142,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
         finally {
             var prevMemo = expr.getMemoEval();
-            if (prevMemo.isEmpty() || !prevMemo.get().isBlackholeSentinel())
+            if (prevMemo.isEmpty() || !prevMemo.get().equals(blackholeSentinel))
                 //noinspection ThrowFromFinallyBlock
                 throw new AssertionError("Didn't find blackhole sentinel when expected");
             expr.setMemoEval(result);
