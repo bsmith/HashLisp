@@ -12,12 +12,14 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
     private final HonsHeap heap;
     private final IEvaluator<HonsValue> evaluator;
     private final List<HonsCell> brokenCells;
+    private final List<String> brokenCellReasons;
     private final boolean verbose;
 
     public MemoEvalChecker(HonsHeap heap, IEvaluator<HonsValue> evaluator, boolean verbose) {
         this.heap = heap;
         this.evaluator = evaluator;
         this.brokenCells = new ArrayList<>();
+        this.brokenCellReasons = new ArrayList<>();
         this.verbose = verbose;
     }
     
@@ -34,9 +36,31 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         var memoEval = cell.getMemoEval();
         if (memoEval == null)
             return;
+        
+        String reason = null;
+        
+        /* valid if you can eval the program and get the same thing! */
         var evaluated = evaluator.eval_one(cell.toValue());
         if (!memoEval.equals(evaluated))
+            reason = "eval-diff";
+        
+        /* valid if it's in normal form s.t. eval as identity on it */
+        var evaluatedAgain = evaluator.eval_one(evaluated);
+        if (!memoEval.equals(evaluatedAgain))
+            reason = "not-normal";
+        
+        /* even more strict! be a specific kind of value */
+        if (memoEval.isNil() || memoEval.isSmallInt() || memoEval.isSpecial())
+            /* no op */;
+        else if (memoEval.isConsRef() && heap.isSymbol(heap.fst(memoEval)) && heap.symbolNameAsString(heap.fst(memoEval)).startsWith("*"))
+            /* no op */;
+        else
+            reason = "data-type";
+        
+        if (reason != null) {
             brokenCells.add(cell);
+            brokenCellReasons.add(reason);
+        }
     }
 
     @Override
@@ -50,8 +74,11 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         System.err.printf("*** MEMO EVAL CHECKER FOUND BROKEN CELS ***%n");
         System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
 
-        for (var cell : brokenCells) {
-            System.err.printf("0x???: %s%n  %s%n", cell, heap.valueToString(cell.toValue()));
+        for (int idx = 0; idx < brokenCells.size(); idx++) {
+            var cell = brokenCells.get(idx);
+            var reason = brokenCellReasons.get(idx);
+            System.err.printf("%s: %s%n  %s%n", reason, cell, heap.valueToString(cell.toValue()));
+            System.err.printf("  memoEval: %s%n", heap.valueToString(cell.getMemoEval()));
         }
 
 //        heap.dumpHeap(System.err);
