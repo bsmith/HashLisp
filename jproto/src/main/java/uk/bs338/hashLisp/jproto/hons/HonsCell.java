@@ -9,6 +9,7 @@ import java.util.Objects;
 /* HonsCells are mutable in memoEval, but this is not included in the hashValue or the objectHash */
 public class HonsCell {
     private int objectHash;
+    /* XXX these should be ints like objectHash!  then memoEval should use a sentinel not null */
     @NotNull
     private final HonsValue fst, snd;
     /* mutable */
@@ -74,6 +75,7 @@ public class HonsCell {
         this.memoEval = memoEval;
     }
 
+    /* XXX should not implement hashCode and equals, because the Java semantics don't match... */
     @Override
     public int hashCode() {
         return this.objectHash;
