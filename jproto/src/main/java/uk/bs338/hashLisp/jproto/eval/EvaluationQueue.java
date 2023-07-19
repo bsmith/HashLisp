@@ -10,23 +10,35 @@ import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class EvaluationQueue {
+public class EvaluationQueue implements AutoCloseable {
     public static class EvaluationFrame {
-        public final @NotNull IConsExpr origExpr;
-        public @Nullable IConsExpr appliedExpr;
+        private final @NotNull IConsExpr origExpr;
+        private @Nullable IExpr applyResult;
         
         private EvaluationFrame(@NotNull IConsExpr origExpr) {
             this.origExpr = origExpr;
-            this.appliedExpr = null;
+            this.applyResult = null;
+        }
+        
+        public @NotNull IConsExpr getOrigExpr() {
+            return origExpr;
+        }
+
+        public @Nullable IExpr getApplyResult() {
+            return applyResult;
+        }
+        
+        public void setApplyResult(@NotNull IExpr expr) {
+            this.applyResult = expr;
         }
     }
     
     private final @NotNull Deque<EvaluationFrame> queue;
     private final @NotNull ISymbolExpr blackholeSentinel;
 
-    public EvaluationQueue(ExprFactory exprFactory) {
+    public EvaluationQueue(ISymbolExpr blackholeSentinel) {
         this.queue = new ArrayDeque<>();
-        blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
+        this.blackholeSentinel = blackholeSentinel;
     }
     
     public boolean hasEntries() {
@@ -55,15 +67,19 @@ public class EvaluationQueue {
             throw new AssertionError("Didn't find blackhole sentinel when expected");
     }
     
-    public void finishEvaluation(IConsExpr origExpr, IExpr result) {
+    public void finishEvaluation(EvaluationFrame frame, IExpr result) {
         /* remove from queue */
-        var frame = queue.removeLast();
-        if (frame.origExpr != origExpr)
+        var removedFrame = queue.removeLast();
+        if (removedFrame != frame)
             throw new AssertionError("finishEvaluation doesn't match current frame");
 
         /* Check that the sentinel is still in-place */
-        checkForBlackholeSentinel(origExpr);
-        origExpr.setMemoEval(result);
+        checkForBlackholeSentinel(frame.origExpr);
+        frame.origExpr.setMemoEval(result);
+    }
+    
+    public void close() {
+        clearQueue();
     }
     
     public void clearQueue() {

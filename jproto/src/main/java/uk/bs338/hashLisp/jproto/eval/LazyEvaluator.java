@@ -18,7 +18,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
-    private final @NotNull IExpr blackholeSentinel;
+    private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
@@ -100,22 +100,24 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
     
-    private interface IWithEvalIndent<T> {
-        T get() throws EvalException;
-    }
-    
     String evalIndent = "";
-    private <T> T withEvalIndent(IWithEvalIndent<T> func) throws EvalException {
-        T result;
-        var savedIndent = evalIndent;
-        evalIndent += "  ";
-        try {
-            result = func.get();
+
+    private class EvalIndenter implements AutoCloseable {
+        private final String savedIndent;
+        
+        public EvalIndenter() {
+            this("  ");
         }
-        finally {
+
+        public EvalIndenter(String indent) {
+            this.savedIndent = evalIndent;
+            evalIndent += indent;
+        }
+
+        @Override
+        public void close() {
             evalIndent = savedIndent;
         }
-        return result;
     }
 
     private @NotNull Optional<IExpr> getMemoEvalCheckingForBlackhole(@NotNull IConsExpr expr) {
@@ -127,6 +129,25 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return memoEval;
     }
     
+    public Optional<IExpr> evaluateIfNeeded(EvaluationQueue evaluationQueue, IExpr function) {
+        /* Ensure the head is evaluated to normal form first */
+        if (!function.isNormalForm()) {
+            /* we need to evaluate the head first! */
+            assert function.isCons(); /* !isNormalForm() => isCons() */
+
+            var memoEval = getMemoEvalCheckingForBlackhole(function.asConsExpr());
+            if (memoEval.isEmpty()) {
+                if (debug)
+                    System.out.printf("%s  not in nf: pushing %s%n", evalIndent, function.valueToString());
+                evaluationQueue.pushNeededEvaluation(function.asConsExpr());
+                return Optional.empty();
+            } else {
+                return memoEval;
+            }
+        }
+        return Optional.of(function);
+    }
+    
     public @NotNull IExpr eval_cons(@NotNull IConsExpr origExpr) throws EvalException {
         {
             /* Do this early */
@@ -135,75 +156,45 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 return memoEval.get();
         }
 
-        final EvaluationQueue evaluationQueue = new EvaluationQueue(exprFactory);
-        evaluationQueue.pushNeededEvaluation(origExpr);
-        
-        try {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+            evaluationQueue.pushNeededEvaluation(origExpr);
+            
             while (evaluationQueue.hasEntries()) {
                 var frame = evaluationQueue.getCurrentFrame();
-                IConsExpr expr = frame.origExpr;
+                IConsExpr expr = frame.getOrigExpr();
+                IExpr applied = frame.getApplyResult();
+                Optional<IExpr> result;
 
                 if (debug) {
                     System.out.printf("%seval/%d: %s%n", evalIndent, evaluationQueue.size(), expr.valueToString());
                 }
 
-                IExpr function = expr.fst();
-
-                /* Ensure the head is evaluated to normal form first */
-                if (!function.isNormalForm()) {
-                    /* we need to evaluate the head first! */
-                    assert function.isCons(); /* !isNormalForm() => isCons() */
-
-                    var memoEval = getMemoEvalCheckingForBlackhole(function.asConsExpr());
-                    if (memoEval.isEmpty()) {
-                        if (debug)
-                            System.out.printf("%s  not in hnf: pushing %s%n", evalIndent, function.valueToString());
-                        evaluationQueue.pushNeededEvaluation(function.asConsExpr());
-                        continue; /* skip to top of loop */
-                    } else {
-                        if (debug)
-                            System.out.printf("%s  updated: %s%n", evalIndent, exprFactory.cons(memoEval.get(), expr.snd()).valueToString());
-                        function = memoEval.get();
-                    }
-                }
-
-                var cached = frame.appliedExpr;
-                IExpr result;
-                if (cached == null) {
-                    final IExpr finalFunction = function;
-                    var applied = withEvalIndent(() -> apply_hnf(finalFunction, expr.snd()));
-                    if (!applied.isNormalForm()) {
-                        assert applied.isCons(); /* !isNormalForm() => isCons() */
-                        if (debug)
-                            System.out.printf("%s  apply returned not-nf: %s%n", evalIndent, applied.valueToString());
-                        frame.appliedExpr = applied.asConsExpr();
-                        evaluationQueue.pushNeededEvaluation(applied.asConsExpr());
+                if (applied == null) {
+                    Optional<IExpr> function = evaluateIfNeeded(evaluationQueue, expr.fst());
+                    if (function.isEmpty())
                         continue;
-                    } else {
-                        if (debug)
-                            System.out.printf("%s  apply returned nf: %s%n", evalIndent, applied.valueToString());
-                        result = applied;
-                    }
-                } else {
-                    var memo = getMemoEvalCheckingForBlackhole(cached);
-                    if (memo.isPresent())
-                        result = memo.get();
-                    else
-                        throw new AssertionError("didn't find memo for apply cache result");
-                }
 
-                if (!result.isNormalForm())
+                    /* actually perform the application */
+                    try (var ignored = new EvalIndenter()) {
+                        applied = apply_hnf(function.get(), expr.snd());
+                        if (applied.isCons()) /* XXX */
+                            frame.setApplyResult(applied.asConsExpr());
+                    }
+                }
+                
+                result = evaluateIfNeeded(evaluationQueue, applied);
+                if (result.isEmpty())
+                    continue;
+
+                if (!result.get().isNormalForm())
                     throw new AssertionError("result not normal form");
 
-                evaluationQueue.finishEvaluation(frame.origExpr, result);
+                evaluationQueue.finishEvaluation(frame, result.get());
 
                 if (debug) {
-                    System.out.printf("%s==> %s%n", evalIndent, result.valueToString());
+                    System.out.printf("%s==> %s%n", evalIndent, result.get().valueToString());
                 }
             }
-        }
-        finally {
-            evaluationQueue.clearQueue();    
         }
         
         var memoEval = getMemoEvalCheckingForBlackhole(origExpr);
