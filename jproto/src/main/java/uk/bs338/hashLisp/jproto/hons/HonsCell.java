@@ -9,44 +9,42 @@ import java.util.Objects;
 /* HonsCells are mutable in memoEval, but this is not included in the hashValue or the objectHash */
 public class HonsCell {
     private int objectHash;
+    /* XXX these should be ints like objectHash!  then memoEval should use a sentinel not null */
     @NotNull
     private final HonsValue fst, snd;
     /* mutable */
     @Nullable
     private HonsValue memoEval;
-    private final @Nullable String special;
-    private int collision;
     
     /* for special values */
     public HonsCell(@NotNull HonsValue special)  {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
         this.memoEval = null; /* XXX or nil? */
-        this.special = special.getSpecialName();
-        this.collision = 0;
     }
 
     public HonsCell(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
         this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
-        this.special = null;
-        this.collision = 0;
         calcObjectHash();
+    }
+    
+    private int hashFunction(int fst, int snd)
+    {
+        return Objects.hash(fst, snd);
     }
 
     /* The complexity is that this must not be zero, and is signed int31 */
     private void calcObjectHash() {
         /* XXX sign bit */
-        var newHash = Objects.hash(fst, snd, collision) & 0x3fffffff;
-        while (newHash == 0)
-            newHash = Objects.hash(newHash) & 0x3fffffff;
-        this.objectHash = newHash;
+        this.objectHash = hashFunction(fst.getValue(), snd.getValue()) & 0x3fffffff;
+        while (this.objectHash == 0)
+            bumpObjectHash();
     }
 
     public void bumpObjectHash() {
-        collision++;
-        calcObjectHash();
+        this.objectHash = hashFunction(this.objectHash, 0) & 0x3fffffff;
     }
 
     public int getObjectHash() {
@@ -70,16 +68,17 @@ public class HonsCell {
     public @NotNull ConsPair<HonsValue> getPair() { return ConsPair.of(fst, snd); }
 
     public @Nullable String getSpecial() {
-        return special;
+        return HonsValue.fromObjectHash(objectHash).getSpecialName();
     }
 
-    public void setMemoEval(@NotNull HonsValue memoEval) {
+    public void setMemoEval(@Nullable HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
+    /* XXX should not implement hashCode and equals, because the Java semantics don't match... */
     @Override
     public int hashCode() {
-        return Objects.hash(this.objectHash, this.fst, this.snd);
+        return this.objectHash;
     }
 
     @Override
@@ -100,9 +99,11 @@ public class HonsCell {
 
     @Override
     public @NotNull String toString() {
-        if (this.special != null)
-            return "HonsCell{objectHash=" + objectHash + ", special=" + special + "}";
-        return "HonsCell{objectHash=" + objectHash + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + ", collision=" + collision + "}";
+        var special = getSpecial();
+        String body = special != null ?
+            "special=" + special :
+            "memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd;
+        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + " (#" + objectHash + "), " + body + "}";
     }
 
     @NotNull

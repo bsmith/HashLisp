@@ -1,6 +1,6 @@
 package uk.bs338.hashLisp.jproto.hons;
 
-public class HeapValidationError extends Error {
+public class HeapValidationError extends RuntimeException {
     public HeapValidationError() {
         super("Heap validation error");
     }
