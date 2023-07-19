@@ -66,7 +66,7 @@ public final class Utilities {
         while (!cur.isNil()) {
             /* XXX record patterns is a Java 19 feature */
 //                if (heap.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
-            ConsPair<V> uncons = heap.uncons(cur);
+            ConsPair<? extends V> uncons = heap.uncons(cur);
             int ch = uncons.fst().toSmallInt();
             codepoints.add(ch);
             cur = uncons.snd();

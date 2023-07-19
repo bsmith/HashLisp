@@ -23,7 +23,7 @@ public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
     }
 
     default @NotNull V symbolName(@NotNull V symbol) {
-        ConsPair<V> uncons = uncons(symbol);
+        ConsPair<? extends V> uncons = uncons(symbol);
         if (!uncons.fst().isSymbolTag())
             throw new IllegalArgumentException("Cannot get symbolName of non-symbol");
         return uncons.snd();

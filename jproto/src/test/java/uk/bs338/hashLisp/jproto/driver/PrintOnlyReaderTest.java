@@ -10,7 +10,8 @@ import uk.bs338.hashLisp.jproto.reader.ReadResult;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedHeap;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedValue;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PrintOnlyReaderTest {
     WrappedHeap heap;

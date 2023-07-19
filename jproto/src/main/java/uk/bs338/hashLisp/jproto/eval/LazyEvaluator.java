@@ -74,8 +74,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
     /* result needs further evaluation */
     public @NotNull IExpr applyLambdaOnce(@NotNull IConsExpr lambda, @NotNull IExpr args) throws EvalException {
-        IExpr argSpec = lambda.snd().asConsExpr().fst();
-        IExpr body = lambda.snd().asConsExpr().snd().asConsExpr().fst();
+        IExpr argSpec = lambda.snd().asCons().fst();
+        IExpr body = lambda.snd().asCons().snd().asCons().fst();
         
         var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
 
@@ -89,10 +89,10 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (!function.isNormalForm())
             throw new EvalException("apply_hnf called but function not in normal form");
         if (function.isSymbol()) {
-            return applyPrimitive(function.asSymbolExpr(), args);
+            return applyPrimitive(function.asSymbol(), args);
         }
         else if (function.hasHeadTag(Tag.LAMBDA)) {
-            return applyLambdaOnce(function.asConsExpr(), args);
+            return applyLambdaOnce(function.asCons(), args);
         }
         else {
             var e = new EvalException("Cannot apply something that is not a symbol or lambda");
@@ -136,11 +136,11 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             /* we need to evaluate the head first! */
             assert expr.isCons(); /* !isNormalForm() => isCons() */
 
-            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asCons());
             if (memoEval.isEmpty()) {
                 if (debug)
                     System.out.printf("%s  not in nf: pushing %s%n", evalIndent, expr.valueToString());
-                evaluationQueue.pushNeededEvaluation(expr.asConsExpr());
+                evaluationQueue.pushNeededEvaluation(expr.asCons());
                 return Optional.empty();
             } else {
                 return memoEval;
@@ -169,7 +169,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 try (var ignored = new EvalIndenter()) {
                     applied = apply_hnf(function.get(), expr.snd());
                     if (applied.isCons()) /* XXX */
-                        frame.setApplyResult(applied.asConsExpr());
+                        frame.setApplyResult(applied.asCons());
                 }
             }
 
@@ -210,7 +210,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             return expr;
         
         assert expr.isCons();
-        var consExpr = expr.asConsExpr();
+        var consExpr = expr.asCons();
         var result = eval_cons(consExpr);
         if (!result.isNormalForm())
             throw new AssertionError("expression not evaluated to normal form");
@@ -248,7 +248,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             var expr = exprFactory.wrap(val);
             if (expr.isNormalForm())
                 return val;
-            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asCons());
             if (memoEval.isEmpty())
                 return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
             return memoEval.get().getValue();

@@ -51,19 +51,19 @@ public class ExprFactory {
     }
     
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
+        return wrap(heap.cons(unwrap(left), unwrap(right))).asCons();
     }
     
     public @NotNull ISimpleExpr nil() {
-        return wrap(HonsValue.nil).asSimpleExpr();
+        return wrap(HonsValue.nil).asSimple();
     }
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull IConsExpr name) {
-        return wrap(heap.makeSymbol(unwrap(name))).asSymbolExpr();
+        return wrap(heap.makeSymbol(unwrap(name))).asSymbol();
     }
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
-        return wrap(heap.makeSymbol(name)).asSymbolExpr();
+        return wrap(heap.makeSymbol(name)).asSymbol();
     }
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull Tag tag) {
@@ -132,12 +132,12 @@ public class ExprFactory {
         }
     }
     
-    public class SymbolExpr extends SimpleExpr implements ISymbolExpr {
+    public class SymbolExpr extends ExprBase implements ISymbolExpr {
         private SymbolExpr(@NotNull HonsValue value) {
             super(value);
             assert heap.isSymbol(value);
         }
-        
+
         @Override public boolean isSymbol() {
             return true;
         }
@@ -166,7 +166,7 @@ public class ExprFactory {
         public ISymbolExpr makeDataHead() {
             if (isDataHead())
                 return this;
-            return wrap(heap.makeSymbol(heap.cons(HonsValue.fromSmallInt('*'), heap.symbolName(value)))).asSymbolExpr();
+            return wrap(heap.makeSymbol(heap.cons(HonsValue.fromSmallInt('*'), heap.symbolName(value)))).asSymbol();
         }
 
         @Override

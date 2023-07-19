@@ -1,10 +1,17 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedCons2;
 
 import java.util.Optional;
 
-public interface IConsExpr extends IExpr {
+public interface IConsExpr extends IExpr, IWrappedCons2<HonsValue, IExpr> {
+    @Override
+    default boolean isCons() {
+        return true;
+    }
+
     @NotNull IExpr fst();
     @NotNull IExpr snd();
     
@@ -18,7 +25,7 @@ public interface IConsExpr extends IExpr {
      */
     @Override
     default boolean isNormalForm() {
-        return fst().isSymbol() && fst().asSymbolExpr().isDataHead();
+        return fst().isSymbol() && fst().asSymbol().isDataHead();
 //        return fst().isSymbol() && fst().asSymbolExpr().symbolNameAsString().startsWith("*");
 //        return fst().isSymbol() && fst().asSymbolExpr().symbolName().fst().toSmallInt() == '*'; // XXX
     }
@@ -29,7 +36,7 @@ public interface IConsExpr extends IExpr {
     }
 
     @Override
-    default IConsExpr asConsExpr() {
+    default IConsExpr asCons() {
         return this;
     }
 }

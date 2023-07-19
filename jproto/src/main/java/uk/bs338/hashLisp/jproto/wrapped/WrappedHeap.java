@@ -1,9 +1,11 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -11,7 +13,7 @@ import java.util.Objects;
 
 /* XXX: instead of just wrapping a heap, wrap a whole Context, optionally with Evaluators, Readers etc */
 
-public class WrappedHeap implements IHeap<WrappedValue> {
+public class WrappedHeap implements IHeap<WrappedValue> /*implements IHeap<IWrappedValue2<HonsValue, WrappedValue>>*/ {
     private final HonsHeap heap;
     private WrappedValue nil;
     private WrappedValue symbolTag;
@@ -33,74 +35,79 @@ public class WrappedHeap implements IHeap<WrappedValue> {
     }
     
     /* was 'checkSameHeap' */
-    public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
-        if (heap != wrapped.getHeap())
+    @Contract("null -> null; !null -> !null")
+    public HonsValue unwrap(IWrappedValue2<HonsValue, WrappedValue> wrapped) {
+        if (wrapped == null)
+            return null;
+        if (!(wrapped instanceof WrappedValue))
+            throw new IllegalArgumentException("Unwrapping IExpr which is not WrappedValue");
+        if (heap != ((WrappedValue)wrapped).getHeap())
             throw new IllegalArgumentException("Mismatched heap between WrappedValue and WrappedHeap");
         return wrapped.getValue();
     }
 
     @NotNull
-    @Override
+//    @Override
     public WrappedValue cons(@NotNull WrappedValue fst, @NotNull WrappedValue snd) {
         return wrap(heap.cons(unwrap(fst), unwrap(snd)));
     }
     
     @NotNull
-    @Override
+//    @Override
     public ConsPair<WrappedValue> uncons(@NotNull WrappedValue cons) {
         var pair = heap.uncons(unwrap(cons));
         return pair.fmap(this::wrap);
     }
 
     @NotNull
-    @Override
+//    @Override
     public WrappedValue makeSymbol(@NotNull WrappedValue name) {
         return wrap(heap.makeSymbol(unwrap(name)));
     }
 
     @NotNull
-    @Override
+//    @Override
     public WrappedValue makeSymbol(@NotNull String name) {
         return wrap(heap.makeSymbol(name));
     }
 
-    @Override
+//    @Override
     public boolean isSymbol(@NotNull WrappedValue symbol) {
         return heap.isSymbol(unwrap(symbol));
     }
 
     @NotNull
-    @Override
+//    @Override
     public WrappedValue symbolName(@NotNull WrappedValue symbol) {
         return wrap(heap.symbolName(unwrap(symbol)));
     }
 
     @NotNull
-    @Override
+//    @Override
     public String symbolNameAsString(@NotNull WrappedValue symbol) {
         return heap.symbolNameAsString(unwrap(symbol));
     }
 
-    @Override
+    //    @Override
     public @NotNull WrappedValue nil() {
         if (nil == null)
             nil = wrap(HonsValue.nil);
         return nil;
     }
 
-    @Override
+//    @Override
     public @NotNull WrappedValue makeSmallInt(int num) {
         return wrap(HonsValue.fromSmallInt(num));
     }
 
-    @Override
+//    @Override
     public @NotNull WrappedValue symbolTag() {
         if (symbolTag == null)
             symbolTag = wrap(HonsValue.symbolTag);
         return symbolTag;
     }
 
-    @Override
+//    @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -108,7 +115,7 @@ public class WrappedHeap implements IHeap<WrappedValue> {
         return Objects.equals(heap, that.heap);
     }
 
-    @Override
+//    @Override
     public int hashCode() {
         return heap.hashCode();
     }

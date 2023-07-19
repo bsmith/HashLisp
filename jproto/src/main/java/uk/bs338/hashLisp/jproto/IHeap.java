@@ -8,7 +8,7 @@ public interface IHeap<V extends IValue> extends IValueFactory<V> {
     V cons(@NotNull V fst, @NotNull V snd);
     
     @NotNull
-    ConsPair<V> uncons(@NotNull V cons);
+    ConsPair<? extends V> uncons(@NotNull V cons);
 
     @NotNull
     default V fst(@NotNull V val) {

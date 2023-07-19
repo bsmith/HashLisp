@@ -4,10 +4,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
 
 import java.util.NoSuchElementException;
 
-public interface IExpr {
+public interface IExpr extends IWrappedValue2<HonsValue, IExpr> {
     HonsValue getValue();
 
     default boolean isSimple() {
@@ -37,15 +38,15 @@ public interface IExpr {
     }
     
     /* XXX is this the best exception?  I just copied Optional/ReadResult */
-    default ISimpleExpr asSimpleExpr() {
+    default ISimpleExpr asSimple() {
         throw new NoSuchElementException();
     }
 
-    default ISymbolExpr asSymbolExpr() {
+    default ISymbolExpr asSymbol() {
         throw new NoSuchElementException();
     }
 
-    default IConsExpr asConsExpr() {
+    default IConsExpr asCons() {
         throw new NoSuchElementException();
     }
 
