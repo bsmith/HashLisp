@@ -9,6 +9,7 @@ import java.util.Objects;
 /* HonsCells are mutable in memoEval, but this is not included in the hashValue or the objectHash */
 public class HonsCell {
     private int objectHash;
+    /* XXX these should be ints like objectHash!  then memoEval should use a sentinel not null */
     @NotNull
     private final HonsValue fst, snd;
     /* mutable */
@@ -70,10 +71,11 @@ public class HonsCell {
         return HonsValue.fromObjectHash(objectHash).getSpecialName();
     }
 
-    public void setMemoEval(@NotNull HonsValue memoEval) {
+    public void setMemoEval(@Nullable HonsValue memoEval) {
         this.memoEval = memoEval;
     }
 
+    /* XXX should not implement hashCode and equals, because the Java semantics don't match... */
     @Override
     public int hashCode() {
         return this.objectHash;
@@ -98,9 +100,10 @@ public class HonsCell {
     @Override
     public @NotNull String toString() {
         var special = getSpecial();
-        if (special != null)
-            return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", special=" + special + "}";
-        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + ", memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd + "}";
+        String body = special != null ?
+            "special=" + special :
+            "memoEval=" + memoEval + ", fst=" + fst + ", snd=" + snd;
+        return "HonsCell{objectHash=0x" + Integer.toHexString(objectHash) + " (#" + objectHash + "), " + body + "}";
     }
 
     @NotNull

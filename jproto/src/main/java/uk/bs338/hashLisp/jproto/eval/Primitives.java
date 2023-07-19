@@ -10,14 +10,17 @@ import java.util.Map;
 import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
+import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
-public class Primitives implements IPrimitives<HonsValue, HonsValue> {
+public class Primitives {
     private final @NotNull HonsHeap heap;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
+    private final @NotNull HonsValue lambdaTag;
 
     public Primitives(@NotNull HonsHeap heap) {
         this.heap = heap;
         this.primitives = new HashMap<>();
+        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -28,13 +31,14 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
         put("eq?", this::eqp);
         put("quote", this::quote);
         put("eval", this::eval);
+        put("lambda", new Lambda());
+        put("error", this::error);
     }
     
     public void put(@NotNull String name, @NotNull IPrimitive<HonsValue> prim) {
         primitives.put(heap.makeSymbol(name), prim);
     }
 
-    @Override
     public @NotNull Optional<IPrimitive<HonsValue>> get(@NotNull HonsValue name) {
         return Optional.ofNullable(primitives.get(name));
     }
@@ -131,5 +135,32 @@ public class Primitives implements IPrimitives<HonsValue, HonsValue> {
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         return evaluator.eval_one(heap.fst(args));
+    }
+    
+    private class Lambda implements IPrimitive<HonsValue> {
+        @Override
+        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
+            var argSpec = heap.fst(args);
+            var body = heap.fst(heap.snd(args));
+            return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+        }
+
+        @Override
+        public @NotNull Optional<HonsValue> substitute(@NotNull ISubstitutor<HonsValue> substitutor, @NotNull HonsValue args) {
+            /* we want to remove from our assignments map any var mentioned in argSpec */
+            /* if our assignments map becomes empty, skip recursion */
+            /* otherwise, apply the reduced assignments map to the body */
+            var argSpec = heap.fst(args);
+            var body = heap.fst(heap.snd(args));
+
+            var argsList = unmakeList(heap, argSpec);
+            var newAssignments = substitutor.getAssignments().withoutNames(argsList);
+            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? substitutor.substitute(newAssignments, body) : body;
+            return Optional.of(makeList(heap, argSpec, newBody));
+        }
+    }
+    
+    public @NotNull HonsValue error(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException{
+        throw new EvalException("error primitive");
     }
 }

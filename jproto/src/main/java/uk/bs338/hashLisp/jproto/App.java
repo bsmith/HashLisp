@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.driver.Driver;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
@@ -275,7 +276,7 @@ public class App {
         
         return true;
     }
-    
+
     private PrintStream getNullPrintStream() {
         /* See https://stackoverflow.com/a/34839209 */
         //noinspection NullableProblems
@@ -342,7 +343,7 @@ public class App {
             
             double runTime = (System.nanoTime() - startTime)/1.e9;
             System.err.printf("Benchmark ran for %.9f%n", runTime);
-            System.err.printf("Completed %d loops @ %.9f loops/sec%n", loops, loops/runTime);
+            System.err.printf("Completed %d loops @ %.9f loops/sec.  %.1f ns/loop%n", loops, loops/runTime, runTime/loops*1e9);
             System.err.flush();
         }
         finally {
@@ -420,6 +421,10 @@ public class App {
         
         /* Always try to validate the heap */
         heap.validateHeap(dumpHeap || debug);
+        
+        /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
+        if (dumpHeap || debug)
+            MemoEvalChecker.checkHeap(heap, getEvaluator(), dumpHeap || debug);
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
