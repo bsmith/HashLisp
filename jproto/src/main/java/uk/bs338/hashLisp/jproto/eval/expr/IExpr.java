@@ -23,7 +23,7 @@ public interface IExpr {
     }
 
     @Contract("_->param1")
-    <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor);
+    <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
     boolean isHeadNormalForm();

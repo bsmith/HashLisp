@@ -7,7 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
 
-class SubstituteVisitor implements IExprVisitor2, ISubstitutor<HonsValue> {
+class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull Assignments assignments;

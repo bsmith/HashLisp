@@ -1,8 +1,9 @@
-package uk.bs338.hashLisp.jproto.eval;
+package uk.bs338.hashLisp.jproto;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
+import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
