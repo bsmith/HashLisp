@@ -10,7 +10,6 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
@@ -136,43 +135,30 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 return memoEval.get();
         }
 
-        Map<IConsExpr, IConsExpr> applyCache = new HashMap<>();
-        Deque<IConsExpr> evaluationQueue = new ArrayDeque<>();
-        evaluationQueue.addLast(origExpr);
+        final EvaluationQueue evaluationQueue = new EvaluationQueue(exprFactory);
+        evaluationQueue.pushNeededEvaluation(origExpr);
         
-        while (evaluationQueue.size() > 0) {
-            IConsExpr expr = evaluationQueue.getLast();
-            
-            if (evaluationQueue.size() > 10) {
-                throw new Error("evaluation queue too deep, crashing!");
-            }
+        try {
+            while (evaluationQueue.hasEntries()) {
+                var frame = evaluationQueue.getCurrentFrame();
+                IConsExpr expr = frame.origExpr;
 
-            IExpr result = null;
-            try {
                 if (debug) {
                     System.out.printf("%seval/%d: %s%n", evalIndent, evaluationQueue.size(), expr.valueToString());
                 }
-                
-                /* Set the sentinel: clear it in the finally below */
-                /* XXX actually, the protocol is: set sentinel when adding to evaluationQueue,
-                 * remove sentinel when removing it from the evaluationQueue
-                 * Therefore we need an EvaluationQueue class.
-                 */
-                assert expr.getMemoEval().isEmpty();
-                expr.setMemoEval(blackholeSentinel);
-                
+
                 IExpr function = expr.fst();
-                
+
                 /* Ensure the head is evaluated to normal form first */
                 if (!function.isNormalForm()) {
                     /* we need to evaluate the head first! */
                     assert function.isCons(); /* !isNormalForm() => isCons() */
-                    
+
                     var memoEval = getMemoEvalCheckingForBlackhole(function.asConsExpr());
                     if (memoEval.isEmpty()) {
                         if (debug)
                             System.out.printf("%s  not in hnf: pushing %s%n", evalIndent, function.valueToString());
-                        evaluationQueue.addLast(function.asConsExpr());
+                        evaluationQueue.pushNeededEvaluation(function.asConsExpr());
                         continue; /* skip to top of loop */
                     } else {
                         if (debug)
@@ -181,10 +167,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                     }
                 }
 
-                evaluationQueue.removeLast();
-                
-                var cached = applyCache.get(expr);
-                    
+                var cached = frame.appliedExpr;
+                IExpr result;
                 if (cached == null) {
                     final IExpr finalFunction = function;
                     var applied = withEvalIndent(() -> apply_hnf(finalFunction, expr.snd()));
@@ -192,9 +176,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                         assert applied.isCons(); /* !isNormalForm() => isCons() */
                         if (debug)
                             System.out.printf("%s  apply returned not-nf: %s%n", evalIndent, applied.valueToString());
-                        applyCache.put(expr, applied.asConsExpr());
-                        evaluationQueue.addLast(expr); /* put expr back */
-                        evaluationQueue.addLast(applied.asConsExpr());
+                        frame.appliedExpr = applied.asConsExpr();
+                        evaluationQueue.pushNeededEvaluation(applied.asConsExpr());
                         continue;
                     } else {
                         if (debug)
@@ -208,20 +191,19 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                     else
                         throw new AssertionError("didn't find memo for apply cache result");
                 }
-                
+
                 if (!result.isNormalForm())
                     throw new AssertionError("result not normal form");
+
+                evaluationQueue.finishEvaluation(frame.origExpr, result);
 
                 if (debug) {
                     System.out.printf("%s==> %s%n", evalIndent, result.valueToString());
                 }
-            } finally {
-                var prevMemo = expr.getMemoEval();
-                if (prevMemo.isEmpty() || !prevMemo.get().equals(blackholeSentinel))
-                    //noinspection ThrowFromFinallyBlock
-                    throw new AssertionError("Didn't find blackhole sentinel when expected");
-                expr.setMemoEval(result);
             }
+        }
+        finally {
+            evaluationQueue.clearQueue();    
         }
         
         var memoEval = getMemoEvalCheckingForBlackhole(origExpr);
