@@ -20,7 +20,7 @@ public class Primitives {
     public Primitives(@NotNull HonsHeap heap) {
         this.heap = heap;
         this.primitives = new HashMap<>();
-        lambdaTag = heap.makeSymbol("*lambda");
+        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -139,7 +139,7 @@ public class Primitives {
     
     private class Lambda implements IPrimitive<HonsValue> {
         @Override
-        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
             var argSpec = heap.fst(args);
             var body = heap.fst(heap.snd(args));
             return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));

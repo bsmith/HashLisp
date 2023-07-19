@@ -16,7 +16,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
-    protected final @NotNull IExpr blackholeSentinel;
+    private final @NotNull IExpr blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
@@ -34,14 +34,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     
     private IExpr wrap(HonsValue value) {
         return exprFactory.wrap(value);
-    }
-    
-    public @NotNull ExprFactory getExprFactory() {
-        return exprFactory;
-    }
-    
-    public @NotNull Primitives getPrimitives() {
-        return primitives;
     }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
