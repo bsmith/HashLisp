@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
 import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
 import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
@@ -36,7 +35,7 @@ public class EvaluationQueue implements AutoCloseable {
     private final @NotNull Deque<EvaluationFrame> queue;
     private final @NotNull ISymbolExpr blackholeSentinel;
 
-    public EvaluationQueue(ISymbolExpr blackholeSentinel) {
+    public EvaluationQueue(@NotNull ISymbolExpr blackholeSentinel) {
         this.queue = new ArrayDeque<>();
         this.blackholeSentinel = blackholeSentinel;
     }
@@ -44,7 +43,11 @@ public class EvaluationQueue implements AutoCloseable {
     public boolean hasEntries() {
         return !queue.isEmpty();
     }
-    
+
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
     public int size() {
         return queue.size();
     }

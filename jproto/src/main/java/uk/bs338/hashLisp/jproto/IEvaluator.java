@@ -1,28 +1,17 @@
 package uk.bs338.hashLisp.jproto;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface IEvaluator<V> {
     @NotNull V eval_one(@NotNull V val);
-
-    default @NotNull List<V> eval_multi(@NotNull List<V> vals) {
-        ArrayList<V> out = new ArrayList<>(vals.size());
-        for (V val : vals) {
-            out.add(eval_one(val));
-        }
-        return out;
-    }
-
-    default void eval_multi_inplace(@NotNull V @NotNull [] vals) {
-        for (int i = 0; i < vals.length; i++) {
-            vals[i] = eval_one(vals[i]);
-        }
-    }
-
-    default void eval_multi_inplace(@NotNull List<V> vals) {
+    
+    /* If you have an array, V[], you can use Arrays.asList */
+    @Contract("_ -> param1")
+    default @NotNull List<V> eval_multi_inplace(@NotNull List<V> vals) {
         vals.replaceAll(this::eval_one);
+        return vals;
     }
 }

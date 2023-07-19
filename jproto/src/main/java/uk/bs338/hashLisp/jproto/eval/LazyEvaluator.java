@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
@@ -51,10 +52,10 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             
             /* recursively evaluate */
             var constrArgs = unmakeList(heap, args.getValue());
-            constrArgs = eval_multi(constrArgs);
+            eval_multi_inplace(constrArgs);
             
             var starredSymbol = function.makeDataHead();
-            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs.toArray(new HonsValue[0]))));
+            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs)));
         }
         try {
             /* may recursively evaluate */
@@ -129,72 +130,72 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return memoEval;
     }
     
-    public Optional<IExpr> evaluateIfNeeded(EvaluationQueue evaluationQueue, IExpr function) {
+    public Optional<IExpr> evaluateIfNeeded(EvaluationQueue evaluationQueue, IExpr expr) {
         /* Ensure the head is evaluated to normal form first */
-        if (!function.isNormalForm()) {
+        if (!expr.isNormalForm()) {
             /* we need to evaluate the head first! */
-            assert function.isCons(); /* !isNormalForm() => isCons() */
+            assert expr.isCons(); /* !isNormalForm() => isCons() */
 
-            var memoEval = getMemoEvalCheckingForBlackhole(function.asConsExpr());
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
             if (memoEval.isEmpty()) {
                 if (debug)
-                    System.out.printf("%s  not in nf: pushing %s%n", evalIndent, function.valueToString());
-                evaluationQueue.pushNeededEvaluation(function.asConsExpr());
+                    System.out.printf("%s  not in nf: pushing %s%n", evalIndent, expr.valueToString());
+                evaluationQueue.pushNeededEvaluation(expr.asConsExpr());
                 return Optional.empty();
             } else {
                 return memoEval;
             }
         }
-        return Optional.of(function);
+        return Optional.of(expr);
+    }
+    
+    public void evaluateQueue(EvaluationQueue evaluationQueue) throws EvalException {
+        while (evaluationQueue.hasEntries()) {
+            var frame = evaluationQueue.getCurrentFrame();
+            IConsExpr expr = frame.getOrigExpr();
+            IExpr applied = frame.getApplyResult();
+            Optional<IExpr> result;
+
+            if (debug) {
+                System.out.printf("%seval/%d: %s%n", evalIndent, evaluationQueue.size(), expr.valueToString());
+            }
+
+            if (applied == null) {
+                Optional<IExpr> function = evaluateIfNeeded(evaluationQueue, expr.fst());
+                if (function.isEmpty())
+                    continue;
+
+                /* actually perform the application */
+                try (var ignored = new EvalIndenter()) {
+                    applied = apply_hnf(function.get(), expr.snd());
+                    if (applied.isCons()) /* XXX */
+                        frame.setApplyResult(applied.asConsExpr());
+                }
+            }
+
+            result = evaluateIfNeeded(evaluationQueue, applied);
+            if (result.isEmpty())
+                continue;
+
+            if (!result.get().isNormalForm())
+                throw new AssertionError("result not normal form");
+
+            evaluationQueue.finishEvaluation(frame, result.get());
+
+            if (debug) {
+                System.out.printf("%s==> %s%n", evalIndent, result.get().valueToString());
+            }
+        }
     }
     
     public @NotNull IExpr eval_cons(@NotNull IConsExpr origExpr) throws EvalException {
-        {
-            /* Do this early */
-            var memoEval = getMemoEvalCheckingForBlackhole(origExpr);
-            if (memoEval.isPresent())
-                return memoEval.get();
-        }
-
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
-            evaluationQueue.pushNeededEvaluation(origExpr);
+            var eval = evaluateIfNeeded(evaluationQueue, origExpr);
+            if (eval.isPresent())
+                return eval.get();
             
-            while (evaluationQueue.hasEntries()) {
-                var frame = evaluationQueue.getCurrentFrame();
-                IConsExpr expr = frame.getOrigExpr();
-                IExpr applied = frame.getApplyResult();
-                Optional<IExpr> result;
-
-                if (debug) {
-                    System.out.printf("%seval/%d: %s%n", evalIndent, evaluationQueue.size(), expr.valueToString());
-                }
-
-                if (applied == null) {
-                    Optional<IExpr> function = evaluateIfNeeded(evaluationQueue, expr.fst());
-                    if (function.isEmpty())
-                        continue;
-
-                    /* actually perform the application */
-                    try (var ignored = new EvalIndenter()) {
-                        applied = apply_hnf(function.get(), expr.snd());
-                        if (applied.isCons()) /* XXX */
-                            frame.setApplyResult(applied.asConsExpr());
-                    }
-                }
-                
-                result = evaluateIfNeeded(evaluationQueue, applied);
-                if (result.isEmpty())
-                    continue;
-
-                if (!result.get().isNormalForm())
-                    throw new AssertionError("result not normal form");
-
-                evaluationQueue.finishEvaluation(frame, result.get());
-
-                if (debug) {
-                    System.out.printf("%s==> %s%n", evalIndent, result.get().valueToString());
-                }
-            }
+            evaluateQueue(evaluationQueue);
+            assert evaluationQueue.isEmpty();
         }
         
         var memoEval = getMemoEvalCheckingForBlackhole(origExpr);
@@ -225,6 +226,35 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             e.printStackTrace();
             return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
         }
+    }
+    
+    @Override
+    @Contract("_->param1")
+    public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+            /* push all the values onto the evaluation queue */
+            for (var val : vals) {
+                evaluateIfNeeded(evaluationQueue, exprFactory.wrap(val));
+            }
+
+            evaluateQueue(evaluationQueue);
+            assert evaluationQueue.isEmpty();
+        } catch (EvalException e) {
+            e.printStackTrace();
+        }
+
+        /* Now update them all in-place */
+        vals.replaceAll(val -> {
+            var expr = exprFactory.wrap(val);
+            if (expr.isNormalForm())
+                return val;
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
+            if (memoEval.isEmpty())
+                return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+            return memoEval.get().getValue();
+        });
+        
+        return vals;
     }
 
     public static void demo(@NotNull HonsHeap heap) {
