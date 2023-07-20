@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -177,17 +178,19 @@ public class ExprFactory {
     
     /* XXX how is this different from ConsPair?! */
     public class ConsExpr extends ExprBase implements IConsExpr {
-        private final @NotNull IExpr fst;
-        private final @NotNull IExpr snd;
+        private final ConsPair<HonsValue> uncons;
+        private IExpr fst;
+        private IExpr snd;
 
         private ConsExpr(@NotNull HonsValue value) {
             super(value);
             assert value.isConsRef();
             /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
 //            var uncons = heap.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
-            var uncons = heap.uncons(value);
-            fst = wrap(uncons.fst());
-            snd = wrap(uncons.snd());
+            uncons = heap.uncons(value);
+            /* Be lazy about further wrapping */
+            fst = null;
+            snd = null;
         }
 
         @Override public boolean isCons() {
@@ -201,11 +204,15 @@ public class ExprFactory {
 
         @Override
         public @NotNull IExpr fst() {
+            if (fst == null)
+                fst = wrap(uncons.fst());
             return fst;
         }
 
         @Override
         public @NotNull IExpr snd() {
+            if (snd == null)
+                snd = wrap(uncons.snd());
             return snd;
         }
 
