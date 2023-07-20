@@ -29,7 +29,7 @@ public class Primitives {
         put("mul", this::mul);
         put("zerop", this::zerop);
         put("eq?", this::eqp);
-        put("quote", this::quote);
+        put("quote", new Quote());
         put("eval", this::eval);
         put("lambda", new Lambda());
         put("error", this::error);
@@ -129,8 +129,17 @@ public class Primitives {
         }
     }
 
-    public @NotNull HonsValue quote(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return heap.fst(args);
+    private class Quote implements IPrimitive<HonsValue> {
+        @Override
+        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
+            return heap.fst(args);
+        }
+
+        @Override
+        public @NotNull Optional<HonsValue> substitute(@NotNull ISubstitutor<HonsValue> substitutor, @NotNull HonsValue args) {
+            /* don't substitute into quotes */
+            return Optional.of(args);
+        }
     }
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
