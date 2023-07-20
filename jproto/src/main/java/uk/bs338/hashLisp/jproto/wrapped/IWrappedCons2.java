@@ -5,11 +5,11 @@ import uk.bs338.hashLisp.jproto.IValue;
 
 import java.util.Optional;
 
-public interface IWrappedCons2<V extends IValue, W extends IWrappedValue2<V, W>> extends IWrappedValue2<V, W> {
-    @NotNull W fst();
-    @NotNull W snd();
+public interface IWrappedCons2 extends IWrappedValue2 {
+    @NotNull IWrappedValue2 fst();
+    @NotNull IWrappedValue2 snd();
 
-    @NotNull Optional<W> getMemoEval();
+    @NotNull Optional<? extends IWrappedValue2> getMemoEval();
 
-    void setMemoEval(W expr); /* XXX SHOULD USE Optional */
+    void setMemoEval(IWrappedValue2 expr); /* XXX SHOULD USE Optional */
 }

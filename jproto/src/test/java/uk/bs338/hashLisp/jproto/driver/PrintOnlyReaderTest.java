@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedHeap;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedValue;
 

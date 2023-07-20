@@ -6,7 +6,7 @@ import uk.bs338.hashLisp.jproto.wrapped.IWrappedCons2;
 
 import java.util.Optional;
 
-public interface IConsExpr extends IExpr, IWrappedCons2<HonsValue, IExpr> {
+public interface IConsExpr extends IExpr, IWrappedCons2 {
     @Override
     default boolean isCons() {
         return true;

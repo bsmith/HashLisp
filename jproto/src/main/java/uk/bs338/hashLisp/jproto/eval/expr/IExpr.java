@@ -8,7 +8,7 @@ import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
 
 import java.util.NoSuchElementException;
 
-public interface IExpr extends IWrappedValue2<HonsValue, IExpr> {
+public interface IExpr extends IWrappedValue2, IWrappedValue2.IGetValue<HonsValue> {
     HonsValue getValue();
 
     default boolean isSimple() {

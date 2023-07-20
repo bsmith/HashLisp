@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol2;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
 
 import java.util.EnumMap;
 import java.util.Objects;
@@ -40,14 +42,14 @@ public class ExprFactory {
     }
 
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IExpr wrapped) {
+    public HonsValue unwrap(IWrappedValue2 wrapped) {
         if (wrapped == null)
             return null;
         if (!(wrapped instanceof ExprBase))
             throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactory.ExprBase");
         if (heap != ((ExprBase)wrapped).getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
-        return wrapped.getValue();
+        return ((ExprBase)wrapped).getValue();
     }
     
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
@@ -115,6 +117,11 @@ public class ExprFactory {
         public @NotNull String valueToString() {
             return heap.valueToString(value);
         }
+
+        @Override
+        public IWrappedSymbol2 makeSymbol() {
+            return wrap(heap.makeSymbol(value)).asSymbol();
+        }
     }
     
     public class SimpleExpr extends ExprBase implements ISimpleExpr {
@@ -171,7 +178,7 @@ public class ExprFactory {
 
         @Override
         public boolean isTag(Tag tag) {
-            return value.equals(makeSymbol(tag).getValue());
+            return value.equals(ExprFactory.this.makeSymbol(tag).getValue());
         }
     }
     
@@ -215,9 +222,14 @@ public class ExprFactory {
         }
 
         @Override
-        public void setMemoEval(IExpr expr) {
+        public void setMemoEval(IWrappedValue2 expr) {
             var memo = unwrap(expr);
             heap.setMemoEval(value, memo);
+        }
+        
+        @Override
+        public void setMemoEval(IExpr expr) {
+            setMemoEval((IWrappedValue2) expr);
         }
 
         @Override

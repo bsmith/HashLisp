@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol2;
 
-public interface ISymbolExpr extends ISimpleExpr, IWrappedSymbol2<HonsValue, IExpr> {
+public interface ISymbolExpr extends ISimpleExpr, IWrappedSymbol2 {
     @Override
     default boolean isSymbol() {
         return ISimpleExpr.super.isSymbol();

@@ -36,14 +36,14 @@ public class WrappedHeap implements IHeap<WrappedValue> /*implements IHeap<IWrap
     
     /* was 'checkSameHeap' */
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IWrappedValue2<HonsValue, WrappedValue> wrapped) {
+    public HonsValue unwrap(IWrappedValue2 wrapped) {
         if (wrapped == null)
             return null;
         if (!(wrapped instanceof WrappedValue))
             throw new IllegalArgumentException("Unwrapping IExpr which is not WrappedValue");
         if (heap != ((WrappedValue)wrapped).getHeap())
             throw new IllegalArgumentException("Mismatched heap between WrappedValue and WrappedHeap");
-        return wrapped.getValue();
+        return ((WrappedValue)wrapped).getValue();
     }
 
     @NotNull

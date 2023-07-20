@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @SuppressWarnings("ClassCanBeRecord")
-public class WrappedValue implements IValue, /*IWrappedValue<HonsValue, WrappedValue>,*/ IWrappedValue2<HonsValue, WrappedValue>, IWrappedCons2<HonsValue, WrappedValue>, IWrappedSymbol2<HonsValue, WrappedValue> {
+public class WrappedValue implements IValue, IWrappedValue2, IWrappedValue2.IGetValue<HonsValue>, IWrappedCons2, IWrappedSymbol2 {
     private final HonsHeap heap;
     private final HonsValue value;
 
@@ -58,6 +58,11 @@ public class WrappedValue implements IValue, /*IWrappedValue<HonsValue, WrappedV
     }
 
     @Override
+    public boolean isCons() {
+        return value.isConsRef();
+    }
+
+    @Override
     public int toSmallInt() {
         return value.toSmallInt();
     }
@@ -70,6 +75,11 @@ public class WrappedValue implements IValue, /*IWrappedValue<HonsValue, WrappedV
     @Override
     public boolean isSymbol() {
         return heap.isSymbol(value);
+    }
+
+    @Override
+    public IWrappedSymbol2 makeSymbol() {
+        return wrap(heap.makeSymbol(value));
     }
 
     @Override
@@ -106,7 +116,7 @@ public class WrappedValue implements IValue, /*IWrappedValue<HonsValue, WrappedV
     }
 
     @Override
-    public void setMemoEval(WrappedValue expr) {
+    public void setMemoEval(IWrappedValue2 expr) {
 //        heap.setMemoEval(value, unwrap(expr));
         throw new Error();
     }
@@ -117,12 +127,12 @@ public class WrappedValue implements IValue, /*IWrappedValue<HonsValue, WrappedV
     }
 
     @Override
-    public IWrappedCons2<HonsValue, WrappedValue> asCons() {
+    public IWrappedCons2 asCons() {
         return this;
     }
 
     @Override
-    public IWrappedSymbol2<HonsValue, WrappedValue> asSymbol() {
+    public IWrappedSymbol2 asSymbol() {
         return this;
     }
 
