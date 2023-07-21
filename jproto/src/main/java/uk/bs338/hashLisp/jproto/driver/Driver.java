@@ -4,12 +4,16 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.Context;
 
-public class Driver extends Context {
+public class Driver {
+    private HonsHeap heap;
+    private IReader<HonsValue> reader;
+    private IEvaluator<HonsValue> evaluator;
 
     public Driver(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
-        super(heap, reader, evaluator);
+        this.heap = heap;
+        this.evaluator = evaluator;
+        this.reader = reader;
     }
 
     protected void runOneProgram(HonsValue program) {
