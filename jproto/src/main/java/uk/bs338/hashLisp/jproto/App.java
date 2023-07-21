@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.driver.Driver;
+import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
@@ -29,11 +31,12 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 @SuppressWarnings("CanBeFinal")
 public class App {
-    private final @NotNull HonsHeap heap;
+    private @NotNull HonsHeap heap;
 
     @Parameter(
         names = {"--help"},
-        help = true
+        help = true,
+        description = "Show help and usage information"
     )
     public boolean showHelp = false;
     @Parameter(
@@ -46,6 +49,11 @@ public class App {
         description = "Dump the heap at the end of the run"
     )
     public boolean dumpHeap = false;
+    @Parameter(
+        names = {"--benchmark"},
+        description = "Run the program repeatedly as a benchmark"
+    )
+    public boolean benchmark = false;
     @Parameter(
         names = {"--demo"},
         description = "Enable a short demonstration"
@@ -82,6 +90,11 @@ public class App {
     @SuppressWarnings("SameReturnValue")
     public @NotNull String getGreeting() {
         return "jproto --- prototype for HashLisp";
+    }
+    
+    /* NB All HonsValues, Readers, Evaluators, etc. become invalid when you do this */
+    public void replaceHeap() {
+        heap = new HonsHeap();
     }
 
     public @NotNull IReader<HonsValue> getReader() {
@@ -157,6 +170,17 @@ public class App {
         System.out.println();
 
         forceCollision();
+    }
+    
+    private void checkForUnrecognisedArgs()
+    {
+        /* Look in userArguments for items that 'look like flags' ie start with - */
+        if (userArguments == null)
+            return;
+        for (var arg : userArguments) {
+            if (arg.startsWith("-"))
+                throw new ParameterException("Unrecognised flag: " + arg);
+        }
     }
 
     private void parseUserArgs(String[] args)
@@ -236,6 +260,7 @@ public class App {
             .build();
         try {
             commander.parse(appArgs);
+            checkForUnrecognisedArgs();
             parseUserArgs(userArgs);
             validateFlagsAreValid();
         } catch (ParameterException e) {
@@ -252,14 +277,97 @@ public class App {
         return true;
     }
 
+    private PrintStream getNullPrintStream() {
+        /* See https://stackoverflow.com/a/34839209 */
+        //noinspection NullableProblems
+        return new java.io.PrintStream(new java.io.OutputStream() {
+            @Override public void write(int b) {}
+        }) {
+            @Override public void flush() {}
+            @Override public void close() {}
+            @Override public void write(int b) {}
+            @Override public void write(byte[] b) {}
+            @Override public void write(byte[] buf, int off, int len) {}
+            @Override public void print(boolean b) {}
+            @Override public void print(char c) {}
+            @Override public void print(int i) {}
+            @Override public void print(long l) {}
+            @Override public void print(float f) {}
+            @Override public void print(double d) {}
+            @Override public void print(char[] s) {}
+            @Override public void print(String s) {}
+            @Override public void print(Object obj) {}
+            @Override public void println() {}
+            @Override public void println(boolean x) {}
+            @Override public void println(char x) {}
+            @Override public void println(int x) {}
+            @Override public void println(long x) {}
+            @Override public void println(float x) {}
+            @Override public void println(double x) {}
+            @Override public void println(char[] x) {}
+            @Override public void println(String x) {}
+            @Override public void println(Object x) {}
+            @Override public java.io.PrintStream printf(String format, Object... args) { return this; }
+            @Override public java.io.PrintStream printf(java.util.Locale l, String format, Object... args) { return this; }
+            @Override public java.io.PrintStream format(String format, Object... args) { return this; }
+            @Override public java.io.PrintStream format(java.util.Locale l, String format, Object... args) { return this; }
+            @Override public java.io.PrintStream append(CharSequence csq) { return this; }
+            @Override public java.io.PrintStream append(CharSequence csq, int start, int end) { return this; }
+            @Override public java.io.PrintStream append(char c) { return this; }
+        };
+    }
+    
+    @Blocking
+    public void runBenchmark() {
+        boolean savedDebug = debug;
+        boolean savedDumpHeap = dumpHeap;
+        boolean savedBenchmark = benchmark;
+        PrintStream savedOut = System.out;
+        
+        try {
+            debug = dumpHeap = benchmark = false;
+            System.setOut(getNullPrintStream());
+            
+            long startTime = System.nanoTime();
+            System.err.println("Benchmark will run for 10s");
+            System.err.flush();
+            
+            long loops = 0;
+            while (System.nanoTime() - startTime < 10e9) {
+                /* Use a fresh Heap for each run */
+                replaceHeap();
+                
+                run();
+                loops++;
+            }
+            
+            double runTime = (System.nanoTime() - startTime)/1.e9;
+            System.err.printf("Benchmark ran for %.9f%n", runTime);
+            System.err.printf("Completed %d loops @ %.9f loops/sec.  %.1f ns/loop%n", loops, loops/runTime, runTime/loops*1e9);
+            System.err.flush();
+        }
+        finally {
+            debug = savedDebug;
+            dumpHeap = savedDumpHeap;
+            benchmark = savedBenchmark;
+            System.setOut(savedOut);
+        }
+    }
+
     @Blocking
     public void run() {
         if (showHelp)
             throw new IllegalStateException("Help should be shown without running app");
         if (!argsParsed)
             throw new IllegalStateException("Please App.parseArgs before App.run");
+        
+        if (benchmark) {
+            runBenchmark();
+            return;
+        }
 
         if (debug) {
+            System.out.flush();
             System.err.printf("App flags: %n");
             System.err.printf("           debug=%s%n", debug);
             System.err.printf("           dumpHeap=%s%n", dumpHeap);
@@ -269,6 +377,7 @@ public class App {
             System.err.printf("           sourceFilename=%s%n", sourceFilename);
             System.err.printf("           sourceExpr=%s%n", sourceExpr);
             System.err.printf("           userArguments=%s%n", userArguments);
+            System.err.flush();
         }
 
         if (demoMode) {
@@ -298,17 +407,27 @@ public class App {
             }
             else {
                 driver.runSource(source);
+                System.out.flush();
             }
         }
 
         if (dumpHeap) {
+            System.out.flush();
             System.err.printf("%n---%nHeap dump:%n");
             heap.dumpHeap(System.err);
             System.err.printf("---%n");
+            System.err.flush();
         }
+        
+        /* Always try to validate the heap */
+        heap.validateHeap(dumpHeap || debug);
+        
+        /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
+        if (dumpHeap || debug)
+            MemoEvalChecker.checkHeap(heap, getEvaluator(), dumpHeap || debug);
     }
 
-    @Blocking
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());

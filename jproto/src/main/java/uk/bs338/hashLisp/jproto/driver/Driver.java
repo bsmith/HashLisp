@@ -6,9 +6,9 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 public class Driver {
-    private HonsHeap heap;
-    private IReader<HonsValue> reader;
-    private IEvaluator<HonsValue> evaluator;
+    private final HonsHeap heap;
+    private final IReader<HonsValue> reader;
+    private final IEvaluator<HonsValue> evaluator;
 
     public Driver(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
         this.heap = heap;
@@ -34,8 +34,7 @@ public class Driver {
         var head_name = heap.symbolNameAsString(heap.fst(result)); 
         if (head_name.equals("io-print!")) {
             var value = heap.fst(heap.snd(result));
-            var evaled = evaluator.eval_one(value);
-            System.out.println(heap.valueToString(evaled));
+            System.out.println(heap.valueToString(value));
             
             /* handle continuation, is it lambda wrapped? */
             /* XXX share a head with all IO?  eg (io! print <val> <cont>?) */
@@ -61,7 +60,11 @@ public class Driver {
         var iterator = new ReaderIterator<>(reader, source);
         iterator.forEachRemaining(this::runOneProgram);
         /* XXX handle failure to read better */
-        if (iterator.getCurResult().getRemaining().length() != 0)
-            throw new Error("Reading failed: " + iterator.getCurResult());
+        if (iterator.getCurResult().getRemaining().length() != 0) {
+            System.out.flush();
+            System.err.flush();
+            System.err.println("Reading failed:");
+            System.err.println(iterator.getCurResult().getFailureMessage());
+        }
     }
 }

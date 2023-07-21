@@ -92,15 +92,11 @@ public class HonsValueTest {
     }
     
     @Test void exceptionThrownByToSmallIntThatIsNotSmallInt() {
-        assertThrows(NoSuchElementException.class, () -> {
-            HonsValue.fromObjectHash(123).toSmallInt();
-        });
+        assertThrows(NoSuchElementException.class, () -> HonsValue.fromObjectHash(123).toSmallInt());
     }
 
     @Test void exceptionThrownByToObjectHashThatIsNotSmallInt() {
-        assertThrows(NoSuchElementException.class, () -> {
-            HonsValue.fromSmallInt(123).toObjectHash();
-        });
+        assertThrows(NoSuchElementException.class, () -> HonsValue.fromSmallInt(123).toObjectHash());
     }
     
     @Nested class isConsRef {

@@ -26,6 +26,10 @@ class ReaderTest {
         reader = new Reader(heap, tokeniserFactory);
     }
     
+    @AfterEach void validateHeap() {
+        heap.validateHeap();
+    }
+    
     @Nested
     class SimpleValues {
         @Test void smallInt() {
@@ -150,8 +154,10 @@ class ReaderTest {
     class StringValues {
         void assertStringRead(@NotNull String expectedStr, @NotNull String input) {
             var actual = reader.read(input);
-            var expected = stringAsList(heap, expectedStr);
+            var expected = heap.cons(heap.makeSymbol("*string"), stringAsList(heap, expectedStr));
             assertTrue(actual.isSuccess());
+            /* test this in two ways, as it gives nicer failure reporting! */
+            assertEquals(heap.valueToString(expected), heap.valueToString(actual.getValue()));
             assertEquals(expected, actual.getValue());
             assertEquals("", actual.getRemaining());
         }
@@ -169,11 +175,16 @@ class ReaderTest {
         }
         
         @Test void backquoteString() {
+            /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
             assertStringRead("abc\"xyz", "\"abc\\\"xyz\"");
+            assertStringRead("\t\b\n\r\f'\"", "\"\\t\\b\\n\\r\\f\\'\\\"\"");
         }
         
         @Test void emojiString() {
-            /* TODO */
+            /* "🇬🇧" == "\\u{1F1EC}\\u{1f1e7}" */
+            /* Build the string explicitly using codepoints not UTF-16 */
+            var expectedStr = new String(new int[]{0x1f1ec, 0x1f1e7}, 0, 2);
+            assertStringRead(expectedStr, "\"\\u{1F1EC}\\u{1f1e7}\"");
         }
     }
     

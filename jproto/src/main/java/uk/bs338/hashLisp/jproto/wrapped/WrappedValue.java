@@ -3,12 +3,15 @@ package uk.bs338.hashLisp.jproto.wrapped;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.IValue;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
+import java.util.Optional;
 
-public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
+@SuppressWarnings("ClassCanBeRecord")
+public class WrappedValue implements IValue, IWrappedValue, IWrappedValue.IGetValue<HonsValue>, IWrappedCons, IWrappedSymbol {
     private final HonsHeap heap;
     private final HonsValue value;
 
@@ -55,11 +58,16 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     }
 
     @Override
+    public boolean isCons() {
+        return value.isConsRef();
+    }
+
+    @Override
     public int toSmallInt() {
         return value.toSmallInt();
     }
 
-    @Override
+//    @Override
     public @NotNull ConsPair<WrappedValue> uncons() {
         return heap.uncons(value).fmap(this::wrap);
     }
@@ -67,6 +75,11 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     @Override
     public boolean isSymbol() {
         return heap.isSymbol(value);
+    }
+
+    @Override
+    public IWrappedSymbol makeSymbol() {
+        return wrap(heap.makeSymbol(value));
     }
 
     @Override
@@ -95,5 +108,41 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     @Override
     public int hashCode() {
         return Objects.hash(heap, value);
+    }
+
+    @Override
+    public @NotNull Optional<IWrappedValue> getMemoEval() {
+        throw new Error();
+    }
+
+    @Override
+    public void setMemoEval(@Nullable IWrappedValue expr) {
+//        heap.setMemoEval(value, unwrap(expr));
+        throw new Error();
+    }
+
+    @Override
+    public @NotNull String valueToString() {
+        return heap.valueToString(value);
+    }
+
+    @Override
+    public IWrappedCons asCons() {
+        return this;
+    }
+
+    @Override
+    public IWrappedSymbol asSymbol() {
+        return this;
+    }
+
+    @Override
+    public @NotNull WrappedValue fst() {
+        return uncons().fst();
+    }
+
+    @Override
+    public @NotNull WrappedValue snd() {
+        return uncons().snd();
     }
 }

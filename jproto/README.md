@@ -29,7 +29,11 @@ Gradle supports a `--info` option for more verbose output.
 
 * **Run demo:**
 
-    `./gradlew run`
+    `./gradlew run --args="--demo"`
+
+    The option to `--args` is parsed as shell words so you can do:
+
+    `./gradlew run --args="--dump-heap -e '(add 4 5 6)'"`
 
 * **'Install' and run:**
 
@@ -48,6 +52,22 @@ You can combine targets on the command line, for example `installDist` doesn't r
 ```
 ./gradlew build installDist && build/install/jproto/bin/jproto example.lisp
 ```
+
+### 'Fat' JAR packages
+
+You can also build a 'fat' JAR that is runnable with `java -jar`.
+
+* **Build:**
+
+    `./gradlew test shadowJar`
+
+    Output is: `build/libs/jproto-all.jar`
+
+    This can be run with: `java -jar build/libs/jproto-all.jar`
+
+* **Run:**
+
+    `./gradlew runShadow --args="--dump-heap -e '(add 4 5 6)'"`
 
 ### Build profile reporting
 

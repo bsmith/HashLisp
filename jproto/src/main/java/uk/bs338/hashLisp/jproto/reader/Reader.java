@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.hons.Strings;
 import uk.bs338.hashLisp.jproto.reader.Token.TokenType;
 
 import java.util.ArrayList;
@@ -15,14 +16,28 @@ import java.util.function.Supplier;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class Reader implements IReader<HonsValue> {
+    public record ReadError(@NotNull String reason, Token token) {
+    }
+    
     private final IHeap<HonsValue> heap;
     private final ITokeniserFactory tokeniserFactory;
-    private @NotNull List<String> errors;
+    private @NotNull List<ReadError> errors;
+    private HonsValue stringSym = null;
 
     public Reader(IHeap<HonsValue> heap, ITokeniserFactory tokeniserFactory) {
         this.heap = heap;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = new ArrayList<>();
+    }
+    
+    private @NotNull HonsValue getStringSym() {
+        if (stringSym == null)
+            stringSym = heap.makeSymbol("*string");
+        return stringSym;
+    }
+    
+    private void addError(@NotNull String reason, Token token) {
+        errors.add(new ReadError(reason, token));
     }
     
     private @NotNull Optional<HonsValue> interpretToken(@NotNull Iterator<Token> tokeniser, @NotNull Token token) {
@@ -35,17 +50,24 @@ public class Reader implements IReader<HonsValue> {
             if (token2.getType() == TokenType.DIGITS && token2.getTokenAsInt() == 0) {
                 return Optional.of(HonsValue.nil);
             }
-            errors.add("Failed to parse after HASH: " + token);
+            addError("Failed to parse after HASH: ", token);
             return Optional.empty();
         } else if (token.getType() == TokenType.STRING) {
-            return Optional.of(stringAsList(heap, token.getToken()));
+            try {
+                var string = Strings.unescapeString(token.getToken());
+                return Optional.of(heap.cons(getStringSym(), stringAsList(heap, string)));
+            }
+            catch (Exception e) {
+                addError("Failed to parse STRING token due to exception: " + e, token);
+                return Optional.empty();
+            }
         } else if (token.getType() == TokenType.OPEN_PARENS) {
             var rv = readListAfterOpenParens(tokeniser);
             if (rv.isEmpty())
-                errors.add("Failed to parse list started at: " + token);
+                addError("Failed to parse list started at: ", token);
             return rv;
         } else {
-            errors.add("Failed to parse at: " + token);
+            addError("Failed to parse at: ", token);
             return Optional.empty();
         }
     }
@@ -63,17 +85,17 @@ public class Reader implements IReader<HonsValue> {
             } else if (token.getType() == TokenType.DOT) {
                 Optional<HonsValue> snd = readOneValue(tokeniser);
                 if (snd.isEmpty()) {
-                    errors.add("Failed parsing after dot: " + token);
+                    addError("Failed parsing after dot: ", token);
                     return snd;
                 }
                 if (listContents.isEmpty()) {
-                    errors.add("Dot appeared at start of list: " + token);
+                    addError("Dot appeared at start of list: ", token);
                     return Optional.empty();
                 }
                 listContents.add(snd.get());
                 Token token2 = tokeniser.next();
                 if (token2.getType() != TokenType.CLOSE_PARENS) {
-                    errors.add("Not a closing parenthesis in list after dot: " + token2);
+                    addError("Not a closing parenthesis in list after dot: ", token2);
                     return Optional.empty();
                 }
                 return Optional.of(makeListWithDot(heap, listContents.toArray(new HonsValue[]{})));
@@ -81,14 +103,14 @@ public class Reader implements IReader<HonsValue> {
             else {
                 Optional<HonsValue> interpretation = interpretToken(tokeniser, token);
                 if (interpretation.isEmpty()) {
-                    errors.add("Stopped parsing list at token: " + token);
+                    addError("Stopped parsing list at token: ", token);
                     return interpretation;
                 }
                 listContents.add(interpretation.get());
             }
         }
-        
-        errors.add("Ran out of tokens inside list!");
+
+        addError("Ran out of tokens inside list!", null);
         return Optional.empty();
     }
 
@@ -101,7 +123,7 @@ public class Reader implements IReader<HonsValue> {
         return interpretToken(tokeniser, token);
     }
     
-    protected <T> T collectErrors(@NotNull List<String> errors, @NotNull Supplier<T> supplier) {
+    protected <T> T collectErrors(@NotNull List<ReadError> errors, @NotNull Supplier<T> supplier) {
         var oldErrors = this.errors;
         this.errors = errors;
         T retval;
@@ -117,7 +139,7 @@ public class Reader implements IReader<HonsValue> {
     public @NotNull ReadResult<HonsValue> read(@NotNull String str) {
         Tokeniser tokeniser = tokeniserFactory.createTokeniser(str);
 
-        var errors = new ArrayList<String>();
+        var errors = new ArrayList<ReadError>();
         var value = collectErrors(errors, () -> {
             var retval = readOneValue(tokeniser);
             /* if we read something, eat any whitespace after it */
@@ -132,12 +154,20 @@ public class Reader implements IReader<HonsValue> {
         else {
             /* notice we return str, not remaining, because we ate tokens but couldn't digest them */
             StringBuilder message = new StringBuilder();
-            message.append("Failed to readOneValue\n");
             for (var error : errors) {
-                message.append(error);
+                message.append(error.reason);
+                if (error.token != null) {
+                    message.append(error.token.getPositionAsString());
+                    message.append("\n");
+                    
+                    var beforeStartPos = str.substring(0, error.token.getStartPos());
+                    var betweenPos = str.substring(error.token.getStartPos(), error.token.getEndPos());
+                    var afterEndPos = str.substring(error.token.getEndPos());
+                    message.append("  |").append(beforeStartPos).append(">*>").append(betweenPos).append("<*<").append(afterEndPos).append("|");
+                }
                 message.append("\n");
             }
-            return ReadResult.failedRead(str, message.toString() );
+            return ReadResult.failedRead(str, message.toString());
         }
     }
 }

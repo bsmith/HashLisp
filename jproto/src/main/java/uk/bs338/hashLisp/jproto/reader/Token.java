@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("ClassCanBeRecord")
 public /*abstract*/ class Token {
     enum TokenType {
         UNKNOWN,
@@ -38,7 +39,15 @@ public /*abstract*/ class Token {
     public int getTokenAsInt() {
         return Integer.parseInt(token);
     }
-    
+
+    public int getStartPos() {
+        return startPos;
+    }
+
+    public int getEndPos() {
+        return endPos;
+    }
+
     public String getPositionAsString() {
         return String.format("%d-%d", startPos, endPos);
     }
@@ -48,8 +57,7 @@ public /*abstract*/ class Token {
         return "Token{" +
             "type=" + type +
             ", token='" + token + '\'' +
-            ", startPos=" + startPos +
-            ", endPos=" + endPos +
+            ", position=" + getPositionAsString() +
             '}';
     }
 

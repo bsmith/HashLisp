@@ -23,7 +23,7 @@ public class CharClassifier {
         WHITESPACE
     }
     
-    private final static String symbolChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-?!$@";
+    private final static String symbolChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-?!$@*";
     private final static String digits = "0123456789";
     private final static String whitespace = " \t\r\n";
     
@@ -66,22 +66,5 @@ public class CharClassifier {
     
     public EnumSet<CharClass> classifyChar(@NotNull String ch) {
         return classifyChar(ch.codePointAt(0));
-    }
-    
-    public @NotNull String interpretEscapedChar(@NotNull String ch) {
-        /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
-        return switch (ch) {
-            case "t" -> "\t";
-            case "b" -> "\b";
-            case "n" -> "\n";
-            case "r" -> "\r";
-            case "f" -> "\f";
-            case "'" -> "'";
-            case "\"" -> "\"";
-            case "\\" -> "\\";
-            default ->
-                /* We're liberal here and return accept anything */
-                ch;
-        };
     }
 }
