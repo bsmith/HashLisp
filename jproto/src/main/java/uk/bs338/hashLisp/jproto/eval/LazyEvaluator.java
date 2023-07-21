@@ -3,10 +3,7 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
-import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
+import uk.bs338.hashLisp.jproto.eval.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -51,11 +48,12 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 return wrap(heap.cons(function.getValue(), args.getValue()));
             
             /* recursively evaluate */
-            var constrArgs = unmakeList(heap, args.getValue());
-            eval_multi_inplace(constrArgs);
+            /* XXX solve this by adding unmakeList and makeList to IExpr */
+            var constrArgs = ExprUtilities.unmakeList(args);
+            evalMultiInplace(constrArgs);
             
             var starredSymbol = function.makeDataHead();
-            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs)));
+            return exprFactory.cons(starredSymbol, ExprUtilities.makeList(exprFactory, constrArgs));
         }
         try {
             /* may recursively evaluate */
@@ -188,7 +186,11 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
     
-    public @NotNull IExpr eval_cons(@NotNull IConsExpr origExpr) throws EvalException {
+    public @NotNull IExpr evalExpr(@NotNull IExpr origExpr) throws EvalException {
+        /* Simple values are already in normal form */
+        if (origExpr.isNormalForm())
+            return origExpr;
+        
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
             var eval = evaluateIfNeeded(evaluationQueue, origExpr);
             if (eval.isPresent())
@@ -198,31 +200,21 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             assert evaluationQueue.isEmpty();
         }
         
-        var memoEval = getMemoEvalCheckingForBlackhole(origExpr);
+        assert origExpr.isCons();
+        var memoEval = getMemoEvalCheckingForBlackhole(origExpr.asCons());
         if (memoEval.isEmpty())
             throw new AssertionError("Didn't find memoised evaluation result");
+        if (!memoEval.get().isNormalForm())
+            throw new AssertionError("expression not evaluated to normal form");
         return memoEval.get();
     }
     
-    public @NotNull IExpr eval_expr(@NotNull IExpr expr) throws EvalException {
-        /* Simple values are already in normal form */
-        if (expr.isNormalForm())
-            return expr;
-        
-        assert expr.isCons();
-        var consExpr = expr.asCons();
-        var result = eval_cons(consExpr);
-        if (!result.isNormalForm())
-            throw new AssertionError("expression not evaluated to normal form");
-        return result;
-    }
-    
     @Contract("_->param1")
-    public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
+    public @NotNull List<IExpr> evalMultiInplace(@NotNull List<IExpr> exprs) {
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
             /* push all the values onto the evaluation queue */
-            for (var val : vals) {
-                evaluateIfNeeded(evaluationQueue, exprFactory.wrap(val));
+            for (var expr : exprs) {
+                evaluateIfNeeded(evaluationQueue, expr);
             }
 
             evaluateQueue(evaluationQueue);
@@ -232,24 +224,21 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
 
         /* Now update them all in-place */
-        vals.replaceAll(val -> {
-            var expr = exprFactory.wrap(val);
+        exprs.replaceAll(expr -> {
             if (expr.isNormalForm())
-                return val;
+                return expr;
             var memoEval = getMemoEvalCheckingForBlackhole(expr.asCons());
-            if (memoEval.isEmpty())
-                return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
-            return memoEval.get().getValue();
+            return memoEval.orElseGet(() -> wrap(heap.cons(heap.makeSymbol("error"), HonsValue.nil)));
         });
         
-        return vals;
+        return exprs;
     }
 
     @Override
     public @NotNull HonsValue evaluate(@NotNull HonsValue val) {
         var expr = wrap(val);
         try {
-            return eval_expr(expr).getValue();
+            return evalExpr(expr).getValue();
         }
         catch (EvalException e) { /* XXX */
             e.printStackTrace();
