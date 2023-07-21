@@ -16,9 +16,10 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.driver.Driver;
+import uk.bs338.hashLisp.jproto.driver.IODriver;
 import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
+import uk.bs338.hashLisp.jproto.driver.REPL;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -392,7 +393,7 @@ public class App {
             if (debug && evaluator instanceof LazyEvaluator)
                 ((LazyEvaluator) evaluator).setDebug(true);
 
-            var driver = new Driver(heap, reader, evaluator);
+            var repl = new REPL(heap, reader, evaluator);
 
             if (source == null && sourceFilename != null) {
                 try {
@@ -406,7 +407,7 @@ public class App {
                 System.out.println("No program supplied");
             }
             else {
-                driver.runSource(source);
+                repl.runSource(source);
                 System.out.flush();
             }
         }

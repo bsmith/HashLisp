@@ -16,6 +16,10 @@ public class Context extends WrappedHeap implements IReader<WrappedValue>, IEval
         this.reader = reader;
         this.evaluator = evaluator;
     }
+    
+    public Context(Context context) {
+        this(context.heap, context.reader, context.evaluator);
+    }
 
     public IReader<HonsValue> getReader() {
         return reader;
