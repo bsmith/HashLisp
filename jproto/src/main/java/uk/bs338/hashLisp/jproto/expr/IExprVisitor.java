@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto.eval.expr;
+package uk.bs338.hashLisp.jproto.expr;
 
 public interface IExprVisitor {
     void visitSimple(ISimpleExpr simpleExpr);

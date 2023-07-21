@@ -2,9 +2,9 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
+import uk.bs338.hashLisp.jproto.expr.IConsExpr;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
