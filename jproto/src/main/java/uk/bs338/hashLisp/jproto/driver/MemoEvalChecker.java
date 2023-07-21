@@ -78,6 +78,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
 
     @Override
     public void finished() {
+        //noinspection NonStrictComparisonCanBeEquality
         if (brokenCells.size() <= 0) {
             if (verbose)
                 System.err.println("Memo eval checker completed successfully");

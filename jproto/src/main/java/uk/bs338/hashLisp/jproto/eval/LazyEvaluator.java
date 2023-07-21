@@ -213,6 +213,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return memoEval.get();
     }
     
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_->param1")
     public @NotNull List<IExpr> evalMultiInplace(@NotNull List<IExpr> exprs) {
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
