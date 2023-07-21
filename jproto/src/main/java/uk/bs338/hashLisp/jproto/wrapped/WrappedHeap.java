@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -36,7 +35,7 @@ public class WrappedHeap implements IHeap<WrappedValue> /*implements IHeap<IWrap
     
     /* was 'checkSameHeap' */
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IWrappedValue2 wrapped) {
+    public HonsValue unwrap(IWrappedValue wrapped) {
         if (wrapped == null)
             return null;
         if (!(wrapped instanceof WrappedValue))

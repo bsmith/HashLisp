@@ -1,12 +1,12 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedCons2;
+import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedCons;
 
 import java.util.Optional;
 
-public interface IConsExpr extends IExpr, IWrappedCons2 {
+public interface IConsExpr extends IExpr, IWrappedCons {
     @Override
     default boolean isCons() {
         return true;
@@ -16,8 +16,8 @@ public interface IConsExpr extends IExpr, IWrappedCons2 {
     @NotNull IExpr snd();
     
     @NotNull Optional<IExpr> getMemoEval();
-    
-    void setMemoEval(IExpr expr);
+
+    <V extends IExpr> void setMemoEval(@Nullable V expr);
     
     /* XXX: not sure this is needed, nor correct? */
     /* normal form means: something that could be applied because it is fully evaluated

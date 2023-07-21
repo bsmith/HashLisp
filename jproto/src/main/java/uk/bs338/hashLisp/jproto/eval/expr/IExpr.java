@@ -4,11 +4,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue;
 
 import java.util.NoSuchElementException;
 
-public interface IExpr extends IWrappedValue2, IWrappedValue2.IGetValue<HonsValue> {
+public interface IExpr extends IWrappedValue, IWrappedValue.IGetValue<HonsValue> {
     HonsValue getValue();
 
     default boolean isSimple() {

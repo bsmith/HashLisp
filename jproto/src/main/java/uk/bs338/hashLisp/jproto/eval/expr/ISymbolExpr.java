@@ -1,10 +1,9 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol2;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol;
 
-public interface ISymbolExpr extends ISimpleExpr, IWrappedSymbol2 {
+public interface ISymbolExpr extends ISimpleExpr, IWrappedSymbol {
     @Override
     default boolean isSymbol() {
         return ISimpleExpr.super.isSymbol();

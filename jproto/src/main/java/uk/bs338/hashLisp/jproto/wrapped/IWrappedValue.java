@@ -3,7 +3,7 @@ package uk.bs338.hashLisp.jproto.wrapped;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IValue;
 
-public interface IWrappedValue2 {
+public interface IWrappedValue {
 
     @NotNull String valueToString();
 
@@ -13,12 +13,12 @@ public interface IWrappedValue2 {
     boolean isCons();
     boolean isSymbol();
     
-    IWrappedCons2 asCons();
-    IWrappedSymbol2 asSymbol();
+    IWrappedCons asCons();
+    IWrappedSymbol asSymbol();
     
-    IWrappedSymbol2 makeSymbol();
+    IWrappedSymbol makeSymbol();
     
-    public interface IGetValue<V extends IValue> extends IWrappedValue2 {
+    public interface IGetValue<V extends IValue> extends IWrappedValue {
         V getValue();
 
 
@@ -37,18 +37,4 @@ public interface IWrappedValue2 {
             return getValue().isSmallInt();
         }
     }
-    
-//    public static interface Boxed<V extends IValue> extends IWrappedValue2<V, Boxed<V>> {
-//    }
-//    
-//    public static interface Boxed2 extends IWrappedValue2<IValue, Boxed2> {
-//        
-//    }
-    
-//    public static interface Base<V extends IValue, W extends IWrappedValue2<V, W>> extends
-//        IWrappedValue2<V, W>,
-//        Boxed<V>,
-//        Boxed2 {
-//        
-//    }
 }

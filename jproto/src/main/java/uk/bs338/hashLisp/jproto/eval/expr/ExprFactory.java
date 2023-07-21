@@ -2,11 +2,12 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol2;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue2;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedSymbol;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue;
 
 import java.util.EnumMap;
 import java.util.Objects;
@@ -42,7 +43,7 @@ public class ExprFactory {
     }
 
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IWrappedValue2 wrapped) {
+    public HonsValue unwrap(IWrappedValue wrapped) {
         if (wrapped == null)
             return null;
         if (!(wrapped instanceof ExprBase))
@@ -119,7 +120,7 @@ public class ExprFactory {
         }
 
         @Override
-        public IWrappedSymbol2 makeSymbol() {
+        public IWrappedSymbol makeSymbol() {
             return wrap(heap.makeSymbol(value)).asSymbol();
         }
     }
@@ -222,14 +223,15 @@ public class ExprFactory {
         }
 
         @Override
-        public void setMemoEval(IWrappedValue2 expr) {
-            var memo = unwrap(expr);
+        public void setMemoEval(@Nullable IWrappedValue expr) {
+            var memo = expr == null ? null : unwrap(expr);
             heap.setMemoEval(value, memo);
         }
-        
+
         @Override
-        public void setMemoEval(IExpr expr) {
-            setMemoEval((IWrappedValue2) expr);
+        public void setMemoEval(@Nullable IExpr expr) {
+            var memo = expr == null ? null : unwrap(expr);
+            heap.setMemoEval(value, memo);
         }
 
         @Override
