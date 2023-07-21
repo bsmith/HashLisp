@@ -222,18 +222,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return result;
     }
     
-    public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
-        var expr = wrap(val);
-        try {
-            return eval_expr(expr).getValue();
-        }
-        catch (EvalException e) { /* XXX */
-            e.printStackTrace();
-            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
-        }
-    }
-    
-    @Override
     @Contract("_->param1")
     public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
@@ -262,6 +250,23 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return vals;
     }
 
+    @Override
+    public @NotNull HonsValue evaluate(@NotNull HonsValue val) {
+        var expr = wrap(val);
+        try {
+            return eval_expr(expr).getValue();
+        }
+        catch (EvalException e) { /* XXX */
+            e.printStackTrace();
+            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
+        }
+    }
+
+    @Override
+    public @NotNull HonsValue evaluateWith(@NotNull Map<HonsValue, HonsValue> globals, @NotNull HonsValue val) {
+        throw new Error("unimplemented");
+    }
+
     public static void demo(@NotNull HonsMachine machine) {
         System.out.println("Evaluator demo");
         
@@ -279,6 +284,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         );
         System.out.println(machine.valueToString(program));
 
-        System.out.println(machine.valueToString(evaluator.eval_one(program)));
+        System.out.println(machine.valueToString(evaluator.evaluate(program)));
     }
 }

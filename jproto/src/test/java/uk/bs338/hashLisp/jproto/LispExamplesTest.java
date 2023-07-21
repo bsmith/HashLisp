@@ -39,7 +39,7 @@ public class LispExamplesTest {
     void assertEval(@NotNull String expectedStr, @NotNull String programStr) {
         var expected = reader.read(expectedStr).getValue();
         var program = reader.read(programStr).getValue();
-        var actual = evaluator.eval_one(program);
+        var actual = evaluator.evaluate(program);
         assertEquals(machine.valueToString(expected), machine.valueToString(actual));
         assertEquals(expected, actual);
     }
