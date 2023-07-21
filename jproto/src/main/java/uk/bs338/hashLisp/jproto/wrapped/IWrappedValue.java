@@ -18,22 +18,21 @@ public interface IWrappedValue {
     
     IWrappedSymbol makeSymbol();
     
-    public interface IGetValue<V extends IValue> extends IWrappedValue {
+    interface IGetValue<V extends IValue> extends IWrappedValue {
         V getValue();
-
-
+        
         @Override
-        default public boolean isNil() {
+        default boolean isNil() {
             return getValue().isNil();
         }
 
         @Override
-        default public boolean isSymbolTag() {
+        default boolean isSymbolTag() {
             return getValue().isSymbolTag();
         }
 
         @Override
-        default public boolean isSmallInt() {
+        default boolean isSmallInt() {
             return getValue().isSmallInt();
         }
     }

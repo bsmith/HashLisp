@@ -36,13 +36,10 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
             return true;
         else if (heap.isSymbol(val))
             return true;
-        
-        if (val.isConsRef()) {
-            if (heap.isSymbol(heap.fst(val)) && heap.symbolNameAsString(heap.fst(val)).startsWith("*"))
-                return true;
-        }
-        
-        return false;
+
+        /* Applications are in normal form iff their head is a starred head */
+        HonsValue head = heap.fst(val);
+        return val.isConsRef() && heap.isSymbol(head) && heap.fst(heap.symbolName(head)).toSmallInt() == '*';
     }
     
     private boolean isHeadNormalForm(HonsValue val) {
