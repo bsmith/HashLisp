@@ -26,10 +26,10 @@ class ContextTest {
     }
 
     @Test
-    void eval_one() {
+    void evaluate() {
         /* this also exercises using Context as a WrappedHeap/IHeap! */
         var value = Utilities.makeList(context, context.makeSymbol("add"), context.makeSmallInt(1), context.makeSmallInt(2));
-        var retval = context.eval_one(value);
+        var retval = context.evaluate(value);
         assertEquals(context.makeSmallInt(3), retval);
     }
 

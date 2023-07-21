@@ -6,6 +6,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
@@ -20,19 +21,16 @@ class NoOpEvaluatorTest {
     }
     
     @Test
-    void eval_oneDoesNothing() {
+    void evaluateDoesNothing() {
         var program = makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-        var result = evaluator.eval_one(program);
+        var result = evaluator.evaluate(program);
         assertEquals(program, result);
     }
     
     @Test
-    void eval_multi_inplaceDoesNothing() {
+    void evaluateWithDoesNothing() {
         var program = makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-        var list = new ArrayList<HonsValue>();
-        for (int i = 0; i < 3; i++)
-            list.add(program);
-        var result = evaluator.eval_multi_inplace(list);
-        assertEquals(list, result);
+        var result = evaluator.evaluateWith(Map.of(heap.makeSymbol("add"), heap.makeSmallInt(99)), program);
+        assertEquals(program, result);
     }
 }

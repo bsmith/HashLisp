@@ -217,18 +217,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return result;
     }
     
-    public @NotNull HonsValue eval_one(@NotNull HonsValue val) {
-        var expr = wrap(val);
-        try {
-            return eval_expr(expr).getValue();
-        }
-        catch (EvalException e) { /* XXX */
-            e.printStackTrace();
-            return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
-        }
-    }
-    
-    @Override
     @Contract("_->param1")
     public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
@@ -257,6 +245,23 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return vals;
     }
 
+    @Override
+    public @NotNull HonsValue evaluate(@NotNull HonsValue val) {
+        var expr = wrap(val);
+        try {
+            return eval_expr(expr).getValue();
+        }
+        catch (EvalException e) { /* XXX */
+            e.printStackTrace();
+            return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+        }
+    }
+
+    @Override
+    public @NotNull HonsValue evaluateWith(@NotNull Map<HonsValue, HonsValue> globals, @NotNull HonsValue val) {
+        return null;
+    }
+
     public static void demo(@NotNull HonsHeap heap) {
         System.out.println("Evaluator demo");
         
@@ -274,6 +279,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         );
         System.out.println(heap.valueToString(program));
 
-        System.out.println(heap.valueToString(evaluator.eval_one(program)));
+        System.out.println(heap.valueToString(evaluator.evaluate(program)));
     }
 }

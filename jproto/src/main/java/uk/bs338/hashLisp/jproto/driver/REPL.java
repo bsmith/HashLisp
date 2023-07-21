@@ -16,7 +16,7 @@ public class REPL extends Context {
     protected void runOneProgram(WrappedValue program) {
         System.out.printf("program = %s%n", this.valueToString(program));
         
-        var result = eval_one(program);
+        var result = evaluate(program);
         
         /* Is it a recognised io-monad value? */
         if (result.isConsRef()) {

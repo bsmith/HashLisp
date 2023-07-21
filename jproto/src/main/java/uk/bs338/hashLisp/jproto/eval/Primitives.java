@@ -43,7 +43,7 @@ public class Primitives {
     }
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(heap.fst(args));
+        var arg = evaluator.evaluate(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
@@ -51,7 +51,7 @@ public class Primitives {
     }
 
     public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(heap.fst(args));
+        var arg = evaluator.evaluate(heap.fst(args));
         if (!arg.isConsRef())
             return HonsValue.nil;
         else
@@ -59,8 +59,8 @@ public class Primitives {
     }
 
     public @NotNull HonsValue cons(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var fst = evaluator.eval_one(heap.fst(args));
-        var snd = evaluator.eval_one(heap.fst(heap.snd(args)));
+        var fst = evaluator.evaluate(heap.fst(args));
+        var snd = evaluator.evaluate(heap.fst(heap.snd(args)));
         return heap.cons(fst, snd);
     }
 
@@ -68,7 +68,7 @@ public class Primitives {
         int sum = 0;
         var cur = args;
         while (cur.isConsRef()) {
-            var fst = evaluator.eval_one(heap.fst(cur));
+            var fst = evaluator.evaluate(heap.fst(cur));
             if (fst.isSmallInt())
                 sum += fst.toSmallInt();
             else {
@@ -85,7 +85,7 @@ public class Primitives {
         int product = 1;
         var cur = args;
         while (cur.isConsRef()) {
-            var fst = evaluator.eval_one(heap.fst(cur));
+            var fst = evaluator.evaluate(heap.fst(cur));
             if (fst.isSmallInt())
                 product *= fst.toSmallInt();
             else
@@ -101,15 +101,15 @@ public class Primitives {
         var cond = heap.fst(args);
         var t_val = heap.fst(heap.snd(args));
         var f_val = heap.fst(heap.snd(heap.snd(args)));
-        cond = evaluator.eval_one(cond);
+        cond = evaluator.evaluate(cond);
         if (!cond.isSmallInt()) {
             return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {
-            return evaluator.eval_one(t_val);
+            return evaluator.evaluate(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evaluate(f_val);
         }
     }
     
@@ -118,18 +118,18 @@ public class Primitives {
         var right = heap.fst(heap.snd(args));
         var t_val = heap.fst(heap.snd(heap.snd(args)));
         var f_val = heap.fst(heap.snd(heap.snd(heap.snd(args))));
-        left = evaluator.eval_one(left);
-        right = evaluator.eval_one(right);
+        left = evaluator.evaluate(left);
+        right = evaluator.evaluate(right);
         if (left.equals(right)) {
-            return evaluator.eval_one(t_val);
+            return evaluator.evaluate(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evaluate(f_val);
         }
     }
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return evaluator.eval_one(heap.fst(args));
+        return evaluator.evaluate(heap.fst(args));
     }
     
     private class Lambda implements IPrimitive<HonsValue> {

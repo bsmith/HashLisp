@@ -54,7 +54,7 @@ public class LazyEvaluatorTest {
     void assertEvalsTo(HonsValue expected, HonsValue program) {
         HonsValue rv;
         try {
-            rv = eval.eval_one(program);
+            rv = eval.evaluate(program);
         }
         catch (Exception e) {
             System.err.println("Exception during eval_one of " + heap.valueToString(program) + " (e: " + e + ")");
