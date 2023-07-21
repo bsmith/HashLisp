@@ -3,7 +3,6 @@ package uk.bs338.hashLisp.jproto.driver;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 
-import java.util.List;
 import java.util.Map;
 
 public class NoOpEvaluator<V> implements IEvaluator<V> {

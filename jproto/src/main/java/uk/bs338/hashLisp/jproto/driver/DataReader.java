@@ -22,8 +22,6 @@ public class DataReader<V extends IValue> implements IReader<V> {
     public @NotNull ReadResult<V> read(@NotNull String str) {
         /* wrap in (*data <val>) */
         var result = reader.read(str);
-        return result.mapValueIfSuccess((val) -> {
-            return heap.cons(dataTag, heap.cons(val, nil));
-        });
+        return result.mapValueIfSuccess((val) -> heap.cons(dataTag, heap.cons(val, nil)));
     }
 }

@@ -20,14 +20,5 @@ public interface ISymbolExpr extends ISimpleExpr, IWrappedSymbol {
     }
     
     ISymbolExpr makeDataHead();
-    
-    @Override
-    default boolean isNormalForm() {
-        return true;
-    }
 
-    @Override
-    default boolean isHeadNormalForm() {
-        return true;
-    }
 }

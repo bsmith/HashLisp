@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -41,7 +40,7 @@ public class Context extends WrappedHeap implements IReader<WrappedValue>, IEval
     @Override
     public @NotNull WrappedValue evaluateWith(@NotNull Map<WrappedValue, WrappedValue> globals, @NotNull WrappedValue val) {
         Set<Map.Entry<HonsValue, HonsValue>> entrySet = globals.entrySet().stream().map(entry -> Map.entry(unwrap(entry.getKey()), unwrap(entry.getValue()))).collect(Collectors.toSet());
-        Map<HonsValue, HonsValue> unwrappedGlobals = new AbstractMap<HonsValue, HonsValue>() {
+        Map<HonsValue, HonsValue> unwrappedGlobals = new AbstractMap<>() {
             @NotNull
             @Override
             public Set<Entry<HonsValue, HonsValue>> entrySet() {

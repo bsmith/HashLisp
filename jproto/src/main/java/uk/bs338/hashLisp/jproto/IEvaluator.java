@@ -1,10 +1,7 @@
 package uk.bs338.hashLisp.jproto;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.List;
 import java.util.Map;
 
 public interface IEvaluator<V> {
