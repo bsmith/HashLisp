@@ -16,10 +16,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.driver.IODriver;
-import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
-import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
-import uk.bs338.hashLisp.jproto.driver.REPL;
+import uk.bs338.hashLisp.jproto.driver.*;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
@@ -99,15 +96,14 @@ public class App {
     }
 
     public @NotNull IReader<HonsValue> getReader() {
-        var reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
-        if (readMode)
-            return new PrintOnlyReader<>(heap, reader);
-        else
-            return reader;
+        return new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
     }
     
     public @NotNull IEvaluator<HonsValue> getEvaluator() {
-        return new LazyEvaluator(heap);
+        if (readMode)
+            return new NoOpEvaluator<>();
+        else
+            return new LazyEvaluator(heap);
     }
     
     @SuppressWarnings({"UnnecessaryLabelOnContinueStatement", "UnnecessaryLabelOnBreakStatement"})
