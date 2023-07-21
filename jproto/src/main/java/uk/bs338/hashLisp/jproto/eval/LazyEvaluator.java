@@ -252,7 +252,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
     @Override
     public @NotNull HonsValue evaluateWith(@NotNull Map<HonsValue, HonsValue> globals, @NotNull HonsValue val) {
-        throw new Error("unimplemented");
+        var assignments = new Assignments(machine, globals);
+        return SubstituteVisitor.substitute(this, assignments, wrap(val)).getValue();
     }
 
     public static void demo(@NotNull HonsMachine machine) {
