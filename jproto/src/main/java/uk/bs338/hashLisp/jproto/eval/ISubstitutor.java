@@ -1,12 +1,13 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
 
-public interface ISubstitutor<T> {
+public interface ISubstitutor {
     /* for recursive substitution */
-    @NotNull T substitute(@NotNull T body);
+    @NotNull IExpr substitute(@NotNull IExpr body);
 
-    @NotNull T substitute(@NotNull Assignments assignments, @NotNull T body);
+    @NotNull IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body);
     
     @NotNull Assignments getAssignments();
 }

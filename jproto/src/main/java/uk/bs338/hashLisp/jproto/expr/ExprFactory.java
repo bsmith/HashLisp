@@ -13,8 +13,7 @@ import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
 
-/* XXX: make this just a specialisation of WrappedHeap/WrappedValue! */
-public class ExprFactory {
+public class ExprFactory implements IExprFactory {
     protected final @NotNull HonsHeap heap;
     protected final @NotNull HonsValue lambdaTag;
     protected final @NotNull EnumMap<Tag, ISymbolExpr> tagSymbols;
@@ -53,22 +52,33 @@ public class ExprFactory {
         return ((ExprBase)wrapped).getValue();
     }
     
+    @Override
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        return wrap(heap.cons(unwrap(left), unwrap(right))).asCons();
+        var consRef = heap.cons(unwrap(left), unwrap(right));
+        return new ConsExpr(consRef, left, right);
     }
     
+    @Override
     public @NotNull ISimpleExpr nil() {
         return wrap(HonsValue.nil).asSimple();
     }
-    
+
+    @Override
+    public @NotNull ISimpleExpr makeSmallInt(int num) {
+        return wrap(HonsValue.fromSmallInt(num)).asSimple();
+    }
+
+    @Override
     public @NotNull ISymbolExpr makeSymbol(@NotNull IConsExpr name) {
         return wrap(heap.makeSymbol(unwrap(name))).asSymbol();
     }
     
+    @Override
     public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
         return wrap(heap.makeSymbol(name)).asSymbol();
     }
     
+    @Override
     public @NotNull ISymbolExpr makeSymbol(@NotNull Tag tag) {
         return tagSymbols.computeIfAbsent(tag, t -> makeSymbol(t.getSymbolStr()));
     }
@@ -196,6 +206,15 @@ public class ExprFactory {
             var uncons = heap.uncons(value);
             fst = wrap(uncons.fst());
             snd = wrap(uncons.snd());
+        }
+        
+        private ConsExpr(@NotNull HonsValue value, @NotNull IExpr fst, @NotNull IExpr snd) {
+            super(value);
+            assert value.isConsRef();
+            assert heap.fst(value).equals(fst.getValue());
+            assert heap.snd(value).equals(snd.getValue());
+            this.fst = fst;
+            this.snd = snd;
         }
 
         @Override public boolean isCons() {

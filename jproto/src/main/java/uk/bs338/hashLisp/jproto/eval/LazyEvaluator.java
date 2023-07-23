@@ -11,19 +11,19 @@ import java.util.*;
 
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
-public class LazyEvaluator implements IEvaluator<HonsValue> {
+public class LazyEvaluator implements IEvaluator<HonsValue>, IExprEvaluator {
     private final @NotNull HonsHeap heap;
     private final @NotNull ExprFactory exprFactory;
-    private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
+    private final @NotNull Primitives primitives;
     private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
         exprFactory = new ExprFactory(heap);
-        primitives = new Primitives(heap);
         argSpecCache = new ArgSpecCache(exprFactory);
+        primitives = new Primitives(exprFactory, argSpecCache);
         blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
         debug = false;
     }
@@ -48,16 +48,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 return wrap(heap.cons(function.getValue(), args.getValue()));
             
             /* recursively evaluate */
-            /* XXX solve this by adding unmakeList and makeList to IExpr */
-            var constrArgs = ExprUtilities.unmakeList(args);
-            evalMultiInplace(constrArgs);
+            var constrArgs = ExprUtilities.makeList(exprFactory, evalMultiInplace(ExprUtilities.unmakeList(args)));
             
             var starredSymbol = function.makeDataHead();
-            return exprFactory.cons(starredSymbol, ExprUtilities.makeList(exprFactory, constrArgs));
+            return exprFactory.cons(starredSymbol, constrArgs);
         }
         try {
             /* may recursively evaluate */
-            return wrap(prim.get().apply(this, args.getValue()));
+            return prim.get().apply(this, args);
         }
         catch (EvalException e) {
             e.setPrimitive(function.symbolNameAsString());
@@ -75,7 +73,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         IExpr argSpec = lambda.snd().asCons().fst();
         IExpr body = lambda.snd().asCons().snd().asCons().fst();
         
-        var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
+        var assignments = argSpecCache.match(argSpec, args);
 
         return substitute(assignments, body);
     }

@@ -2,25 +2,30 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.expr.ExprFactory;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static uk.bs338.hashLisp.jproto.Utilities.makeList;
+import static uk.bs338.hashLisp.jproto.expr.ExprUtilities.makeList;
 import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 public class Primitives {
-    private final @NotNull HonsHeap heap;
-    private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
-    private final @NotNull HonsValue lambdaTag;
+    private final @NotNull ExprFactory exprFactory;
+    private final @NotNull IArgSpecFactory argSpecFactory;
+    private final @NotNull Map<HonsValue, IPrimitive> primitives;
+    private final @NotNull IExpr lambdaTag;
 
-    public Primitives(@NotNull HonsHeap heap) {
-        this.heap = heap;
+    public Primitives(@NotNull ExprFactory exprFactory, @NotNull IArgSpecFactory argSpecFactory) {
+        this.exprFactory = exprFactory;
+        this.argSpecFactory = argSpecFactory;
         this.primitives = new HashMap<>();
-        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
+        lambdaTag = exprFactory.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -29,133 +34,128 @@ public class Primitives {
         put("mul", this::mul);
         put("zerop", this::zerop);
         put("eq?", this::eqp);
-        put("eval", this::eval);
         put("lambda", new Lambda());
         put("error", this::error);
     }
     
-    public void put(@NotNull String name, @NotNull IPrimitive<HonsValue> prim) {
-        primitives.put(heap.makeSymbol(name), prim);
+    public void put(@NotNull String name, @NotNull IPrimitive prim) {
+        primitives.put(exprFactory.makeSymbol(name).getValue(), prim);
     }
 
-    public @NotNull Optional<IPrimitive<HonsValue>> get(@NotNull HonsValue name) {
+    public @NotNull Optional<IPrimitive> get(@NotNull HonsValue name) {
         return Optional.ofNullable(primitives.get(name));
     }
     
-    public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.evaluate(heap.fst(args));
-        if (!arg.isConsRef())
-            return HonsValue.nil;
+    public @NotNull IExpr fst(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var arg = evaluator.evalExpr(args.asCons().fst());
+        if (!arg.isCons())
+            return exprFactory.nil();
         else
-            return heap.fst(arg);
+            return arg.asCons().fst();
     }
 
-    public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.evaluate(heap.fst(args));
-        if (!arg.isConsRef())
-            return HonsValue.nil;
+    public @NotNull IExpr snd(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var arg = evaluator.evalExpr(args.asCons().fst());
+        if (!arg.isCons())
+            return exprFactory.nil();
         else
-            return heap.snd(arg);
+            return arg.asCons().snd();
     }
 
-    public @NotNull HonsValue cons(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var fst = evaluator.evaluate(heap.fst(args));
-        var snd = evaluator.evaluate(heap.fst(heap.snd(args)));
-        return heap.cons(fst, snd);
+    public @NotNull IExpr cons(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var fst = evaluator.evalExpr(args.asCons().fst());
+        var snd = evaluator.evalExpr(args.asCons().snd().asCons().fst());
+        return exprFactory.cons(fst, snd);
     }
 
-    public @NotNull HonsValue add(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+    public @NotNull IExpr add(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         int sum = 0;
         var cur = args;
-        while (cur.isConsRef()) {
-            var fst = evaluator.evaluate(heap.fst(cur));
+        while (cur.isCons()) {
+            var fst = evaluator.evalExpr(cur.asCons().fst());
             if (fst.isSmallInt())
-                sum += fst.toSmallInt();
+                sum += fst.getValue().toSmallInt();
             else {
-                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, heap.valueToString(args), cur, heap.valueToString(cur), fst, heap.valueToString(fst), heap.getCell(fst)));
+                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, args.valueToString(), cur, cur.valueToString(), fst, fst.valueToString(), exprFactory.getHeap().getCell(fst.getValue())));
             }
-            cur = heap.snd(cur);
+            cur = cur.asCons().snd();
         }
         if (!cur.isNil())
             throw new EvalException("args not terminated by nil");
-        return heap.makeSmallInt(sum);
+        return exprFactory.makeSmallInt(sum);
     }
 
-    public @NotNull HonsValue mul(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+    public @NotNull IExpr mul(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         int product = 1;
         var cur = args;
-        while (cur.isConsRef()) {
-            var fst = evaluator.evaluate(heap.fst(cur));
+        while (cur.isCons()) {
+            var fst = evaluator.evalExpr(cur.asCons().fst());
             if (fst.isSmallInt())
-                product *= fst.toSmallInt();
+                product *= fst.getValue().toSmallInt();
             else
                 throw new EvalException("arg is not a smallint");
-            cur = heap.snd(cur);
+            cur = cur.asCons().snd();
         }
         if (!cur.isNil())
             throw new EvalException("args not terminated by nil");
-        return heap.makeSmallInt(product);
+        return exprFactory.makeSmallInt(product);
     }
 
-    public @NotNull HonsValue zerop(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var cond = heap.fst(args);
-        var t_val = heap.fst(heap.snd(args));
-        var f_val = heap.fst(heap.snd(heap.snd(args)));
-        cond = evaluator.evaluate(cond);
+    public @NotNull IExpr zerop(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var cond = args.asCons().fst();
+        var t_val = args.asCons().snd().asCons().fst();
+        var f_val = args.asCons().snd().asCons().snd().asCons().fst();
+        cond = evaluator.evalExpr(cond);
         if (!cond.isSmallInt()) {
-            return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
+            return makeList(exprFactory, List.of(exprFactory.makeSymbol("error"), exprFactory.makeSymbol("zerop-not-smallint")));
         }
-        else if (cond.toSmallInt() == 0) {
-            return evaluator.evaluate(t_val);
+        else if (cond.getValue().toSmallInt() == 0) {
+            return evaluator.evalExpr(t_val);
         }
         else {
-            return evaluator.evaluate(f_val);
+            return evaluator.evalExpr(f_val);
         }
     }
     
-    public @NotNull HonsValue eqp(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var left = heap.fst(args);
-        var right = heap.fst(heap.snd(args));
-        var t_val = heap.fst(heap.snd(heap.snd(args)));
-        var f_val = heap.fst(heap.snd(heap.snd(heap.snd(args))));
-        left = evaluator.evaluate(left);
-        right = evaluator.evaluate(right);
+    public @NotNull IExpr eqp(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var left = args.asCons().fst();
+        var right = args.asCons().snd().asCons().fst();
+        var t_val = args.asCons().snd().asCons().snd().asCons().fst();
+        var f_val = args.asCons().snd().asCons().snd().asCons().snd().asCons().fst();
+        left = evaluator.evalExpr(left);
+        right = evaluator.evalExpr(right);
         if (left.equals(right)) {
-            return evaluator.evaluate(t_val);
+            return evaluator.evalExpr(t_val);
         }
         else {
-            return evaluator.evaluate(f_val);
+            return evaluator.evalExpr(f_val);
         }
     }
     
-    public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return evaluator.evaluate(heap.fst(args));
-    }
-    
-    private class Lambda implements IPrimitive<HonsValue> {
+    private class Lambda implements IPrimitive {
         @Override
-        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-            var argSpec = heap.fst(args);
-            var body = heap.fst(heap.snd(args));
-            return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+        public @NotNull IExpr apply(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) {
+            var argSpec = args.asCons().fst();
+            var body = args.asCons().snd().asCons().fst();
+            return exprFactory.cons(lambdaTag, exprFactory.cons(argSpec, exprFactory.cons(body, exprFactory.nil())));
         }
 
         @Override
-        public @NotNull Optional<HonsValue> substitute(@NotNull ISubstitutor<HonsValue> substitutor, @NotNull HonsValue args) {
+        public @NotNull Optional<IExpr> substitute(@NotNull ISubstitutor substitutor, @NotNull IExpr args) throws EvalException {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
-            var argSpec = heap.fst(args);
-            var body = heap.fst(heap.snd(args));
+            var argSpec = argSpecFactory.get(args.asCons().fst());
+            var body = args.asCons().snd().asCons().fst();
 
-            var argsList = unmakeList(heap, argSpec);
-            var newAssignments = substitutor.getAssignments().withoutNames(argsList);
+            var argsList = argSpec.getBoundNames();
+            var newAssignments = substitutor.getAssignments().withoutNameExprs(argsList);
             var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? substitutor.substitute(newAssignments, body) : body;
-            return Optional.of(makeList(heap, argSpec, newBody));
+            return Optional.of(makeList(exprFactory, List.of(args.asCons().fst(), newBody)));
         }
     }
     
-    public @NotNull HonsValue error(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException{
+    public @NotNull IExpr error(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException{
         throw new EvalException("error primitive");
     }
 }

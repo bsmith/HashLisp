@@ -7,7 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
 
-class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
+class SubstituteVisitor implements IExprVisitor, ISubstitutor {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull Assignments assignments;
@@ -25,20 +25,20 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         return body.visit(new SubstituteVisitor(exprFactory, primitives, assignments)).result;
     }
 
-    @Override
-    public @NotNull HonsValue substitute(@NotNull HonsValue body) {
-        return substitute(exprFactory.wrap(body)).getValue();
-    }
+//    @Override
+//    public @NotNull HonsValue substitute(@NotNull HonsValue body) {
+//        return substitute(exprFactory.wrap(body)).getValue();
+//    }
 
     @NotNull
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
         return body.visit(new SubstituteVisitor(exprFactory, primitives, assignments)).result;
     }
 
-    @Override
-    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
-        return substitute(assignments, exprFactory.wrap(body)).getValue();
-    }
+//    @Override
+//    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
+//        return substitute(assignments, exprFactory.wrap(body)).getValue();
+//    }
 
     /* convenience function */
     public static @NotNull IExpr substitute(@NotNull ExprFactory exprFactory, @NotNull Primitives primitives, @NotNull IEvaluator<HonsValue> evaluator, @NotNull Assignments assignments, @NotNull IExpr body) {
@@ -69,10 +69,20 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
             if (consExpr.fst().asSymbol().isDataHead())
                 /* do not substitute under data heads */
                 rv = Optional.of(consExpr);
-            else
-                rv = primitives.get(consExpr.fst().getValue())
-                    .flatMap(prim -> prim.substitute(this, consExpr.snd().getValue()))
-                    .map(val -> exprFactory.cons(consExpr.fst(), exprFactory.wrap(val)));
+            else {
+                var prim = primitives.get(consExpr.fst().getValue());
+                if (prim.isPresent()) {
+                    try {
+                        var valOpt = prim.get().substitute(this, consExpr.snd());
+                        rv = valOpt.map(val -> exprFactory.cons(consExpr.fst(), val));
+                    }
+                    catch (EvalException e) {
+                        /* XXX better handling */
+                        e.printStackTrace();
+                        rv = Optional.of(consExpr);
+                    }
+                }
+            }
         }
         
         result = rv.orElseGet(() -> visitApply(consExpr));
