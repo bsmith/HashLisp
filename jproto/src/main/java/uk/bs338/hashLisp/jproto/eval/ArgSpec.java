@@ -1,11 +1,9 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.expr.IExprFactory;
 import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.ArrayList;
@@ -78,7 +76,7 @@ public class ArgSpec {
                 value = cons.fst().getValue();
                 curArg = cons.snd();
             } else {
-                curArg = exprFactory.nil();
+                curArg = IExpr.nil;
             }
             assignmentsMap.put(argName.getValue(), value);
         }

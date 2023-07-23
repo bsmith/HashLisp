@@ -1,8 +1,6 @@
 package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.IValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +11,16 @@ public final class ExprUtilities {
     }
     
     public static @NotNull IExpr intList(@NotNull IExprFactory factory, int @NotNull [] nums) {
-        IExpr list = factory.nil();
+        IExpr list = IExpr.nil;
         for (int index = nums.length - 1; index >= 0; index--) {
             int num = nums[index];
-            list = factory.cons(factory.makeSmallInt(num), list);
+            list = factory.cons(IExpr.ofSmallInt(num), list);
         }
         return list;
     }
 
     public static @NotNull IExpr makeList(@NotNull IExprFactory factory, @NotNull List<IExpr> elements) {
-        IExpr list = factory.nil();
+        IExpr list = IExpr.nil;
         for (int index = elements.size() - 1; index >= 0; index--) {
             list = factory.cons(elements.get(index), list);
         }

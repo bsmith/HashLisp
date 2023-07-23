@@ -6,10 +6,6 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 public interface IExprFactory {
     @NotNull IExpr wrap(HonsValue val);
-    
-    @NotNull ISimpleExpr nil();
-    
-    @NotNull ISimpleExpr makeSmallInt(int num);
 
     @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right);
 

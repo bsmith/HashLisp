@@ -7,8 +7,8 @@ import uk.bs338.hashLisp.jproto.expr.IExpr;
 import java.util.List;
 
 public interface IExprEvaluator {
-    public @NotNull IExpr evalExpr(@NotNull IExpr origExpr) throws EvalException;
+    @NotNull IExpr evalExpr(@NotNull IExpr origExpr) throws EvalException;
 
     @Contract("_->param1")
-    public @NotNull List<IExpr> evalMultiInplace(@NotNull List<IExpr> exprs);
+    @NotNull List<IExpr> evalMultiInplace(@NotNull List<IExpr> exprs);
 }

@@ -42,30 +42,20 @@ public class ExprFactory implements IExprFactory {
     }
 
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IWrappedValue wrapped) {
+    public HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
-        if (!(wrapped instanceof ExprBase))
-            throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactory.ExprBase");
-        if (heap != ((ExprBase)wrapped).getHeap())
+        if (wrapped.isSimple())
+            return wrapped.getValue();
+        if (heap != wrapped.getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
-        return ((ExprBase)wrapped).getValue();
+        return wrapped.getValue();
     }
     
     @Override
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
         var consRef = heap.cons(unwrap(left), unwrap(right));
         return new ConsExpr(consRef, left, right);
-    }
-    
-    @Override
-    public @NotNull ISimpleExpr nil() {
-        return wrap(HonsValue.nil).asSimple();
-    }
-
-    @Override
-    public @NotNull ISimpleExpr makeSmallInt(int num) {
-        return wrap(HonsValue.fromSmallInt(num)).asSimple();
     }
 
     @Override
@@ -243,7 +233,7 @@ public class ExprFactory implements IExprFactory {
 
         @Override
         public void setMemoEval(@Nullable IWrappedValue expr) {
-            var memo = expr == null ? null : unwrap(expr);
+            var memo = expr == null ? null : unwrap((IExpr)expr);
             heap.setMemoEval(value, memo);
         }
 

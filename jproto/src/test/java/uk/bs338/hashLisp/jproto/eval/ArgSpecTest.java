@@ -2,9 +2,9 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.expr.ExprUtilities;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -53,7 +53,7 @@ class ArgSpecTest {
     }
     
     @Test void noArgsAndAllAreNil() {
-        var args = exprFactory.nil();
+        var args = IExpr.nil;
         var assignments = argSpec.match(args);
         assertEquals(HonsValue.nil, assignments.get(heap.makeSymbol("a")));
         assertEquals(HonsValue.nil, assignments.get(heap.makeSymbol("b")));

@@ -1,6 +1,5 @@
 package uk.bs338.hashLisp.jproto.eval;
 
-import com.beust.ah.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
@@ -39,7 +38,7 @@ class Assignments {
     public @NotNull IExpr getAssignmentsAsValue() {
         if (assignmentsAsValue != null)
             return assignmentsAsValue;
-        IExpr assignmentsList = exprFactory.nil();
+        IExpr assignmentsList = IExpr.nil;
         for (var assignment : assignments.entrySet()) {
             assignmentsList = exprFactory.cons(exprFactory.cons(exprFactory.wrap(assignment.getKey()), exprFactory.wrap(assignment.getValue())), assignmentsList);
         }

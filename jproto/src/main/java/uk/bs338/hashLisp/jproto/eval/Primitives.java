@@ -1,10 +1,8 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
@@ -13,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static uk.bs338.hashLisp.jproto.expr.ExprUtilities.makeList;
-import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 public class Primitives {
     private final @NotNull ExprFactory exprFactory;
@@ -49,7 +46,7 @@ public class Primitives {
     public @NotNull IExpr fst(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         var arg = evaluator.evalExpr(args.asCons().fst());
         if (!arg.isCons())
-            return exprFactory.nil();
+            return IExpr.nil;
         else
             return arg.asCons().fst();
     }
@@ -57,7 +54,7 @@ public class Primitives {
     public @NotNull IExpr snd(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         var arg = evaluator.evalExpr(args.asCons().fst());
         if (!arg.isCons())
-            return exprFactory.nil();
+            return IExpr.nil;
         else
             return arg.asCons().snd();
     }
@@ -82,7 +79,7 @@ public class Primitives {
         }
         if (!cur.isNil())
             throw new EvalException("args not terminated by nil");
-        return exprFactory.makeSmallInt(sum);
+        return IExpr.ofSmallInt(sum);
     }
 
     public @NotNull IExpr mul(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
@@ -98,7 +95,7 @@ public class Primitives {
         }
         if (!cur.isNil())
             throw new EvalException("args not terminated by nil");
-        return exprFactory.makeSmallInt(product);
+        return IExpr.ofSmallInt(product);
     }
 
     public @NotNull IExpr zerop(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
@@ -137,7 +134,7 @@ public class Primitives {
         public @NotNull IExpr apply(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) {
             var argSpec = args.asCons().fst();
             var body = args.asCons().snd().asCons().fst();
-            return exprFactory.cons(lambdaTag, exprFactory.cons(argSpec, exprFactory.cons(body, exprFactory.nil())));
+            return exprFactory.cons(lambdaTag, exprFactory.cons(argSpec, exprFactory.cons(body, IExpr.nil)));
         }
 
         @Override
