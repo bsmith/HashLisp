@@ -2,16 +2,17 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue;
 
 import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
 
-/* XXX: make this just a specialisation of WrappedHeap/WrappedValue! */
 public class ExprFactory {
     protected final @NotNull HonsHeap heap;
     protected final @NotNull HonsValue lambdaTag;
@@ -44,23 +45,15 @@ public class ExprFactory {
     public HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
-        if (!(wrapped instanceof ExprBase))
-            throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactory.ExprBase");
-        if (heap != ((ExprBase)wrapped).getHeap())
+        if (wrapped.isSimple())
+            return wrapped.getValue();
+        if (heap != wrapped.getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
         return wrapped.getValue();
     }
     
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
         return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
-    }
-    
-    public @NotNull ISimpleExpr nil() {
-        return wrap(HonsValue.nil).asSimpleExpr();
-    }
-    
-    public @NotNull ISymbolExpr makeSymbol(@NotNull IConsExpr name) {
-        return wrap(heap.makeSymbol(unwrap(name))).asSymbolExpr();
     }
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
@@ -220,10 +213,10 @@ public class ExprFactory {
         public @NotNull Optional<IExpr> getMemoEval() {
             return heap.getMemoEval(value).map(ExprFactory.this::wrap);
         }
-
+        
         @Override
-        public void setMemoEval(IExpr expr) {
-            var memo = unwrap(expr);
+        public void setMemoEval(@Nullable IExpr expr) {
+            var memo = expr == null ? null : unwrap(expr);
             heap.setMemoEval(value, memo);
         }
 
