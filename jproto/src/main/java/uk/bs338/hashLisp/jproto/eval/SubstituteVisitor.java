@@ -1,12 +1,12 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.eval.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
 
+/* since this recurses into itself, I suppose we can just reuse result, instead of creating lots of new visitors */
 class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
@@ -22,7 +22,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     /* for recursive substitution */
     @NotNull
     public IExpr substitute(@NotNull IExpr body) {
-        return body.visit(new SubstituteVisitor(exprFactory, primitives, assignments)).result;
+        return substitute(exprFactory, primitives, assignments, body);
     }
 
     @Override
@@ -32,7 +32,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
 
     @NotNull
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
-        return body.visit(new SubstituteVisitor(exprFactory, primitives, assignments)).result;
+        return substitute(exprFactory, primitives, assignments, body);
     }
 
     @Override
@@ -41,7 +41,9 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     }
 
     /* convenience function */
-    public static @NotNull IExpr substitute(@NotNull ExprFactory exprFactory, @NotNull Primitives primitives, @NotNull IEvaluator<HonsValue> evaluator, @NotNull Assignments assignments, @NotNull IExpr body) {
+    public static @NotNull IExpr substitute(@NotNull ExprFactory exprFactory, @NotNull Primitives primitives, @NotNull Assignments assignments, @NotNull IExpr body) {
+        if (assignments.getAssignmentsAsMap().isEmpty())
+            return body;
         return body.visit(new SubstituteVisitor(exprFactory, primitives, assignments)).result;
     }
 

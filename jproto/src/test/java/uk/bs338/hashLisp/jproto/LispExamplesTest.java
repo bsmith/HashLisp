@@ -75,4 +75,18 @@ public class LispExamplesTest {
             "((lambda (Y fib$) ((Y fib$) 5)) (lambda (f) ((lambda (x) (f (x x))) (lambda (x) (f (x x))))) (lambda (fib$$) (lambda (n) (zerop n 1 (mul n (fib$$ (add n -1)))))))"
         );
     }
+    
+    @Test void nameCaptureProblem() {
+        assertEval(
+            "(*data y z)",
+            "(((lambda (x) (lambda (y) (data x y))) y) z)"
+        );
+    }
+    
+    @Test void nameCaptureProblemDeeper() {
+        assertEval(
+            "(*data (*data y y) z)",
+            "(((lambda (x) (lambda (y) (data x y))) (data y y)) z))"
+        );
+    }
 }

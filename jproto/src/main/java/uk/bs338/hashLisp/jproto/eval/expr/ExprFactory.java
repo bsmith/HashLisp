@@ -7,7 +7,6 @@ import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
-import uk.bs338.hashLisp.jproto.wrapped.IWrappedValue;
 
 import java.util.EnumMap;
 import java.util.Objects;

@@ -2,23 +2,26 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
-import static uk.bs338.hashLisp.jproto.Utilities.unmakeList;
 
 public class Primitives {
     private final @NotNull HonsHeap heap;
+    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Map<HonsValue, IPrimitive<HonsValue>> primitives;
     private final @NotNull HonsValue lambdaTag;
 
     public Primitives(@NotNull HonsHeap heap) {
         this.heap = heap;
+        this.exprFactory = new ExprFactory(heap);
         this.primitives = new HashMap<>();
         lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
@@ -139,10 +142,10 @@ public class Primitives {
     
     private class Lambda implements IPrimitive<HonsValue> {
         @Override
-        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-            var argSpec = heap.fst(args);
+        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+            var argSpec = new ArgSpec(exprFactory, heap.fst(args));
             var body = heap.fst(heap.snd(args));
-            return heap.cons(lambdaTag, heap.cons(argSpec, heap.cons(body, HonsValue.nil)));
+            return heap.cons(lambdaTag, heap.cons(argSpec.getOrigArgSpec(), heap.cons(body, HonsValue.nil)));
         }
 
         @Override
@@ -152,9 +155,28 @@ public class Primitives {
             /* otherwise, apply the reduced assignments map to the body */
             var argSpec = heap.fst(args);
             var body = heap.fst(heap.snd(args));
+            Set<HonsValue> argNames = Set.of();
+            Assignments transformation;
+            
+            /* Alpha conversion.
+             * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
+             */
+            try {
+                var parsedSpec = new ArgSpec(exprFactory, argSpec);
+                argNames = parsedSpec.getBoundVariables();
 
-            var argsList = unmakeList(heap, argSpec);
-            var newAssignments = substitutor.getAssignments().withoutNames(argsList);
+                transformation = parsedSpec.alphaConversion(args.toObjectHash());
+                if (!transformation.getAssignmentsAsMap().isEmpty()) {
+                    var transformationVisitor = new SubstituteVisitor(exprFactory, Primitives.this, transformation);
+                    argSpec = transformationVisitor.substitute(exprFactory.wrap(argSpec)).getValue();
+                    /* body is transformed below using addAssignments */
+                }
+            } catch (EvalException e) {
+                /* XXX report error better */
+                transformation = new Assignments(exprFactory, Map.of());
+            }
+
+            var newAssignments = substitutor.getAssignments().withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());
             var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? substitutor.substitute(newAssignments, body) : body;
             return Optional.of(makeList(heap, argSpec, newBody));
         }

@@ -69,7 +69,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
-        return SubstituteVisitor.substitute(exprFactory, primitives, this, assignments, body);
+        return SubstituteVisitor.substitute(exprFactory, primitives, assignments, body);
     }
 
     /* result needs further evaluation */

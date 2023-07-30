@@ -7,7 +7,11 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class ArgSpec {
     private final @NotNull ExprFactory exprFactory;
@@ -77,5 +81,40 @@ public class ArgSpec {
             "argNames=" + argNames.stream().map(heap::valueToString).toList() +
             ", slurpyName=" + heap.valueToString(slurpyName) +
             '}';
+    }
+    
+    public @NotNull Set<HonsValue> getBoundVariables() {
+        Set<HonsValue> names = new HashSet<>(argNames.size() + 1);
+
+        if (slurpyName != null)
+            names.add(slurpyName);
+
+        names.addAll(argNames);
+
+        return names;
+    }
+    
+    public @NotNull Assignments alphaConversion(int uniqNumber) {
+        Map<HonsValue, HonsValue> oldNameToNewName = new HashMap<>(argNames.size() + 1);
+        String prefix = "$%x$".formatted(uniqNumber);
+
+        Consumer<HonsValue> addPrefix = (old) -> {
+            var oldName = heap.symbolName(old);
+            if (heap.fst(oldName).toSmallInt() == '$')
+                return;
+            var newName = heap.symbolName(old);
+            for (int idx = prefix.length() - 1; idx >= 0; idx--) {
+                newName = heap.cons(HonsValue.fromSmallInt(prefix.charAt(idx)), newName);
+            }
+            oldNameToNewName.put(old, heap.makeSymbol(newName));
+        };
+        
+        if (slurpyName != null)
+            addPrefix.accept(slurpyName);
+        
+        for (var name : argNames)
+            addPrefix.accept(name);
+        
+        return new Assignments(exprFactory, oldNameToNewName);
     }
 }
