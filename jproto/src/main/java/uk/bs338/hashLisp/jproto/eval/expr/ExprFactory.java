@@ -2,6 +2,8 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -10,7 +12,6 @@ import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
 
-/* XXX: make this just a specialisation of WrappedHeap/WrappedValue! */
 public class ExprFactory {
     protected final @NotNull HonsHeap heap;
     protected final @NotNull HonsValue lambdaTag;
@@ -43,23 +44,15 @@ public class ExprFactory {
     public HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
-        if (!(wrapped instanceof ExprBase))
-            throw new IllegalArgumentException("Unwrapping IExpr which is not ExprFactory.ExprBase");
-        if (heap != ((ExprBase)wrapped).getHeap())
+        if (wrapped.isSimple())
+            return wrapped.getValue();
+        if (heap != wrapped.getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
         return wrapped.getValue();
     }
     
     public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
         return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
-    }
-    
-    public @NotNull ISimpleExpr nil() {
-        return wrap(HonsValue.nil).asSimpleExpr();
-    }
-    
-    public @NotNull ISymbolExpr makeSymbol(@NotNull IConsExpr name) {
-        return wrap(heap.makeSymbol(unwrap(name))).asSymbolExpr();
     }
     
     public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
@@ -126,7 +119,7 @@ public class ExprFactory {
             return true;
         }
 
-        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
+        @Override public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
             visitor.visitSimple(this);
             return visitor;
         }
@@ -142,7 +135,7 @@ public class ExprFactory {
             return true;
         }
 
-        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
+        @Override public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
             visitor.visitSymbol(this);
             return visitor;
         }
@@ -177,35 +170,41 @@ public class ExprFactory {
     
     /* XXX how is this different from ConsPair?! */
     public class ConsExpr extends ExprBase implements IConsExpr {
-        private final @NotNull IExpr fst;
-        private final @NotNull IExpr snd;
+        private final ConsPair<HonsValue> uncons;
+        private IExpr fst;
+        private IExpr snd;
 
         private ConsExpr(@NotNull HonsValue value) {
             super(value);
             assert value.isConsRef();
             /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
 //            var uncons = heap.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
-            var uncons = heap.uncons(value);
-            fst = wrap(uncons.fst());
-            snd = wrap(uncons.snd());
+            uncons = heap.uncons(value);
+            /* Be lazy about further wrapping */
+            fst = null;
+            snd = null;
         }
 
         @Override public boolean isCons() {
             return true;
         }
 
-        @Override public <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor) {
+        @Override public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
             visitor.visitCons(this);
             return visitor;
         }
 
         @Override
         public @NotNull IExpr fst() {
+            if (fst == null)
+                fst = wrap(uncons.fst());
             return fst;
         }
 
         @Override
         public @NotNull IExpr snd() {
+            if (snd == null)
+                snd = wrap(uncons.snd());
             return snd;
         }
 
@@ -213,10 +212,10 @@ public class ExprFactory {
         public @NotNull Optional<IExpr> getMemoEval() {
             return heap.getMemoEval(value).map(ExprFactory.this::wrap);
         }
-
+        
         @Override
-        public void setMemoEval(IExpr expr) {
-            var memo = unwrap(expr);
+        public void setMemoEval(@Nullable IExpr expr) {
+            var memo = expr == null ? null : unwrap(expr);
             heap.setMemoEval(value, memo);
         }
 

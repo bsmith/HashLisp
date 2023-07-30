@@ -140,7 +140,7 @@ class ExprFactoryTest {
     
     @Nested
     class Visitor {
-        class MockVisitor implements IExprVisitor2 {
+        class MockVisitor implements IExprVisitor {
             String type;
             IExpr expr;
             

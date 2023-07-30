@@ -1,6 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
-public interface IExprVisitor2 {
+public interface IExprVisitor {
     void visitSimple(ISimpleExpr simpleExpr);
 
     default void visitSymbol(ISymbolExpr symbolExpr) {

@@ -3,13 +3,16 @@ package uk.bs338.hashLisp.jproto.eval.expr;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.Tag;
+import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 
 public interface IExpr {
     HonsValue getValue();
+    default HonsHeap getHeap() { throw new NoSuchElementException(); }
 
+    /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
     default boolean isSimple() {
         return false;
     }
@@ -23,7 +26,7 @@ public interface IExpr {
     }
 
     @Contract("_->param1")
-    <V extends IExprVisitor2> @NotNull V visit(@NotNull V visitor);
+    <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
     boolean isHeadNormalForm();
@@ -50,4 +53,42 @@ public interface IExpr {
     }
 
     @NotNull String valueToString();
+
+    IExpr nil = new ISimpleExpr() {
+        @Override
+        public HonsValue getValue() {
+            return HonsValue.nil;
+        }
+
+        @Override
+        public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
+            visitor.visitSimple(this);
+            return visitor;
+        }
+
+        @Override
+        public @NotNull String valueToString() {
+            return HonsValue.nil.toString();
+        }
+    };
+    
+    static IExpr ofSmallInt(int num) {
+        return new ISimpleExpr() {
+            @Override
+            public HonsValue getValue() {
+                return HonsValue.fromSmallInt(num);
+            }
+
+            @Override
+            public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
+                visitor.visitSimple(this);
+                return visitor;
+            }
+
+            @Override
+            public @NotNull String valueToString() {
+                return getValue().toString();
+            }
+        };
+    }
 }

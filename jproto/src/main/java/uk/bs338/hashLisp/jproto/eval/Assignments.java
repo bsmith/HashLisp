@@ -11,12 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Assignments {
-    private final ExprFactory exprFactory;
-    private final HonsHeap heap;
+    private final @NotNull ExprFactory exprFactory;
+    private final @NotNull HonsHeap heap;
     private @Nullable HonsValue assignmentsAsValue;
-    private final Map<HonsValue, HonsValue> assignments;
+    private final @NotNull Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(ExprFactory exprFactory, Map<HonsValue, HonsValue> assignments) {
+    public Assignments(@NotNull ExprFactory exprFactory, @NotNull Map<HonsValue, HonsValue> assignments) {
         this.exprFactory = exprFactory;
         this.heap = exprFactory.getHeap();
         this.assignmentsAsValue = null;
@@ -46,8 +46,18 @@ class Assignments {
     }
     
     public @NotNull Assignments withoutNames(Collection<HonsValue> names) {
+        if (names.isEmpty())
+            return this;
         var reducedAssignments = new HashMap<>(assignments);
         reducedAssignments.keySet().removeAll(names);
         return new Assignments(exprFactory, reducedAssignments);
+    }
+    
+    public @NotNull Assignments addAssignments(Map<HonsValue, HonsValue> newAssignments) {
+        if (newAssignments.isEmpty())
+            return this;
+        var combined = new HashMap<>(assignments);
+        combined.putAll(newAssignments);
+        return new Assignments(exprFactory, combined);
     }
 }
