@@ -4,9 +4,11 @@ import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -138,11 +140,43 @@ public class Primitives {
     }
     
     private class Lambda implements IPrimitive {
+        public record ParsedLambda(@NotNull HonsValue argSpec, @NotNull HonsValue body, int uniq) {
+            public HonsValue toArgs(HonsMachine machine) {
+                return machine.cons(this.argSpec(), machine.cons(this.body(), HonsValue.nil));
+            }
+        }
+        
+        public ParsedLambda parseLambdaArgs(@NotNull HonsValue args) {
+            return new ParsedLambda(
+                machine.fst(args),
+                machine.fst(machine.snd(args)),
+                args.toObjectHash()
+            );
+        }
+
+        public ParsedLambda doAlphaConversion(@NotNull LazyEvaluator evaluator, @NotNull ParsedLambda parsedLambda) {
+            ArgSpec parsedSpec;
+            try {
+                parsedSpec = new ArgSpec(machine, parsedLambda.argSpec());
+            } catch (EvalException e) {
+                return parsedLambda;
+            }
+            
+            var transformation = parsedSpec.alphaConversion(parsedLambda.uniq());
+            if (!transformation.getAssignmentsAsMap().isEmpty()) {
+                var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
+                var argSpec = transformationVisitor.substitute(IExpr.wrap(machine, parsedLambda.argSpec())).getValue();
+                var body = transformationVisitor.substitute(IExpr.wrap(machine, parsedLambda.body())).getValue();
+                parsedLambda = new ParsedLambda(argSpec, body, parsedLambda.uniq());
+            }
+            return parsedLambda;
+        }
+        
         @Override
-        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
-            var argSpec = new ArgSpec(machine, machine.fst(args));
-            var body = machine.fst(machine.snd(args));
-            return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec.getOrigArgSpec(), machine.cons(body, HonsValue.nil)));
+        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) {
+            var parsedLambda = parseLambdaArgs(args);
+            parsedLambda = doAlphaConversion(evaluator, parsedLambda);
+            return machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
         }
 
         @Override
@@ -150,32 +184,64 @@ public class Primitives {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
-            var argSpec = machine.fst(args);
-            var body = machine.fst(machine.snd(args));
-            Set<HonsValue> argNames = Set.of();
-            Assignments transformation;
+            var parsedLambda = parseLambdaArgs(args);
             
-            /* Alpha conversion.
-             * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
-             */
+            /* Alpha conversion. */
+            var alphaConversionValue = machine.cons(evaluator.getContext().lambdaExprTag.getValue(), parsedLambda.toArgs(machine));
+            var alphaConversionMemo = machine.getMemoEval(alphaConversionValue);
+            
+            if (alphaConversionMemo.isEmpty()) {
+                parsedLambda = doAlphaConversion(evaluator, parsedLambda);
+                var convertedLambda = machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
+                machine.setMemoEval(alphaConversionValue, convertedLambda);
+            } else {
+                parsedLambda = parseLambdaArgs(machine.snd(alphaConversionMemo.get()));
+            }
+
+            HonsValue argSpec = parsedLambda.argSpec();
+            HonsValue body = parsedLambda.body();
+
+            Collection<HonsValue> argNames = Set.of();
             try {
                 var parsedSpec = new ArgSpec(machine, argSpec);
                 argNames = parsedSpec.getBoundVariables();
-
-                transformation = parsedSpec.alphaConversion(args.toObjectHash());
-                if (!transformation.getAssignmentsAsMap().isEmpty()) {
-                    var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
-                    argSpec = transformationVisitor.substitute(IExpr.wrap(machine, argSpec)).getValue();
-                    /* body is transformed below using addAssignments */
-                }
-            } catch (EvalException e) {
+            }
+            catch (EvalException e) {
                 /* XXX report error better */
-                transformation = new Assignments(machine, Map.of());
+                return Optional.empty();
             }
 
-            var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());
-            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue() : body;
+            Assignments newAssignments = assignments.withoutNames(argNames);
+            HonsValue newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue() : body;
             return Optional.of(makeList(machine, argSpec, newBody));
+        }
+
+        @Override
+        public @NotNull Set<HonsValue> freeVariables(@NotNull HonsValue args) {
+            try {
+                var argSpec = new ArgSpec(machine, machine.fst(args));
+                var body = machine.fst(machine.snd(args));
+                
+                throw new Error("unimplemented");
+            }
+            catch (EvalException e) {
+                /* XXX too silent */
+                return Set.of();
+            }
+        }
+
+        @Override
+        public @NotNull Set<HonsValue> boundVariables(@NotNull HonsValue args) {
+            try {
+                var argSpec = new ArgSpec(machine, machine.fst(args));
+                var body = machine.fst(machine.snd(args));
+                
+                throw new Error("unimplemented");
+            }
+            catch (EvalException e) {
+                /* XXX too silent */
+                return Set.of();
+            }
         }
     }
     

@@ -16,7 +16,8 @@ public class EvalContext {
     protected final @NotNull Map<Tag, HonsValue> tagSymbols;
     public final @NotNull ISymbolExpr blackholeTag;
     public final @NotNull ISymbolExpr lambdaTag;
-    
+    public final @NotNull ISymbolExpr lambdaExprTag;
+
     public EvalContext(@NotNull HonsMachine machine) {
         this.machine = machine;
         argSpecCache = new ArgSpecCache(machine);
@@ -26,5 +27,6 @@ public class EvalContext {
             tagSymbols.put(tag, machine.makeSymbol(tag.getSymbolStr()));
         blackholeTag = IExpr.wrap(machine, tagSymbols.get(Tag.BLACKHOLE)).asSymbolExpr();
         lambdaTag = IExpr.wrap(machine, tagSymbols.get(Tag.LAMBDA)).asSymbolExpr();
+        lambdaExprTag = IExpr.wrap(machine, tagSymbols.get(Tag.LAMBDA_EXPR)).asSymbolExpr();
     }
 }
