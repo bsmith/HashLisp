@@ -3,7 +3,6 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
 import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
 import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
@@ -26,8 +25,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         this.heap = heap;
         this.context = new EvalContext(heap);
         argSpecCache = context.argSpecCache;
-        primitives = new Primitives(context.exprFactory);
-        blackholeSentinel = context.exprFactory.wrap(context.blackholeTag).asSymbolExpr();
+        primitives = new Primitives(context.heap);
+        blackholeSentinel = IExpr.wrap(heap, context.blackholeTag).asSymbolExpr();
         debug = false;
     }
     
@@ -44,7 +43,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     private IExpr wrap(HonsValue value) {
-        return context.exprFactory.wrap(value);
+        return IExpr.wrap(heap, value);
     }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */

@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.expr.*;
+import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
@@ -27,14 +28,14 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     }
     
     private final @NotNull LazyEvaluator evaluator;
-    private final @NotNull ExprFactory exprFactory;
+    private final @NotNull HonsHeap heap;
     private final @NotNull Primitives primitives;
     private final @NotNull Assignments assignments;
     private final @NotNull TakePut<IExpr> result;
 
     public SubstituteVisitor(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments) {
         this.evaluator = evaluator;
-        this.exprFactory = evaluator.getContext().exprFactory;
+        this.heap = evaluator.getContext().heap;
         this.primitives = evaluator.getPrimitives();
         this.assignments = assignments;
         this.result = new TakePut<>();
@@ -51,7 +52,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
 
     @Override
     public @NotNull HonsValue substitute(@NotNull HonsValue body) {
-        return substitute(exprFactory.wrap(body)).getValue();
+        return substitute(IExpr.wrap(heap, body)).getValue();
     }
 
     @NotNull
@@ -61,7 +62,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
 
     @Override
     public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
-        return substitute(assignments, exprFactory.wrap(body)).getValue();
+        return substitute(assignments, IExpr.wrap(heap, body)).getValue();
     }
 
     /* convenience function */
@@ -84,7 +85,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     @Override
     public void visitSymbol(ISymbolExpr symbolExpr) {
         var assignedValue = assignments.get(symbolExpr.getValue());
-        result.put(assignedValue == null ? symbolExpr : exprFactory.wrap(assignedValue));
+        result.put(assignedValue == null ? symbolExpr : IExpr.wrap(heap, assignedValue));
     }
 
     @Override
@@ -94,14 +95,14 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         if (consExpr.fst().isSymbol()) {
             rv = primitives.get(consExpr.fst().getValue())
                 .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
-                .map(val -> exprFactory.cons(consExpr.fst(), exprFactory.wrap(val)));
+                .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(heap, val)));
         }
         
         result.put(rv.orElseGet(() -> visitApply(consExpr)));
     }
 
     public @NotNull IConsExpr visitApply(@NotNull IConsExpr consExpr) {
-        return exprFactory.cons(
+        return IExpr.cons(
             substitute(consExpr.fst()),
             substitute(consExpr.snd())
         );

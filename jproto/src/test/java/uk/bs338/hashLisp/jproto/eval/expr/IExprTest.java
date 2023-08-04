@@ -1,28 +1,23 @@
 package uk.bs338.hashLisp.jproto.eval.expr;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExprFactoryTest {
+class IExprTest {
     HonsHeap heap;
-    ExprFactory factory;
     IExpr nil, smallInt, sym, cons;
     
     @BeforeEach
     void setUp() {
         heap = new HonsHeap();
-        factory = new ExprFactory(heap);
-        nil = factory.wrap(HonsValue.nil);
-        smallInt = factory.wrap(HonsValue.fromSmallInt(123));
-        sym = factory.wrap(heap.makeSymbol("symbol"));
-        cons = factory.wrap(heap.cons(sym.getValue(), smallInt.getValue()));
+        nil = IExpr.wrap(heap, HonsValue.nil);
+        smallInt = IExpr.wrap(heap, HonsValue.fromSmallInt(123));
+        sym = IExpr.wrap(heap, heap.makeSymbol("symbol"));
+        cons = IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue()));
     }
     
     @AfterEach
@@ -33,39 +28,37 @@ class ExprFactoryTest {
     @Nested
     class Equals {
         @Test
-        void equalsSameFactory() {
-            assertEquals(nil, factory.wrap(HonsValue.nil));
-            assertEquals(smallInt, factory.wrap(HonsValue.fromSmallInt(123)));
-            assertEquals(sym, factory.wrap(heap.makeSymbol("symbol")));
-            assertEquals(cons, factory.wrap(heap.cons(sym.getValue(), smallInt.getValue())));
+        void equalsTheSameWrappedValue() {
+            assertEquals(nil, IExpr.wrap(heap, HonsValue.nil));
+            assertEquals(smallInt, IExpr.wrap(heap, HonsValue.fromSmallInt(123)));
+            assertEquals(sym, IExpr.wrap(heap, heap.makeSymbol("symbol")));
+            assertEquals(cons, IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue())));
+        }
+
+        @Test
+        void hashCodeTheSameForTheSameWrappedValue() {
+            assertEquals(nil.hashCode(), IExpr.wrap(heap, HonsValue.nil).hashCode());
+            assertEquals(smallInt.hashCode(), IExpr.wrap(heap, HonsValue.fromSmallInt(123)).hashCode());
+            assertEquals(sym.hashCode(), IExpr.wrap(heap, heap.makeSymbol("symbol")).hashCode());
+            assertEquals(cons.hashCode(), IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
         
         @Test
-        void equalsDifferentFactory() {
-            var factory2 = new ExprFactory(heap);
-            assertEquals(factory2, factory);
-            assertEquals(nil, factory2.wrap(HonsValue.nil));
-            assertEquals(smallInt, factory2.wrap(HonsValue.fromSmallInt(123)));
-            assertEquals(sym, factory2.wrap(heap.makeSymbol("symbol")));
-            assertEquals(cons, factory2.wrap(heap.cons(sym.getValue(), smallInt.getValue())));
+        void notEqualsWhenHeapDifferent() {
+            HonsHeap heap2 = new HonsHeap();
+            assertNotEquals(nil, IExpr.wrap(heap2, HonsValue.nil));
+            assertNotEquals(smallInt, IExpr.wrap(heap2, HonsValue.fromSmallInt(123)));
+            assertNotEquals(sym, IExpr.wrap(heap2, heap2.makeSymbol("symbol")));
+            assertNotEquals(cons, IExpr.wrap(heap2, heap2.cons(sym.getValue(), smallInt.getValue())));
         }
 
         @Test
-        void hashCodeSameFactory() {
-            assertEquals(nil.hashCode(), factory.wrap(HonsValue.nil).hashCode());
-            assertEquals(smallInt.hashCode(), factory.wrap(HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), factory.wrap(heap.makeSymbol("symbol")).hashCode());
-            assertEquals(cons.hashCode(), factory.wrap(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
-        }
-
-        @Test
-        void hashCodeDifferentFactory() {
-            var factory2 = new ExprFactory(heap);
-            assertEquals(factory2.hashCode(), factory.hashCode());
-            assertEquals(nil.hashCode(), factory2.wrap(HonsValue.nil).hashCode());
-            assertEquals(smallInt.hashCode(), factory2.wrap(HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), factory2.wrap(heap.makeSymbol("symbol")).hashCode());
-            assertEquals(cons.hashCode(), factory2.wrap(heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
+        void differentHashCodeWhenHeapDifferent() {
+            HonsHeap heap2 = new HonsHeap();
+            assertNotEquals(nil.hashCode(), IExpr.wrap(heap2, HonsValue.nil).hashCode());
+            assertNotEquals(smallInt.hashCode(), IExpr.wrap(heap2, HonsValue.fromSmallInt(123)).hashCode());
+            assertNotEquals(sym.hashCode(), IExpr.wrap(heap2, heap2.makeSymbol("symbol")).hashCode());
+            assertNotEquals(cons.hashCode(), IExpr.wrap(heap2, heap2.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
     }
     

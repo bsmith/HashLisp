@@ -9,8 +9,8 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import java.util.NoSuchElementException;
 
 public interface IExpr {
-    HonsValue getValue();
-    default HonsHeap getHeap() { throw new NoSuchElementException(); }
+    @NotNull HonsValue getValue();
+    default @NotNull HonsHeap getHeap() { throw new NoSuchElementException(); }
 
     /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
     default boolean isSimple() {
@@ -54,41 +54,23 @@ public interface IExpr {
 
     @NotNull String valueToString();
 
-    IExpr nil = new ISimpleExpr() {
-        @Override
-        public HonsValue getValue() {
-            return HonsValue.nil;
+    /* classify the Expr for the purposes of the evaluator
+     *   simple: nil, smallInt, symbol
+     *   application: any other cons-ref
+     */
+    static @NotNull IExpr wrap(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+        if (value.isConsRef()) {
+            if (heap.isSymbol(value))
+                return new ExprBase.SymbolExpr(heap, value);
+            return new ExprBase.ConsExpr(heap, value);
         }
-
-        @Override
-        public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
-            visitor.visitSimple(this);
-            return visitor;
-        }
-
-        @Override
-        public @NotNull String valueToString() {
-            return HonsValue.nil.toString();
-        }
-    };
+        return new ExprBase.SimpleExpr(heap, value);
+    }
     
-    static IExpr ofSmallInt(int num) {
-        return new ISimpleExpr() {
-            @Override
-            public HonsValue getValue() {
-                return HonsValue.fromSmallInt(num);
-            }
-
-            @Override
-            public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
-                visitor.visitSimple(this);
-                return visitor;
-            }
-
-            @Override
-            public @NotNull String valueToString() {
-                return getValue().toString();
-            }
-        };
+    static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
+        HonsHeap heap = left.getHeap();
+        if (heap != right.getHeap())
+            throw new IllegalArgumentException("Mismatched heaps between left IExpr and right IExpr");
+        return wrap(heap, heap.cons(left.getValue(), right.getValue())).asConsExpr();
     }
 }

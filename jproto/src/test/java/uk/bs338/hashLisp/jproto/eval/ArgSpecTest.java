@@ -3,7 +3,6 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.Utilities;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -11,13 +10,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ArgSpecTest {
     HonsHeap heap;
-    ExprFactory exprFactory;
     ArgSpec argSpec;
     
     @BeforeEach
     void setUp() throws EvalException {
         heap = new HonsHeap();
-        exprFactory = new ExprFactory(heap);
         argSpec = new ArgSpec(heap, Utilities.makeListWithDot(heap,
             heap.makeSymbol("a"),
             heap.makeSymbol("b"),

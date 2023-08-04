@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
+import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -15,15 +15,15 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
 public class Primitives {
     private final @NotNull HonsHeap heap;
-    private final @NotNull ExprFactory exprFactory;
+//    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Map<HonsValue, IPrimitive> primitives;
-    private final @NotNull HonsValue lambdaTag;
+//    private final @NotNull HonsValue lambdaTag;
 
-    public Primitives(@NotNull ExprFactory exprFactory) {
-        this.heap = exprFactory.getHeap();
-        this.exprFactory = exprFactory;
+    public Primitives(@NotNull HonsHeap heap) {
+        this.heap = heap;
+//        this.exprFactory = exprFactory;
         this.primitives = new HashMap<>();
-        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
+//        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -142,10 +142,10 @@ public class Primitives {
     
     private class Lambda implements IPrimitive {
         @Override
-        public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
             var argSpec = new ArgSpec(heap, heap.fst(args));
             var body = heap.fst(heap.snd(args));
-            return heap.cons(lambdaTag, heap.cons(argSpec.getOrigArgSpec(), heap.cons(body, HonsValue.nil)));
+            return heap.cons(evaluator.getContext().lambdaTag, heap.cons(argSpec.getOrigArgSpec(), heap.cons(body, HonsValue.nil)));
         }
 
         @Override
@@ -168,7 +168,7 @@ public class Primitives {
                 transformation = parsedSpec.alphaConversion(args.toObjectHash());
                 if (!transformation.getAssignmentsAsMap().isEmpty()) {
                     var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
-                    argSpec = transformationVisitor.substitute(exprFactory.wrap(argSpec)).getValue();
+                    argSpec = transformationVisitor.substitute(IExpr.wrap(heap, argSpec)).getValue();
                     /* body is transformed below using addAssignments */
                 }
             } catch (EvalException e) {
@@ -177,7 +177,7 @@ public class Primitives {
             }
 
             var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());
-            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, exprFactory.wrap(body)).getValue() : body;
+            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(heap, body)).getValue() : body;
             return Optional.of(makeList(heap, argSpec, newBody));
         }
     }
