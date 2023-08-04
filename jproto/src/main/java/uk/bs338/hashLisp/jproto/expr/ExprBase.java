@@ -5,22 +5,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.eval.Tag;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
 import java.util.Optional;
 
 abstract class ExprBase implements IExpr {
-    protected final @NotNull HonsHeap heap;
+    protected final HonsMachine heap;
     protected final @NotNull HonsValue value;
 
-    private ExprBase(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+    private ExprBase(HonsMachine heap, @NotNull HonsValue value) {
         this.heap = heap;
         this.value = value;
     }
 
-    public @NotNull HonsHeap getHeap() {
+    public @NotNull HonsMachine getHeap() {
         return heap;
     }
 
@@ -63,7 +63,7 @@ abstract class ExprBase implements IExpr {
 
 
     public static class SimpleExpr extends ExprBase implements ISimpleExpr {
-        SimpleExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+        SimpleExpr(HonsMachine heap, @NotNull HonsValue value) {
             super(heap, value);
         }
 
@@ -78,7 +78,7 @@ abstract class ExprBase implements IExpr {
     }
 
     public static class SymbolExpr extends SimpleExpr implements ISymbolExpr {
-        SymbolExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+        SymbolExpr(@NotNull HonsMachine heap, @NotNull HonsValue value) {
             super(heap, value);
             assert heap.isSymbol(value);
         }
@@ -129,7 +129,7 @@ abstract class ExprBase implements IExpr {
         private IExpr fst;
         private IExpr snd;
 
-        ConsExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+        ConsExpr(HonsMachine heap, @NotNull HonsValue value) {
             super(heap, value);
             assert value.isConsRef();
             /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */

@@ -6,7 +6,7 @@ import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.expr.IConsExpr;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.*;
@@ -14,18 +14,18 @@ import java.util.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
     private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
     private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
-    public LazyEvaluator(@NotNull HonsHeap heap) {
+    public LazyEvaluator(HonsMachine heap) {
         this.heap = heap;
         this.context = new EvalContext(heap);
         argSpecCache = context.argSpecCache;
-        primitives = new Primitives(context.heap);
+        primitives = new Primitives(context.machine);
         blackholeSentinel = IExpr.wrap(heap, context.blackholeTag).asSymbolExpr();
         debug = false;
     }
@@ -264,7 +264,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return vals;
     }
 
-    public static void demo(@NotNull HonsHeap heap) {
+    public static void demo(HonsMachine heap) {
         System.out.println("Evaluator demo");
         
         var evaluator = new LazyEvaluator(heap);

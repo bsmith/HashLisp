@@ -3,18 +3,18 @@ package uk.bs338.hashLisp.jproto;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class IHeapVisitorTest {
-    HonsHeap heap;
+    HonsMachine heap;
     HonsValue one, two, cons, sym;
 
     @BeforeEach
     void setUp() {
-        heap = new HonsHeap();
+        heap = new HonsMachine();
         one = HonsValue.fromSmallInt(1);
         two = HonsValue.fromSmallInt(2);
         sym = heap.makeSymbol("sym");

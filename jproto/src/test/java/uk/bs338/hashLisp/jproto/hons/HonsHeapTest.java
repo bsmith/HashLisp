@@ -12,13 +12,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class HonsHeapTest {
     HonsHeap heap;
-    HonsValue one, two, cons, sym;
+    HonsValue one, two, cons;
 
     @BeforeEach void setUp() {
         heap = new HonsHeap(8);
         one = HonsValue.fromSmallInt(1);
         two = HonsValue.fromSmallInt(2);
-        sym = heap.makeSymbol("sym");
         cons = heap.cons(one, two);
     }
 
@@ -38,7 +37,7 @@ class HonsHeapTest {
         for (var i = 1; i <= 100; i++) {
             tail = heap.cons(HonsValue.fromSmallInt(i), tail);
         }
-        assertEquals(HonsValue.fromSmallInt(5050), Utilities.sumList(heap, tail));
+        assertEquals(5050, Utilities.sumList(heap, tail));
     }
     
     @Test void checkForcedCollision() {

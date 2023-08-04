@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Collection;
@@ -10,11 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Assignments {
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
     private @Nullable HonsValue assignmentsAsValue;
     private final @NotNull Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(@NotNull HonsHeap heap, @NotNull Map<HonsValue, HonsValue> assignments) {
+    public Assignments(HonsMachine heap, @NotNull Map<HonsValue, HonsValue> assignments) {
         this.heap = heap;
         this.assignmentsAsValue = null;
         this.assignments = assignments;

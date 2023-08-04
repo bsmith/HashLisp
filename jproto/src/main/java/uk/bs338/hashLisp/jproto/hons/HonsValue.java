@@ -54,8 +54,7 @@ public final class HonsValue implements IValue {
         return this.value == symbolTag.value;
     }
 
-    @NotNull
-    public static HonsValue fromSmallInt(int num) {
+    public static @NotNull HonsValue fromSmallInt(int num) {
         assert SMALLINT_MIN <= num && num <= SMALLINT_MAX;
         //noinspection PointlessBitwiseExpression
         return new HonsValue((num << 1) | 0);

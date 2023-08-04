@@ -9,36 +9,36 @@ import java.util.List;
 
 public class MemoEvalChecker implements IIterateHeapVisitor {
     /* does this extend Context, or HasContext, or has a Context? */
-    private final HonsHeap heap;
+    private final HonsMachine machine;
     private final IEvaluator<HonsValue> evaluator;
     private final List<HonsCell> brokenCells;
     private final List<String> brokenCellReasons;
     private final boolean verbose;
 
-    public MemoEvalChecker(HonsHeap heap, IEvaluator<HonsValue> evaluator, boolean verbose) {
-        this.heap = heap;
+    public MemoEvalChecker(HonsMachine machine, IEvaluator<HonsValue> evaluator, boolean verbose) {
+        this.machine = machine;
         this.evaluator = evaluator;
         this.brokenCells = new ArrayList<>();
         this.brokenCellReasons = new ArrayList<>();
         this.verbose = verbose;
     }
     
-    public static void checkHeap(HonsHeap heap, IEvaluator<HonsValue> evaluator, boolean verbose) {
+    public static void checkHeap(HonsMachine heap, IEvaluator<HonsValue> evaluator, boolean verbose) {
         heap.iterateHeap(new MemoEvalChecker(heap, evaluator, verbose));
     }
     
-    public static void checkHeap(HonsHeap heap, IEvaluator<HonsValue> evaluator) {
+    public static void checkHeap(HonsMachine heap, IEvaluator<HonsValue> evaluator) {
         checkHeap(heap, evaluator, false);
     }
     
     private boolean isNormalForm(HonsValue val) {
         if (val.isNil() || val.isSmallInt() || val.isSpecial())
             return true;
-        else if (heap.isSymbol(val))
+        else if (machine.isSymbol(val))
             return true;
         
         if (val.isConsRef()) {
-            if (heap.isSymbol(heap.fst(val)) && heap.symbolNameAsString(heap.fst(val)).startsWith("*"))
+            if (machine.isSymbol(machine.fst(val)) && machine.symbolNameAsString(machine.fst(val)).startsWith("*"))
                 return true;
         }
         
@@ -48,7 +48,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
     private boolean isHeadNormalForm(HonsValue val) {
         if (!val.isConsRef())
             return true;
-        return isNormalForm(heap.fst(val));
+        return isNormalForm(machine.fst(val));
     }
     
     @Override
@@ -100,8 +100,8 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         for (int idx = 0; idx < brokenCells.size(); idx++) {
             var cell = brokenCells.get(idx);
             var reason = brokenCellReasons.get(idx);
-            System.err.printf("%s: %s%n  %s%n", reason, cell, heap.valueToString(cell.toValue()));
-            System.err.printf("  memoEval: %s%n", heap.valueToString(cell.getMemoEval()));
+            System.err.printf("%s: %s%n  %s%n", reason, cell, machine.valueToString(cell.toValue()));
+            System.err.printf("  memoEval: %s%n", machine.valueToString(cell.getMemoEval()));
         }
 
 //        heap.dumpHeap(System.err);

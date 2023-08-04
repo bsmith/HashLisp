@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.expr.*;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
@@ -28,14 +28,14 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     }
     
     private final @NotNull LazyEvaluator evaluator;
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
     private final @NotNull Primitives primitives;
     private final @NotNull Assignments assignments;
     private final @NotNull TakePut<IExpr> result;
 
     public SubstituteVisitor(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments) {
         this.evaluator = evaluator;
-        this.heap = evaluator.getContext().heap;
+        this.heap = evaluator.getContext().machine;
         this.primitives = evaluator.getPrimitives();
         this.assignments = assignments;
         this.result = new TakePut<>();

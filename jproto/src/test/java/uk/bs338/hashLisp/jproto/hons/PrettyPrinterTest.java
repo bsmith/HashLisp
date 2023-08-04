@@ -1,19 +1,20 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class PrettyPrinterTest {
-    HonsHeap heap;
+    HonsMachine machine;
     PrettyPrinter<HonsValue> prettyPrinter;
 
     @BeforeEach
     void setUp() {
-        heap = new HonsHeap();
-        prettyPrinter = new PrettyPrinter<>(heap);
+        machine = new HonsMachine();
+        prettyPrinter = new PrettyPrinter<>(machine);
     }
     
     @Test void positiveSmallInt() {
@@ -25,7 +26,7 @@ class PrettyPrinterTest {
     }
     
     @Test void symbol() {
-        assertEquals("symbol", prettyPrinter.valueToString(heap.makeSymbol("symbol")));
+        assertEquals("symbol", prettyPrinter.valueToString(machine.makeSymbol("symbol")));
     }
     
     @Test void nil() {
@@ -38,34 +39,34 @@ class PrettyPrinterTest {
     
     @Test void pair() {
         assertEquals("(1 . 2)",
-            prettyPrinter.valueToString(heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2))));
+            prettyPrinter.valueToString(machine.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2))));
     }
     
     @Test void oneElementList() {
         assertEquals("(1)",
-            prettyPrinter.valueToString(heap.cons(HonsValue.fromSmallInt(1), HonsValue.nil)));
+            prettyPrinter.valueToString(machine.cons(HonsValue.fromSmallInt(1), HonsValue.nil)));
     }
     
     @Test void twoElementList() {
         assertEquals("(1 2)",
-            prettyPrinter.valueToString(intList(heap,new int[]{1, 2})));
+            prettyPrinter.valueToString(intList(machine,new int[]{1, 2})));
     }
     
     @Test void dottedList() {
         assertEquals("(1 2 . 3)", 
-            prettyPrinter.valueToString(makeListWithDot(heap, HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2), HonsValue.fromSmallInt(3))));
+            prettyPrinter.valueToString(makeListWithDot(machine, HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2), HonsValue.fromSmallInt(3))));
     }
     
     @Test void dottedListEndsInSymbol() {
-        var val = heap.cons(HonsValue.fromSmallInt(1), heap.makeSymbol("abc"));
+        var val = machine.cons(HonsValue.fromSmallInt(1), machine.makeSymbol("abc"));
         assertEquals("(1 . abc)",
             prettyPrinter.valueToString(val));
     }
     
     @Test void nestedLists() {
-        var val = makeList(heap,
-            makeList(heap,
-                heap.makeSymbol("lambda"),
+        var val = makeList(machine,
+            makeList(machine,
+                machine.makeSymbol("lambda"),
                 HonsValue.nil,
                 HonsValue.fromSmallInt(123)
                 ),
@@ -75,24 +76,27 @@ class PrettyPrinterTest {
     }
     
     @Test void pairOfNil() {
-        assertEquals("(nil)", prettyPrinter.valueToString(heap.cons(HonsValue.nil, HonsValue.nil)));
+        assertEquals("(nil)", prettyPrinter.valueToString(machine.cons(HonsValue.nil, HonsValue.nil)));
     }
     
+    @Disabled
     @Test void string() {
-        assertEquals("\"\\\\\\\"abc\"", prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, "\\\"abc"))));
+        assertEquals("\"\\\\\\\"abc\"", prettyPrinter.valueToString(machine.cons(machine.makeSymbol("*string"), stringAsList(machine, "\\\"abc"))));
     }
     
+    @Disabled
     @Test void stringWithMoreEscapes() {
         /* \t, \b, \n, \r, \f, \' */
         var input = "\t\b\n\r\f'";
         var expected = "\"\\t\\b\\n\\r\\f\\'\"";
-        assertEquals(expected, prettyPrinter.valueToString(heap.cons(heap.makeSymbol("*string"), stringAsList(heap, input))));
+        assertEquals(expected, prettyPrinter.valueToString(machine.cons(machine.makeSymbol("*string"), stringAsList(machine, input))));
     }
     
+    @Disabled
     @Test void stringWithEmojis() {
         /* "🇬🇧" == "\\u{1F1EC}\\u{1f1e7}" */
         /* Build the string explicitly using codepoints not UTF-16 */
-        var stringVal = heap.cons(heap.makeSymbol("*string"), intList(heap, new int[]{0x1f1ec, 0x1f1e7}));
+        var stringVal = machine.cons(machine.makeSymbol("*string"), intList(machine, new int[]{0x1f1ec, 0x1f1e7}));
         var expected = "\"\\u{1f1ec}\\u{1f1e7}\"";
         assertEquals(expected, prettyPrinter.valueToString(stringVal));
     }

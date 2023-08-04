@@ -3,7 +3,7 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
@@ -14,12 +14,12 @@ import java.util.Set;
 import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
 public class Primitives {
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
 //    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Map<HonsValue, IPrimitive> primitives;
 //    private final @NotNull HonsValue lambdaTag;
 
-    public Primitives(@NotNull HonsHeap heap) {
+    public Primitives(@NotNull HonsMachine heap) {
         this.heap = heap;
 //        this.exprFactory = exprFactory;
         this.primitives = new HashMap<>();

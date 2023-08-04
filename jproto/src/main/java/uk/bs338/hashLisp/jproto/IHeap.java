@@ -1,9 +1,11 @@
 package uk.bs338.hashLisp.jproto;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.PrettyPrinter;
+import org.jetbrains.annotations.Nullable;
 
-public interface IHeap<V extends IValue> extends IValueFactory<V> {
+import java.util.Optional;
+
+public interface IHeap<V extends IValue> {
     @NotNull
     V cons(@NotNull V fst, @NotNull V snd);
     
@@ -20,23 +22,9 @@ public interface IHeap<V extends IValue> extends IValueFactory<V> {
         return uncons(val).snd();
     }
 
-    @NotNull
-    V makeSymbol(@NotNull V name);
+    @NotNull Optional<V> getMemoEval(@NotNull V val);
+
+    void setMemoEval(@NotNull V val, @Nullable V evalResult);
     
-    @NotNull
-    V makeSymbol(@NotNull String name);
-
-    boolean isSymbol(@NotNull V symbol);
-
-    @NotNull
-    V symbolName(@NotNull V symbol);
-
-    @NotNull
-    String symbolNameAsString(@NotNull V symbol);
-    
-    default @NotNull String valueToString(V val) {
-        return PrettyPrinter.valueToString(this, val);
-    }
-
     // --Commented out by Inspection (13/06/2023, 19:33):void dumpHeap(PrintStream stream);
 }

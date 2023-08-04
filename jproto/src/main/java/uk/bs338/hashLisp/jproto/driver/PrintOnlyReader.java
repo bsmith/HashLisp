@@ -5,13 +5,13 @@ import uk.bs338.hashLisp.jproto.*;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
 
 public class PrintOnlyReader<V extends IValue> implements IReader<V> {
-    private final @NotNull IHeap<V> heap;
+    private final @NotNull IMachine<V> heap;
     private final @NotNull IReader<V> reader;
     private final @NotNull V nil;
     private final @NotNull V ioPrintSym;
     private final @NotNull V quoteSym;
 
-    public PrintOnlyReader(@NotNull IHeap<V> heap, @NotNull IReader<V> reader) {
+    public PrintOnlyReader(@NotNull IMachine<V> heap, @NotNull IReader<V> reader) {
         this.heap = heap;
         this.reader = reader;
         nil = heap.nil();

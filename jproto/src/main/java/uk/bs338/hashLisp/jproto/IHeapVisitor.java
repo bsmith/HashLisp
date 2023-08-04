@@ -8,7 +8,7 @@ public interface IHeapVisitor<V extends IValue> {
     void visitSymbol(@NotNull V visited, @NotNull V val);
     void visitCons(@NotNull V visited, @NotNull V fst, @NotNull V snd);
     
-    default void visitValue(@NotNull IHeap<V> heap, @NotNull V val) {
+    default void visitValue(@NotNull IMachine<V> heap, @NotNull V val) {
         if (val.isNil())
             this.visitNil(val);
         else if (val.isSmallInt())

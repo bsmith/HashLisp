@@ -1,7 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.ArrayList;
@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class ArgSpec {
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
     private HonsValue slurpyName;
 
-    public ArgSpec(@NotNull HonsHeap heap, @NotNull HonsValue argSpec) throws EvalException {
+    public ArgSpec(@NotNull HonsMachine heap, @NotNull HonsValue argSpec) throws EvalException {
         this.heap = heap;
         this.origArgSpec = argSpec;
         

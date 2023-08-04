@@ -1,17 +1,17 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ArgSpecCache implements IArgSpecFactory {
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine heap;
     private final @NotNull Map<HonsValue, ArgSpec> cache;
 
-    public ArgSpecCache(@NotNull HonsHeap heap) {
+    public ArgSpecCache(@NotNull HonsMachine heap) {
         this.heap = heap;
         this.cache = new HashMap<>();
     }

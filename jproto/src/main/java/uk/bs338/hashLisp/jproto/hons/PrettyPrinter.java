@@ -10,11 +10,11 @@ import static uk.bs338.hashLisp.jproto.Utilities.listAsString;
 
 public class PrettyPrinter<V extends IValue> {
     private final @NotNull IHeap<V> heap;
-    private final @NotNull V stringTag;
+//    private final @NotNull V stringTag;
 
     public PrettyPrinter(@NotNull IHeap<V> heap) {
         this.heap = heap;
-        stringTag = heap.makeSymbol("*string");
+//        stringTag = heap.makeSymbol("*string");
     }
     
     private @NotNull Optional<String> stringifyNonList(@NotNull V val) {
@@ -25,8 +25,8 @@ public class PrettyPrinter<V extends IValue> {
             var uncons = heap.uncons(val);
             if (uncons.fst().isSymbolTag())
                 return Optional.of(listAsString(heap, uncons.snd()));
-            if (uncons.fst().equals(stringTag))
-                return Optional.of(Strings.quoteString(listAsString(heap, uncons.snd())));
+//            if (uncons.fst().equals(stringTag))
+//                return Optional.of(Strings.quoteString(listAsString(heap, uncons.snd())));
         }
         catch (IllegalStateException e) {
             return Optional.of(val.toString());

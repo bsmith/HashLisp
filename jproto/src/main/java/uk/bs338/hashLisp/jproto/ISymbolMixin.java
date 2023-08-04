@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 /* This mixin extends a heap with symbol support */
-public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
+public interface ISymbolMixin<V extends IValue> extends IMachine<V> {
     default @NotNull V makeSymbol(@NotNull V name) {
         return cons(symbolTag(), name);
     }

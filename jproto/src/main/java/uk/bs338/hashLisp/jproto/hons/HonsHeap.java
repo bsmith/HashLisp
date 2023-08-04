@@ -4,7 +4,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
 import java.io.PrintStream;
@@ -12,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class HonsHeap implements
-    IHeap<HonsValue>,
-    ISymbolMixin<HonsValue>
+    IHeap<HonsValue>
 {
     private HonsCell[] table;
     private int tableLoad;
@@ -85,21 +83,6 @@ public class HonsHeap implements
         return null;
     }
 
-    @Override
-    public @NotNull HonsValue nil() {
-        return HonsValue.nil;
-    }
-
-    @Override
-    public @NotNull HonsValue makeSmallInt(int num) {
-        return HonsValue.fromSmallInt(num);
-    }
-
-    @Override
-    public @NotNull HonsValue symbolTag() {
-        return HonsValue.symbolTag;
-    }
-
     @NotNull
     public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
@@ -128,9 +111,9 @@ public class HonsHeap implements
         for (int idx = 0; idx < table.length; idx++) {
             var cell = table[idx];
             if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null)) {
-                stream.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
+                stream.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(this, cell.toValue()));
                 if (cell.getMemoEval() != null)
-                    stream.printf("  memoEval: %s%n", valueToString(cell.getMemoEval()));
+                    stream.printf("  memoEval: %s%n", PrettyPrinter.valueToString(this, cell.getMemoEval()));
             }
         }
     }
@@ -190,7 +173,7 @@ public class HonsHeap implements
             
             for (var idx : brokenCells) {
                 var cell = table[idx];
-                System.err.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
+                System.err.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(this, cell.toValue()));
             }
             
             dumpHeap(System.err);

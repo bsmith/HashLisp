@@ -2,64 +2,63 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.Utilities;
-import uk.bs338.hashLisp.jproto.expr.*;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class IExprTest {
-    HonsHeap heap;
+    HonsMachine machine;
     IExpr nil, smallInt, sym, cons;
     
     @BeforeEach
     void setUp() {
-        heap = new HonsHeap();
-        nil = IExpr.wrap(heap, HonsValue.nil);
-        smallInt = IExpr.wrap(heap, HonsValue.fromSmallInt(123));
-        sym = IExpr.wrap(heap, heap.makeSymbol("symbol"));
-        cons = IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue()));
+        machine = new HonsMachine();
+        nil = IExpr.wrap(machine, HonsValue.nil);
+        smallInt = IExpr.wrap(machine, HonsValue.fromSmallInt(123));
+        sym = IExpr.wrap(machine, machine.makeSymbol("symbol"));
+        cons = IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue()));
     }
     
     @AfterEach
     void validateHeap() {
-        heap.validateHeap();
+        machine.getHeap().validateHeap();
     }
     
     @Nested
     class Equals {
         @Test
         void equalsTheSameWrappedValue() {
-            assertEquals(nil, IExpr.wrap(heap, HonsValue.nil));
-            assertEquals(smallInt, IExpr.wrap(heap, HonsValue.fromSmallInt(123)));
-            assertEquals(sym, IExpr.wrap(heap, heap.makeSymbol("symbol")));
-            assertEquals(cons, IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue())));
+            assertEquals(nil, IExpr.wrap(machine, HonsValue.nil));
+            assertEquals(smallInt, IExpr.wrap(machine, HonsValue.fromSmallInt(123)));
+            assertEquals(sym, IExpr.wrap(machine, machine.makeSymbol("symbol")));
+            assertEquals(cons, IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue())));
         }
 
         @Test
         void hashCodeTheSameForTheSameWrappedValue() {
-            assertEquals(nil.hashCode(), IExpr.wrap(heap, HonsValue.nil).hashCode());
-            assertEquals(smallInt.hashCode(), IExpr.wrap(heap, HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), IExpr.wrap(heap, heap.makeSymbol("symbol")).hashCode());
-            assertEquals(cons.hashCode(), IExpr.wrap(heap, heap.cons(sym.getValue(), smallInt.getValue())).hashCode());
+            assertEquals(nil.hashCode(), IExpr.wrap(machine, HonsValue.nil).hashCode());
+            assertEquals(smallInt.hashCode(), IExpr.wrap(machine, HonsValue.fromSmallInt(123)).hashCode());
+            assertEquals(sym.hashCode(), IExpr.wrap(machine, machine.makeSymbol("symbol")).hashCode());
+            assertEquals(cons.hashCode(), IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
         
         @Test
         void notEqualsWhenHeapDifferent() {
-            HonsHeap heap2 = new HonsHeap();
-            assertNotEquals(nil, IExpr.wrap(heap2, HonsValue.nil));
-            assertNotEquals(smallInt, IExpr.wrap(heap2, HonsValue.fromSmallInt(123)));
-            assertNotEquals(sym, IExpr.wrap(heap2, heap2.makeSymbol("symbol")));
-            assertNotEquals(cons, IExpr.wrap(heap2, heap2.cons(sym.getValue(), smallInt.getValue())));
+            HonsMachine machine2 = new HonsMachine();
+            assertNotEquals(nil, IExpr.wrap(machine2, HonsValue.nil));
+            assertNotEquals(smallInt, IExpr.wrap(machine2, HonsValue.fromSmallInt(123)));
+            assertNotEquals(sym, IExpr.wrap(machine2, machine2.makeSymbol("symbol")));
+            assertNotEquals(cons, IExpr.wrap(machine2, machine2.cons(sym.getValue(), smallInt.getValue())));
         }
 
         @Test
         void differentHashCodeWhenHeapDifferent() {
-            HonsHeap heap2 = new HonsHeap();
-            assertNotEquals(nil.hashCode(), IExpr.wrap(heap2, HonsValue.nil).hashCode());
-            assertNotEquals(smallInt.hashCode(), IExpr.wrap(heap2, HonsValue.fromSmallInt(123)).hashCode());
-            assertNotEquals(sym.hashCode(), IExpr.wrap(heap2, heap2.makeSymbol("symbol")).hashCode());
-            assertNotEquals(cons.hashCode(), IExpr.wrap(heap2, heap2.cons(sym.getValue(), smallInt.getValue())).hashCode());
+            HonsMachine machine2 = new HonsMachine();
+            assertNotEquals(nil.hashCode(), IExpr.wrap(machine2, HonsValue.nil).hashCode());
+            assertNotEquals(smallInt.hashCode(), IExpr.wrap(machine2, HonsValue.fromSmallInt(123)).hashCode());
+            assertNotEquals(sym.hashCode(), IExpr.wrap(machine2, machine2.makeSymbol("symbol")).hashCode());
+            assertNotEquals(cons.hashCode(), IExpr.wrap(machine2, machine2.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
     }
     
@@ -86,7 +85,7 @@ class IExprTest {
             assertTrue(sym.isSimple());
             assertTrue(sym.isSymbol());
             assertFalse(sym.isCons());
-            assertEquals("symbol", heap.symbolNameAsString(sym.getValue()));
+            assertEquals("symbol", machine.symbolNameAsString(sym.getValue()));
         }
 
         @Test
@@ -94,7 +93,7 @@ class IExprTest {
             assertFalse(cons.isSimple());
             assertFalse(cons.isSymbol());
             assertTrue(cons.isCons());
-            assertEquals(heap.cons(sym.getValue(), smallInt.getValue()), cons.getValue());
+            assertEquals(machine.cons(sym.getValue(), smallInt.getValue()), cons.getValue());
         }
     }
     
@@ -104,7 +103,7 @@ class IExprTest {
         void symbolName() {
             assertInstanceOf(ISymbolExpr.class, sym);
             var symExpr = (ISymbolExpr)sym;
-            assertEquals(Utilities.stringAsList(heap, "symbol"), symExpr.symbolName().getValue());
+            assertEquals(Utilities.stringAsList(machine, "symbol"), symExpr.symbolName().getValue());
         }
         
         @Test

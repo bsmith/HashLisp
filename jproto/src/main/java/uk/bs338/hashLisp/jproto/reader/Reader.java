@@ -1,7 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.IHeap;
+import uk.bs338.hashLisp.jproto.IMachine;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.hons.Strings;
@@ -19,20 +19,20 @@ public class Reader implements IReader<HonsValue> {
     public record ReadError(@NotNull String reason, Token token) {
     }
     
-    private final IHeap<HonsValue> heap;
+    private final IMachine<HonsValue> machine;
     private final ITokeniserFactory tokeniserFactory;
     private @NotNull List<ReadError> errors;
     private HonsValue stringSym = null;
 
-    public Reader(IHeap<HonsValue> heap, ITokeniserFactory tokeniserFactory) {
-        this.heap = heap;
+    public Reader(IMachine<HonsValue> machine, ITokeniserFactory tokeniserFactory) {
+        this.machine = machine;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = new ArrayList<>();
     }
     
     private @NotNull HonsValue getStringSym() {
         if (stringSym == null)
-            stringSym = heap.makeSymbol("*string");
+            stringSym = machine.makeSymbol("*string");
         return stringSym;
     }
     
@@ -44,7 +44,7 @@ public class Reader implements IReader<HonsValue> {
         if (token.getType() == TokenType.DIGITS) {
             return Optional.of(HonsValue.fromSmallInt(token.getTokenAsInt()));
         } else if (token.getType() == TokenType.SYMBOL) {
-            return Optional.of(heap.makeSymbol(token.getToken()));
+            return Optional.of(machine.makeSymbol(token.getToken()));
         } else if (token.getType() == TokenType.HASH) {
             Token token2 = tokeniser.next();
             if (token2.getType() == TokenType.DIGITS && token2.getTokenAsInt() == 0) {
@@ -55,7 +55,7 @@ public class Reader implements IReader<HonsValue> {
         } else if (token.getType() == TokenType.STRING) {
             try {
                 var string = Strings.unescapeString(token.getToken());
-                return Optional.of(heap.cons(getStringSym(), stringAsList(heap, string)));
+                return Optional.of(machine.cons(getStringSym(), stringAsList(machine, string)));
             }
             catch (Exception e) {
                 addError("Failed to parse STRING token due to exception: " + e, token);
@@ -81,7 +81,7 @@ public class Reader implements IReader<HonsValue> {
             if (token.getType() == TokenType.CLOSE_PARENS) {
                 if (listContents.isEmpty())
                     return Optional.of(HonsValue.nil);
-                return Optional.of(makeList(heap, listContents.toArray(new HonsValue[]{})));
+                return Optional.of(makeList(machine, listContents.toArray(new HonsValue[]{})));
             } else if (token.getType() == TokenType.DOT) {
                 Optional<HonsValue> snd = readOneValue(tokeniser);
                 if (snd.isEmpty()) {
@@ -98,7 +98,7 @@ public class Reader implements IReader<HonsValue> {
                     addError("Not a closing parenthesis in list after dot: ", token2);
                     return Optional.empty();
                 }
-                return Optional.of(makeListWithDot(heap, listContents.toArray(new HonsValue[]{})));
+                return Optional.of(makeListWithDot(machine, listContents.toArray(new HonsValue[]{})));
             }
             else {
                 Optional<HonsValue> interpretation = interpretToken(tokeniser, token);

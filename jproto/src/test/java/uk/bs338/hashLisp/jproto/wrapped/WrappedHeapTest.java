@@ -2,23 +2,23 @@ package uk.bs338.hashLisp.jproto.wrapped;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /* Just tests the interesting bits, not every delegation */
 class WrappedHeapTest {
-    HonsHeap heap;
+    HonsMachine machine;
     WrappedHeap wrap;
     
     @BeforeEach void setUp() {
-        heap = new HonsHeap();
-        wrap = WrappedHeap.wrap(heap);
+        machine = new HonsMachine();
+        wrap = WrappedHeap.wrap(machine);
     }
     
     @Test void wrappingTheSameHeapComparesEqual() {
-        var wrap2 = WrappedHeap.wrap(heap);
+        var wrap2 = WrappedHeap.wrap(machine);
         assertEquals(wrap, wrap2);
         assertEquals(wrap.hashCode(), wrap2.hashCode());
     }
@@ -36,7 +36,7 @@ class WrappedHeapTest {
     }
     
     @Test void unwrapChecksHeapMatchesOrThrowsException() {
-        WrappedHeap wrap2 = WrappedHeap.wrap(new HonsHeap());
+        WrappedHeap wrap2 = WrappedHeap.wrap(new HonsMachine());
         var val1 = wrap.wrap(HonsValue.fromSmallInt(123));
         var val2 = wrap2.wrap(HonsValue.fromSmallInt(456));
         assertThrows(IllegalArgumentException.class, () -> wrap2.unwrap(val1));
