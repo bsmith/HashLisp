@@ -3,9 +3,9 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
+import uk.bs338.hashLisp.jproto.expr.IConsExpr;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
