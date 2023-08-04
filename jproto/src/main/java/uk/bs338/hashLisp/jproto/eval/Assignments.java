@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.eval.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -11,14 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Assignments {
-    private final @NotNull ExprFactory exprFactory;
     private final @NotNull HonsHeap heap;
     private @Nullable HonsValue assignmentsAsValue;
     private final @NotNull Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(@NotNull ExprFactory exprFactory, @NotNull Map<HonsValue, HonsValue> assignments) {
-        this.exprFactory = exprFactory;
-        this.heap = exprFactory.getHeap();
+    public Assignments(@NotNull HonsHeap heap, @NotNull Map<HonsValue, HonsValue> assignments) {
+        this.heap = heap;
         this.assignmentsAsValue = null;
         this.assignments = assignments;
     }
@@ -50,7 +47,7 @@ class Assignments {
             return this;
         var reducedAssignments = new HashMap<>(assignments);
         reducedAssignments.keySet().removeAll(names);
-        return new Assignments(exprFactory, reducedAssignments);
+        return new Assignments(heap, reducedAssignments);
     }
     
     public @NotNull Assignments addAssignments(Map<HonsValue, HonsValue> newAssignments) {
@@ -58,6 +55,6 @@ class Assignments {
             return this;
         var combined = new HashMap<>(assignments);
         combined.putAll(newAssignments);
-        return new Assignments(exprFactory, combined);
+        return new Assignments(heap, combined);
     }
 }

@@ -3,10 +3,9 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
-import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
+import uk.bs338.hashLisp.jproto.expr.IConsExpr;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -16,7 +15,7 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsHeap heap;
-    private final @NotNull ExprFactory exprFactory;
+    private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
     private final @NotNull ISymbolExpr blackholeSentinel;
@@ -24,19 +23,27 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
     public LazyEvaluator(@NotNull HonsHeap heap) {
         this.heap = heap;
-        exprFactory = new ExprFactory(heap);
-        primitives = new Primitives(heap);
-        argSpecCache = new ArgSpecCache(exprFactory);
-        blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
+        this.context = new EvalContext(heap);
+        argSpecCache = context.argSpecCache;
+        primitives = new Primitives(context.heap);
+        blackholeSentinel = IExpr.wrap(heap, context.blackholeTag).asSymbolExpr();
         debug = false;
     }
     
     public void setDebug(boolean flag) {
         debug = flag;
     }
-    
+
+    public @NotNull EvalContext getContext() {
+        return context;
+    }
+
+    public @NotNull Primitives getPrimitives() {
+        return primitives;
+    }
+
     private IExpr wrap(HonsValue value) {
-        return exprFactory.wrap(value);
+        return IExpr.wrap(heap, value);
     }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
@@ -69,7 +76,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
-        return SubstituteVisitor.substitute(exprFactory, primitives, assignments, body);
+        return SubstituteVisitor.substitute(this, assignments, body);
     }
 
     /* result needs further evaluation */
@@ -234,7 +241,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
             /* push all the values onto the evaluation queue */
             for (var val : vals) {
-                evaluateIfNeeded(evaluationQueue, exprFactory.wrap(val));
+                evaluateIfNeeded(evaluationQueue, wrap(val));
             }
 
             evaluateQueue(evaluationQueue);
@@ -245,7 +252,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
         /* Now update them all in-place */
         vals.replaceAll(val -> {
-            var expr = exprFactory.wrap(val);
+            var expr = wrap(val);
             if (expr.isNormalForm())
                 return val;
             var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());

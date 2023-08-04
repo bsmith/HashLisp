@@ -1,4 +1,4 @@
-package uk.bs338.hashLisp.jproto.eval.expr;
+package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -8,113 +8,65 @@ import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
-import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ExprFactory {
+abstract class ExprBase implements IExpr {
     protected final @NotNull HonsHeap heap;
-    protected final @NotNull HonsValue lambdaTag;
-    protected final @NotNull EnumMap<Tag, ISymbolExpr> tagSymbols;
-    
-    public ExprFactory(@NotNull HonsHeap heap) {
+    protected final @NotNull HonsValue value;
+
+    private ExprBase(@NotNull HonsHeap heap, @NotNull HonsValue value) {
         this.heap = heap;
-        lambdaTag = heap.makeSymbol("*lambda");
-        tagSymbols = new EnumMap<>(Tag.class);
+        this.value = value;
     }
 
     public @NotNull HonsHeap getHeap() {
         return heap;
     }
-    
-    /* classify the Expr for the purposes of the evaluator
-     *   simple: nil, smallInt, symbol
-     *   application: any other cons-ref
-     */
-    public @NotNull IExpr wrap(@NotNull HonsValue value) {
-        if (value.isConsRef()) {
-            if (heap.isSymbol(value))
-                return new SymbolExpr(value);
-            return new ConsExpr(value);
-        }
-        return new SimpleExpr(value);
+
+    public @NotNull HonsValue getValue() {
+        return value;
+    }
+
+    protected IExpr wrap(HonsValue value) {
+        return IExpr.wrap(heap, value);
     }
 
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IExpr wrapped) {
+    protected HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
         if (wrapped.isSimple())
             return wrapped.getValue();
         if (heap != wrapped.getHeap())
-            throw new IllegalArgumentException("Mismatched heap between IExpr and ExprFactory");
+            throw new IllegalArgumentException("Mismatched heap between IExpr objects");
         return wrapped.getValue();
-    }
-    
-    public @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        return wrap(heap.cons(unwrap(left), unwrap(right))).asConsExpr();
-    }
-    
-    public @NotNull ISymbolExpr makeSymbol(@NotNull String name) {
-        return wrap(heap.makeSymbol(name)).asSymbolExpr();
-    }
-    
-    public @NotNull ISymbolExpr makeSymbol(@NotNull Tag tag) {
-        return tagSymbols.computeIfAbsent(tag, t -> makeSymbol(t.getSymbolStr()));
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExprFactory that = (ExprFactory) o;
-        return Objects.equals(heap, that.heap);
+        ExprBase exprBase = (ExprBase) o;
+        return Objects.equals(getHeap(), exprBase.getHeap()) && Objects.equals(getValue(), exprBase.getValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(heap);
+        return Objects.hash(getHeap(), getValue());
     }
 
-    private abstract class ExprBase implements IExpr {
-        protected final @NotNull HonsValue value;
-
-        private ExprBase(@NotNull HonsValue value) {
-            this.value = value;
-        }
-        
-        public @NotNull HonsHeap getHeap() {
-            return heap;
-        }
-        
-        public @NotNull HonsValue getValue() {
-            return value;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ExprBase exprBase = (ExprBase) o;
-            return Objects.equals(value, exprBase.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(value);
-        }
-
-        @Override
-        public @NotNull String valueToString() {
-            return heap.valueToString(value);
-        }
+    @Override
+    public @NotNull String valueToString() {
+        return heap.valueToString(value);
     }
-    
-    public class SimpleExpr extends ExprBase implements ISimpleExpr {
-        private SimpleExpr(@NotNull HonsValue value) {
-            super(value);
+
+
+    public static class SimpleExpr extends ExprBase implements ISimpleExpr {
+        SimpleExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+            super(heap, value);
         }
-        
+
         @Override public boolean isSimple() {
             return true;
         }
@@ -124,13 +76,13 @@ public class ExprFactory {
             return visitor;
         }
     }
-    
-    public class SymbolExpr extends SimpleExpr implements ISymbolExpr {
-        private SymbolExpr(@NotNull HonsValue value) {
-            super(value);
+
+    public static class SymbolExpr extends SimpleExpr implements ISymbolExpr {
+        SymbolExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+            super(heap, value);
             assert heap.isSymbol(value);
         }
-        
+
         @Override public boolean isSymbol() {
             return true;
         }
@@ -164,18 +116,21 @@ public class ExprFactory {
 
         @Override
         public boolean isTag(Tag tag) {
-            return value.equals(makeSymbol(tag).getValue());
+            /* XXX slow implementation */
+            return value.equals(heap.makeSymbol(tag.getSymbolStr()));
+//            throw new Error("unimplemented");
+//            return value.equals(makeSymbol(tag).getValue());
         }
     }
-    
+
     /* XXX how is this different from ConsPair?! */
-    public class ConsExpr extends ExprBase implements IConsExpr {
+    public static class ConsExpr extends ExprBase implements IConsExpr {
         private final ConsPair<HonsValue> uncons;
         private IExpr fst;
         private IExpr snd;
 
-        private ConsExpr(@NotNull HonsValue value) {
-            super(value);
+        ConsExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+            super(heap, value);
             assert value.isConsRef();
             /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
 //            var uncons = heap.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
@@ -210,9 +165,9 @@ public class ExprFactory {
 
         @Override
         public @NotNull Optional<IExpr> getMemoEval() {
-            return heap.getMemoEval(value).map(ExprFactory.this::wrap);
+            return heap.getMemoEval(value).map(this::wrap);
         }
-        
+
         @Override
         public void setMemoEval(@Nullable IExpr expr) {
             var memo = expr == null ? null : unwrap(expr);

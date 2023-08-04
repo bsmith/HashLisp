@@ -1,18 +1,18 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
+import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ArgSpecCache implements IArgSpecFactory {
-    private final ExprFactory exprFactory;
-    private final Map<HonsValue, ArgSpec> cache;
+    private final @NotNull HonsHeap heap;
+    private final @NotNull Map<HonsValue, ArgSpec> cache;
 
-    public ArgSpecCache(ExprFactory exprFactory) {
-        this.exprFactory = exprFactory;
+    public ArgSpecCache(@NotNull HonsHeap heap) {
+        this.heap = heap;
         this.cache = new HashMap<>();
     }
 
@@ -22,7 +22,7 @@ public class ArgSpecCache implements IArgSpecFactory {
 //        return cache.computeIfAbsent(argSpec, (spec) -> new ArgSpec(heap, spec));
         var value = cache.get(argSpec);
         if (value == null) {
-            value = new ArgSpec(exprFactory, argSpec);
+            value = new ArgSpec(heap, argSpec);
             cache.put(argSpec, value);
         }
         return value;
