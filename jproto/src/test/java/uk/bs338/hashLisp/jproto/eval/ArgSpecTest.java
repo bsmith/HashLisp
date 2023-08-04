@@ -18,7 +18,7 @@ class ArgSpecTest {
     void setUp() throws EvalException {
         heap = new HonsHeap();
         exprFactory = new ExprFactory(heap);
-        argSpec = new ArgSpec(exprFactory, Utilities.makeListWithDot(heap,
+        argSpec = new ArgSpec(heap, Utilities.makeListWithDot(heap,
             heap.makeSymbol("a"),
             heap.makeSymbol("b"),
             heap.makeSymbol("rest")));

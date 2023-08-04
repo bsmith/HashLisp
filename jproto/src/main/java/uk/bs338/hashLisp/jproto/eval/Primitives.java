@@ -143,7 +143,7 @@ public class Primitives {
     private class Lambda implements IPrimitive<HonsValue> {
         @Override
         public @NotNull HonsValue apply(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
-            var argSpec = new ArgSpec(exprFactory, heap.fst(args));
+            var argSpec = new ArgSpec(heap, heap.fst(args));
             var body = heap.fst(heap.snd(args));
             return heap.cons(lambdaTag, heap.cons(argSpec.getOrigArgSpec(), heap.cons(body, HonsValue.nil)));
         }
@@ -162,7 +162,7 @@ public class Primitives {
              * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
              */
             try {
-                var parsedSpec = new ArgSpec(exprFactory, argSpec);
+                var parsedSpec = new ArgSpec(heap, argSpec);
                 argNames = parsedSpec.getBoundVariables();
 
                 transformation = parsedSpec.alphaConversion(args.toObjectHash());
@@ -173,7 +173,7 @@ public class Primitives {
                 }
             } catch (EvalException e) {
                 /* XXX report error better */
-                transformation = new Assignments(exprFactory, Map.of());
+                transformation = new Assignments(heap, Map.of());
             }
 
             var newAssignments = substitutor.getAssignments().withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());

@@ -13,15 +13,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class ArgSpec {
-    private final @NotNull ExprFactory exprFactory;
     private final @NotNull HonsHeap heap;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
     private HonsValue slurpyName;
 
-    public ArgSpec(@NotNull ExprFactory exprFactory, @NotNull HonsValue argSpec) throws EvalException {
-        this.exprFactory = exprFactory;
-        this.heap = exprFactory.getHeap();
+    public ArgSpec(@NotNull HonsHeap heap, @NotNull HonsValue argSpec) throws EvalException {
+        this.heap = heap;
         this.origArgSpec = argSpec;
         
         parseArgSpec(argSpec);
@@ -71,7 +69,7 @@ public class ArgSpec {
         }
         if (slurpyName != null)
             assignmentsMap.put(slurpyName, curArg);
-        return new Assignments(exprFactory, assignmentsMap);
+        return new Assignments(heap, assignmentsMap);
     }
 
     @Override
@@ -111,6 +109,6 @@ public class ArgSpec {
             oldNameToNewName.put(old, heap.makeSymbol(newName));
         }
         
-        return new Assignments(exprFactory, oldNameToNewName);
+        return new Assignments(heap, oldNameToNewName);
     }
 }

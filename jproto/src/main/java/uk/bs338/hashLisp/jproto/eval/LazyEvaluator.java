@@ -26,7 +26,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         this.heap = heap;
         exprFactory = new ExprFactory(heap);
         primitives = new Primitives(heap);
-        argSpecCache = new ArgSpecCache(exprFactory);
+        argSpecCache = new ArgSpecCache(heap);
         blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
         debug = false;
     }
