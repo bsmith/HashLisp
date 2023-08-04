@@ -14,12 +14,10 @@ import java.util.Optional;
 
 public class ExprFactory {
     protected final @NotNull HonsHeap heap;
-    protected final @NotNull HonsValue lambdaTag;
     protected final @NotNull EnumMap<Tag, ISymbolExpr> tagSymbols;
     
     public ExprFactory(@NotNull HonsHeap heap) {
         this.heap = heap;
-        lambdaTag = heap.makeSymbol("*lambda");
         tagSymbols = new EnumMap<>(Tag.class);
     }
 

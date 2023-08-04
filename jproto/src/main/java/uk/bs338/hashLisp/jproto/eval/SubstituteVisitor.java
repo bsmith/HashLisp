@@ -26,14 +26,16 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         }
     }
     
+    private final @NotNull LazyEvaluator evaluator;
     private final @NotNull ExprFactory exprFactory;
     private final @NotNull Primitives primitives;
     private final @NotNull Assignments assignments;
     private final @NotNull TakePut<IExpr> result;
 
-    public SubstituteVisitor(@NotNull ExprFactory exprFactory, @NotNull Primitives primitives, @NotNull Assignments assignments) {
-        this.exprFactory = exprFactory;
-        this.primitives = primitives;
+    public SubstituteVisitor(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments) {
+        this.evaluator = evaluator;
+        this.exprFactory = evaluator.getContext().exprFactory;
+        this.primitives = evaluator.getPrimitives();
         this.assignments = assignments;
         this.result = new TakePut<>();
     }
@@ -54,7 +56,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
 
     @NotNull
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
-        return substitute(exprFactory, primitives, assignments, body);
+        return substitute(evaluator, assignments, body);
     }
 
     @Override
@@ -63,10 +65,10 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     }
 
     /* convenience function */
-    public static @NotNull IExpr substitute(@NotNull ExprFactory exprFactory, @NotNull Primitives primitives, @NotNull Assignments assignments, @NotNull IExpr body) {
+    public static @NotNull IExpr substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull IExpr body) {
         if (assignments.getAssignmentsAsMap().isEmpty())
             return body;
-        return new SubstituteVisitor(exprFactory, primitives, assignments).substitute(body);
+        return new SubstituteVisitor(evaluator, assignments).substitute(body);
     }
 
     @Override
@@ -91,7 +93,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
             
         if (consExpr.fst().isSymbol()) {
             rv = primitives.get(consExpr.fst().getValue())
-                .flatMap(prim -> prim.substitute(this, consExpr.snd().getValue()))
+                .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
                 .map(val -> exprFactory.cons(consExpr.fst(), exprFactory.wrap(val)));
         }
         
