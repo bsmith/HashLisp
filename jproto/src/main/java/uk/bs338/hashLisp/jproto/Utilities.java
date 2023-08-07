@@ -57,13 +57,13 @@ public final class Utilities {
     }
     
     @NotNull
-    public static <V extends IValue> String listAsString(@NotNull IHeap<V> m, V list) {
+    public static <V extends IValue> String listAsString(@NotNull IHeap<V> heap, V list) {
         ArrayList<Integer> codepoints = new ArrayList<>();
         var cur = list;
         while (!cur.isNil()) {
             /* XXX record patterns is a Java 19 feature */
 //                if (machine.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
-            ConsPair<V> uncons = m.uncons(cur);
+            ConsPair<V> uncons = heap.uncons(cur);
             int ch = uncons.fst().toSmallInt();
             codepoints.add(ch);
             cur = uncons.snd();

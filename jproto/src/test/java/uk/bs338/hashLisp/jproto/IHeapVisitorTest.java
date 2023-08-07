@@ -9,16 +9,16 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import static org.junit.jupiter.api.Assertions.*;
 
 class IHeapVisitorTest {
-    HonsMachine heap;
+    HonsMachine machine;
     HonsValue one, two, cons, sym;
 
     @BeforeEach
     void setUp() {
-        heap = new HonsMachine();
+        machine = new HonsMachine();
         one = HonsValue.fromSmallInt(1);
         two = HonsValue.fromSmallInt(2);
-        sym = heap.makeSymbol("sym");
-        cons = heap.cons(one, two);
+        sym = machine.makeSymbol("sym");
+        cons = machine.cons(one, two);
     }
 
         static class HeapVisitor implements IHeapVisitor<HonsValue> {
@@ -52,7 +52,7 @@ class IHeapVisitorTest {
                     visitCalled = true;
                 }
             };
-            visitor.visitValue(heap, value);
+            visitor.visitValue(machine, value);
             assertTrue(visitor.visitCalled);
         }
 
@@ -66,7 +66,7 @@ class IHeapVisitorTest {
                     visitCalled = true;
                 }
             };
-            visitor.visitValue(heap, value);
+            visitor.visitValue(machine, value);
             assertTrue(visitor.visitCalled);
         }
 
@@ -75,11 +75,11 @@ class IHeapVisitorTest {
                 public boolean visitCalled = false;
                 public void visitSymbol(@NotNull HonsValue visited, @NotNull HonsValue val) {
                     assertEquals(sym, visited);
-                    assertEquals(heap.symbolName(sym), val);
+                    assertEquals(machine.symbolName(sym), val);
                     visitCalled = true;
                 }
             };
-            visitor.visitValue(heap, sym);
+            visitor.visitValue(machine, sym);
             assertTrue(visitor.visitCalled);
         }
 
@@ -93,7 +93,7 @@ class IHeapVisitorTest {
                     visitCalled = true;
                 }
             };
-            visitor.visitValue(heap, cons);
+            visitor.visitValue(machine, cons);
             assertTrue(visitor.visitCalled);
         }
 }

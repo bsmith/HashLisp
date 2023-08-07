@@ -23,7 +23,7 @@ public class Primitives {
         this.machine = machine;
 //        this.exprFactory = exprFactory;
         this.primitives = new HashMap<>();
-//        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
+//        lambdaTag = machine.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);

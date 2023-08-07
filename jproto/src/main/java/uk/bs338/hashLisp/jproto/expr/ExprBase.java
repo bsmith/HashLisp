@@ -39,7 +39,7 @@ abstract class ExprBase implements IExpr {
         if (wrapped.isSimple())
             return wrapped.getValue();
         if (machine != wrapped.getMachine())
-            throw new IllegalArgumentException("Mismatched heap between IExpr objects");
+            throw new IllegalArgumentException("Mismatched machine between IExpr objects");
         return wrapped.getValue();
     }
 

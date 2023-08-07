@@ -93,7 +93,7 @@ public class App {
     }
     
     /* NB All HonsValues, Readers, Evaluators, etc. become invalid when you do this */
-    public void replaceHeap() {
+    public void replaceMachine() {
         machine = new HonsMachine();
     }
 
@@ -335,7 +335,7 @@ public class App {
             long loops = 0;
             while (System.nanoTime() - startTime < 10e9) {
                 /* Use a fresh Heap for each run */
-                replaceHeap();
+                replaceMachine();
                 
                 run();
                 loops++;

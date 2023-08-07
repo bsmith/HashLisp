@@ -23,12 +23,12 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         this.verbose = verbose;
     }
     
-    public static void checkHeap(HonsMachine heap, IEvaluator<HonsValue> evaluator, boolean verbose) {
-        heap.iterateHeap(new MemoEvalChecker(heap, evaluator, verbose));
+    public static void checkHeap(HonsMachine machine, IEvaluator<HonsValue> evaluator, boolean verbose) {
+        machine.iterateHeap(new MemoEvalChecker(machine, evaluator, verbose));
     }
     
-    public static void checkHeap(HonsMachine heap, IEvaluator<HonsValue> evaluator) {
-        checkHeap(heap, evaluator, false);
+    public static void checkHeap(HonsMachine machine, IEvaluator<HonsValue> evaluator) {
+        checkHeap(machine, evaluator, false);
     }
     
     private boolean isNormalForm(HonsValue val) {

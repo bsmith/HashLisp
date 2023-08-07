@@ -18,8 +18,8 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
         this.value = value;
     }
     
-    public static @NotNull WrappedValue wrap(HonsMachine heap, HonsValue value) {
-        return new WrappedValue(heap, value);
+    public static @NotNull WrappedValue wrap(HonsMachine machine, HonsValue value) {
+        return new WrappedValue(machine, value);
     }
     
     private @NotNull WrappedValue wrap(HonsValue newValue) {

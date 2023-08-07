@@ -21,7 +21,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
-    public LazyEvaluator(HonsMachine machine) {
+    public LazyEvaluator(@NotNull HonsMachine machine) {
         this.machine = machine;
         this.context = new EvalContext(machine);
         argSpecCache = context.argSpecCache;

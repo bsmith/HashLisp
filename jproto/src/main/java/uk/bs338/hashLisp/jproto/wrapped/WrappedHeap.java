@@ -36,7 +36,7 @@ public class WrappedHeap implements IMachine<WrappedValue> {
     /* was 'checkSameHeap' */
     public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
         if (machine != wrapped.getMachine())
-            throw new IllegalArgumentException("Mismatched heap between WrappedValue and WrappedHeap");
+            throw new IllegalArgumentException("Mismatched machine between WrappedValue and WrappedHeap");
         return wrapped.getValue();
     }
 

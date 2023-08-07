@@ -58,13 +58,13 @@ public interface IExpr {
      *   simple: nil, smallInt, symbol
      *   application: any other cons-ref
      */
-    static @NotNull IExpr wrap(@NotNull HonsMachine heap, @NotNull HonsValue value) {
+    static @NotNull IExpr wrap(@NotNull HonsMachine machine, @NotNull HonsValue value) {
         if (value.isConsRef()) {
-            if (heap.isSymbol(value))
-                return new ExprBase.SymbolExpr(heap, value);
-            return new ExprBase.ConsExpr(heap, value);
+            if (machine.isSymbol(value))
+                return new ExprBase.SymbolExpr(machine, value);
+            return new ExprBase.ConsExpr(machine, value);
         }
-        return new ExprBase.SimpleExpr(heap, value);
+        return new ExprBase.SimpleExpr(machine, value);
     }
     
     static @NotNull IExpr nil(@NotNull HonsMachine machine) {
@@ -76,9 +76,9 @@ public interface IExpr {
     }
     
     static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        HonsMachine heap = left.getMachine();
-        if (heap != right.getMachine())
-            throw new IllegalArgumentException("Mismatched heaps between left IExpr and right IExpr");
-        return wrap(heap, heap.cons(left.getValue(), right.getValue())).asConsExpr();
+        HonsMachine machine = left.getMachine();
+        if (machine != right.getMachine())
+            throw new IllegalArgumentException("Mismatched machines between left IExpr and right IExpr");
+        return wrap(machine, machine.cons(left.getValue(), right.getValue())).asConsExpr();
     }
 }

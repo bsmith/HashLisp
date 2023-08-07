@@ -15,7 +15,7 @@ public class PrettyPrinter<V extends IValue> {
     public PrettyPrinter(@NotNull IMachine<V> machine) {
         this.machine = machine;
         stringTag = machine.makeSymbol("*string");
-//        stringTag = heap.cons(HonsValue.symbolTag, stringAsList(heap, "*string"));
+//        stringTag = machine.cons(HonsValue.symbolTag, stringAsList(machine, "*string"));
     }
     
     private @NotNull Optional<String> stringifyNonList(@NotNull V val) {

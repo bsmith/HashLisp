@@ -12,13 +12,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class ArgSpec {
-    private final @NotNull HonsMachine heap;
+    private final @NotNull HonsMachine machine;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
     private HonsValue slurpyName;
 
-    public ArgSpec(@NotNull HonsMachine heap, @NotNull HonsValue argSpec) throws EvalException {
-        this.heap = heap;
+    public ArgSpec(@NotNull HonsMachine machine, @NotNull HonsValue argSpec) throws EvalException {
+        this.machine = machine;
         this.origArgSpec = argSpec;
         
         parseArgSpec(argSpec);
@@ -35,18 +35,18 @@ public class ArgSpec {
         var curSpec = argSpec;
         while (!curSpec.isNil()) {
             /* XXX Would a visitor make sense here? Or an iterator? */
-            if (heap.isSymbol(curSpec)) {
+            if (machine.isSymbol(curSpec)) {
                 slurpyName = curSpec;
                 break;
             } else if (curSpec.isConsRef()) {
-                var uncons = heap.uncons(curSpec);
-                if (!heap.isSymbol(uncons.fst())) {
-                    throw new EvalException("Found non-symbol " + uncons.fst() + " in argSpec: " + heap.valueToString(argSpec));
+                var uncons = machine.uncons(curSpec);
+                if (!machine.isSymbol(uncons.fst())) {
+                    throw new EvalException("Found non-symbol " + uncons.fst() + " in argSpec: " + machine.valueToString(argSpec));
                 }
                 argNames.add(uncons.fst());
                 curSpec = uncons.snd();
             } else {
-                throw new EvalException("Cannot parse argSpec at: " + heap.valueToString(curSpec));
+                throw new EvalException("Cannot parse argSpec at: " + machine.valueToString(curSpec));
             }
         }
     }
@@ -58,7 +58,7 @@ public class ArgSpec {
         for (var argName : argNames) {
             HonsValue value = HonsValue.nil;
             if (curArg.isConsRef()) {
-                var uncons = heap.uncons(curArg);
+                var uncons = machine.uncons(curArg);
                 value = uncons.fst();
                 curArg = uncons.snd();
             } else {
@@ -68,14 +68,14 @@ public class ArgSpec {
         }
         if (slurpyName != null)
             assignmentsMap.put(slurpyName, curArg);
-        return new Assignments(heap, assignmentsMap);
+        return new Assignments(machine, assignmentsMap);
     }
 
     @Override
     public String toString() {
         return "ArgSpec{" +
-            "argNames=" + argNames.stream().map(heap::valueToString).toList() +
-            ", slurpyName=" + heap.valueToString(slurpyName) +
+            "argNames=" + argNames.stream().map(machine::valueToString).toList() +
+            ", slurpyName=" + machine.valueToString(slurpyName) +
             '}';
     }
     
@@ -97,17 +97,17 @@ public class ArgSpec {
         var boundVariables = this.getBoundVariables();
         
         for (var old : boundVariables) {
-            var oldName = heap.symbolName(old);
-            if (heap.fst(oldName).toSmallInt() == '$')
+            var oldName = machine.symbolName(old);
+            if (machine.fst(oldName).toSmallInt() == '$')
                 continue;
             
-            var newName = heap.symbolName(old);
+            var newName = machine.symbolName(old);
             for (int idx = prefix.length() - 1; idx >= 0; idx--) {
-                newName = heap.cons(HonsValue.fromSmallInt(prefix.charAt(idx)), newName);
+                newName = machine.cons(HonsValue.fromSmallInt(prefix.charAt(idx)), newName);
             }
-            oldNameToNewName.put(old, heap.makeSymbol(newName));
+            oldNameToNewName.put(old, machine.makeSymbol(newName));
         }
         
-        return new Assignments(heap, oldNameToNewName);
+        return new Assignments(machine, oldNameToNewName);
     }
 }
