@@ -66,33 +66,25 @@ class IExprTest {
     class Basics {
         @Test
         void nil() {
-            assertTrue(nil.isSimple());
-            assertFalse(nil.isSymbol());
-            assertFalse(nil.isCons());
+            assertEquals(ExprType.NIL, nil.getType());
             assertEquals(HonsValue.nil, nil.getValue());
         }
 
         @Test
         void smallInt() {
-            assertTrue(smallInt.isSimple());
-            assertFalse(smallInt.isSymbol());
-            assertFalse(smallInt.isCons());
+            assertEquals(ExprType.SMALL_INT, smallInt.getType());
             assertEquals(123, smallInt.getValue().toSmallInt());
         }
 
         @Test
         void symbol() {
-            assertTrue(sym.isSimple());
-            assertTrue(sym.isSymbol());
-            assertFalse(sym.isCons());
+            assertEquals(ExprType.SYMBOL, sym.getType());
             assertEquals("symbol", machine.symbolNameAsString(sym.getValue()));
         }
 
         @Test
         void cons() {
-            assertFalse(cons.isSimple());
-            assertFalse(cons.isSymbol());
-            assertTrue(cons.isCons());
+            assertEquals(ExprType.CONS, cons.getType());
             assertEquals(machine.cons(sym.getValue(), smallInt.getValue()), cons.getValue());
         }
     }
@@ -138,7 +130,7 @@ class IExprTest {
             IExpr expr;
             
             @Override
-            public void visitSimple(ISimpleExpr simpleExpr) {
+            public void visitSimple(IExpr simpleExpr) {
                 type = "simple";
                 expr = simpleExpr;
             }

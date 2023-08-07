@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -33,12 +34,12 @@ public class ArgSpec {
         slurpyName = null;
 
         var curSpec = argSpec;
-        while (!curSpec.isNil()) {
+        while (curSpec.getType() != ValueType.NIL) {
             /* XXX Would a visitor make sense here? Or an iterator? */
             if (machine.isSymbol(curSpec)) {
                 slurpyName = curSpec;
                 break;
-            } else if (curSpec.isConsRef()) {
+            } else if (curSpec.getType() == ValueType.CONS_REF) {
                 var uncons = machine.uncons(curSpec);
                 if (!machine.isSymbol(uncons.fst())) {
                     throw new EvalException("Found non-symbol " + uncons.fst() + " in argSpec: " + machine.valueToString(argSpec));
@@ -57,7 +58,7 @@ public class ArgSpec {
         /* XXX would an iterator make sense here? */
         for (var argName : argNames) {
             HonsValue value = HonsValue.nil;
-            if (curArg.isConsRef()) {
+            if (curArg.getType() == ValueType.CONS_REF) {
                 var uncons = machine.uncons(curArg);
                 value = uncons.fst();
                 curArg = uncons.snd();

@@ -3,6 +3,7 @@ package uk.bs338.hashLisp.jproto.hons;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IMachine;
 import uk.bs338.hashLisp.jproto.IValue;
+import uk.bs338.hashLisp.jproto.ValueType;
 
 import java.util.Optional;
 
@@ -19,12 +20,12 @@ public class PrettyPrinter<V extends IValue> {
     }
     
     private @NotNull Optional<String> stringifyNonList(@NotNull V val) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             return Optional.of(val.toString());
 
         try {
             var uncons = machine.uncons(val);
-            if (uncons.fst().isSymbolTag())
+            if (uncons.fst().getType() == ValueType.SYMBOL_TAG)
                 return Optional.of(listAsString(machine, uncons.snd()));
             if (uncons.fst().equals(stringTag))
                 return Optional.of(Strings.quoteString(listAsString(machine, uncons.snd())));
@@ -50,7 +51,7 @@ public class PrettyPrinter<V extends IValue> {
     }
 
     private void listToString(@NotNull V rest, @NotNull StringBuilder builder) {
-        while (!rest.isNil()) {
+        while (rest.getType() != ValueType.NIL) {
             var tailNonList = stringifyNonList(rest);
             if (tailNonList.isPresent()) {
                 builder.append(" . ").append(tailNonList.get());

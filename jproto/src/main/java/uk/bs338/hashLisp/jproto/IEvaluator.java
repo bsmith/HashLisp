@@ -10,8 +10,5 @@ public interface IEvaluator<V> {
     
     /* If you have an array, V[], you can use Arrays.asList */
     @Contract("_ -> param1")
-    default @NotNull List<V> eval_multi_inplace(@NotNull List<V> vals) {
-        vals.replaceAll(this::eval_one);
-        return vals;
-    }
+    @NotNull List<V> eval_multi_inplace(@NotNull List<V> vals);
 }

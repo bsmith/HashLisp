@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -36,8 +37,6 @@ abstract class ExprBase implements IExpr {
     protected HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
-        if (wrapped.isSimple())
-            return wrapped.getValue();
         if (machine != wrapped.getMachine())
             throw new IllegalArgumentException("Mismatched machine between IExpr objects");
         return wrapped.getValue();
@@ -62,12 +61,22 @@ abstract class ExprBase implements IExpr {
     }
 
 
-    public static class SimpleExpr extends ExprBase implements ISimpleExpr {
+    public static class SimpleExpr extends ExprBase {
         SimpleExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
             super(machine, value);
         }
 
-        @Override public boolean isSimple() {
+        @Override
+        public ExprType getType() {
+            return switch (value.getType()) {
+                case NIL -> ExprType.NIL;
+                case SMALL_INT -> ExprType.SMALL_INT;
+                default -> throw new IllegalStateException("SimpleExpr cannot wrap a " + value.getType());
+            };
+        }
+
+        @Override
+        public boolean isNormalForm() {
             return true;
         }
 
@@ -77,13 +86,19 @@ abstract class ExprBase implements IExpr {
         }
     }
 
-    public static class SymbolExpr extends SimpleExpr implements ISymbolExpr {
+    public static class SymbolExpr extends ExprBase implements ISymbolExpr {
         SymbolExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
             super(machine, value);
             assert machine.isSymbol(value);
         }
 
-        @Override public boolean isSymbol() {
+        @Override
+        public ExprType getType() {
+            return ExprType.SYMBOL;
+        }
+
+        @Override
+        public boolean isNormalForm() {
             return true;
         }
 
@@ -116,14 +131,11 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public boolean isTag(Tag tag) {
-            /* XXX slow implementation */
+            /* XXX slow implementation: add Tag cache to IMachine! */
             return value.equals(machine.makeSymbol(tag.getSymbolStr()));
-//            throw new Error("unimplemented");
-//            return value.equals(makeSymbol(tag).getValue());
         }
     }
 
-    /* XXX how is this different from ConsPair?! */
     public static class ConsExpr extends ExprBase implements IConsExpr {
         private final ConsPair<HonsValue> uncons;
         private IExpr fst;
@@ -131,17 +143,16 @@ abstract class ExprBase implements IExpr {
 
         ConsExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
             super(machine, value);
-            assert value.isConsRef();
-            /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
-//            var uncons = machine.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
+            assert value.getType() == ValueType.CONS_REF;
             uncons = machine.uncons(value);
             /* Be lazy about further wrapping */
             fst = null;
             snd = null;
         }
 
-        @Override public boolean isCons() {
-            return true;
+        @Override
+        public ExprType getType() {
+            return ExprType.CONS;
         }
 
         @Override public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
@@ -176,7 +187,10 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public boolean hasHeadTag(Tag tag) {
-            return fst().isTag(tag);
+            if (fst().getType() == ExprType.SYMBOL)
+                return fst().asSymbolExpr().isTag(tag);
+            else
+                return false;
         }
     }
 }

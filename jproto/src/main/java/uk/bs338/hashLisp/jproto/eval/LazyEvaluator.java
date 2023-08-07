@@ -3,6 +3,7 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.expr.ExprType;
 import uk.bs338.hashLisp.jproto.expr.IConsExpr;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
@@ -95,10 +96,10 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             System.out.printf("%sapply %s to %s%n", evalIndent, function.valueToString(), args.valueToString());
         if (!function.isNormalForm())
             throw new EvalException("apply_hnf called but function not in normal form");
-        if (function.isSymbol()) {
+        if (function.getType() == ExprType.SYMBOL) {
             return applyPrimitive(function.asSymbolExpr(), args);
         }
-        else if (function.hasHeadTag(Tag.LAMBDA)) {
+        else if (function.getType() == ExprType.CONS && function.asConsExpr().hasHeadTag(Tag.LAMBDA)) {
             return applyLambdaOnce(function.asConsExpr(), args);
         }
         else {
@@ -141,7 +142,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         /* Ensure the head is evaluated to normal form first */
         if (!expr.isNormalForm()) {
             /* we need to evaluate the head first! */
-            assert expr.isCons(); /* !isNormalForm() => isCons() */
+            assert expr.getType() == ExprType.CONS; /* !isNormalForm() => isCons() */
 
             var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
             if (memoEval.isEmpty()) {
@@ -175,8 +176,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 /* actually perform the application */
                 try (var ignored = new EvalIndenter()) {
                     applied = apply_hnf(function.get(), expr.snd());
-                    if (applied.isCons()) /* XXX */
-                        frame.setApplyResult(applied.asConsExpr());
+                    frame.setApplyResult(applied);
                 }
             }
 
@@ -216,7 +216,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (expr.isNormalForm())
             return expr;
         
-        assert expr.isCons();
+        assert expr.getType() == ExprType.CONS;
         var consExpr = expr.asConsExpr();
         var result = eval_cons(consExpr);
         if (!result.isNormalForm())

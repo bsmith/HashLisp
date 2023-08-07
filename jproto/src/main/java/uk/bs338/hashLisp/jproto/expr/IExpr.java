@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -10,40 +9,16 @@ import java.util.NoSuchElementException;
 
 public interface IExpr {
     @NotNull HonsValue getValue();
-    default @NotNull HonsMachine getMachine() { throw new NoSuchElementException(); }
+    @NotNull HonsMachine getMachine();
+    
+    ExprType getType();
 
-    /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
-    default boolean isSimple() {
-        return false;
-    }
-
-    default boolean isSymbol() {
-        return false;
-    }
-
-    default boolean isCons() {
-        return false;
-    }
-
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_->param1")
     <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
-    boolean isHeadNormalForm();
-
-    default boolean hasHeadTag(Tag tag) {
-        return false;
-    }
-
-    default boolean isTag(Tag tag) {
-        return false;
-    }
     
-    /* XXX is this the best exception?  I just copied Optional/ReadResult */
-    default ISimpleExpr asSimpleExpr() {
-        throw new NoSuchElementException();
-    }
-
     default ISymbolExpr asSymbolExpr() {
         throw new NoSuchElementException();
     }
@@ -59,12 +34,14 @@ public interface IExpr {
      *   application: any other cons-ref
      */
     static @NotNull IExpr wrap(@NotNull HonsMachine machine, @NotNull HonsValue value) {
-        if (value.isConsRef()) {
-            if (machine.isSymbol(value))
-                return new ExprBase.SymbolExpr(machine, value);
-            return new ExprBase.ConsExpr(machine, value);
-        }
-        return new ExprBase.SimpleExpr(machine, value);
+        return switch (value.getType()) {
+            case NIL, SMALL_INT -> new ExprBase.SimpleExpr(machine, value);
+            case SYMBOL_TAG -> throw new IllegalArgumentException("Cannot wrap a symbol-tag!");
+            case CONS_REF ->
+                machine.isSymbol(value) ?
+                    new ExprBase.SymbolExpr(machine, value) :
+                new ExprBase.ConsExpr(machine, value);
+        };
     }
     
     static @NotNull IExpr nil(@NotNull HonsMachine machine) {

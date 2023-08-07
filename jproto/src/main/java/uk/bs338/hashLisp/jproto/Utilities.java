@@ -14,17 +14,17 @@ public final class Utilities {
         throw new AssertionError("No Utilities instances for you!");
     }
     
-    /* XXX Are these two operations the best?  Most javaish? */
-    /* XXX using fromInteger does some checks for overflow, but not all? */
     @NotNull
     public static <V extends IValue> V applySmallIntOperation(@NotNull IValueFactory<V> ivf, @NotNull IntUnaryOperator func, @NotNull V val) {
+        if (val.getType() != ValueType.SMALL_INT)
+            return ivf.nil();
         var rvInt = func.applyAsInt(val.toSmallInt());
-        return val.isSmallInt() ? ivf.makeSmallInt(rvInt) : ivf.nil();
+        return ivf.makeSmallInt(rvInt);
     }
 
     @NotNull
     public static <V extends IValue> V applySmallIntOperation(@NotNull IValueFactory<V> ivf, @NotNull IntBinaryOperator func, @NotNull V left, @NotNull V right) {
-        if (!left.isSmallInt() || !right.isSmallInt()) {
+        if (left.getType() != ValueType.SMALL_INT || right.getType() != ValueType.SMALL_INT) {
             return ivf.nil();
         }
         var rvInt = func.applyAsInt(left.toSmallInt(), right.toSmallInt());
@@ -32,15 +32,15 @@ public final class Utilities {
     }
     
     public static <V extends IValue> int sumList(@NotNull IHeap<V> heap, @NotNull V list) {
-        if (list.isNil())
-            return 0;
-        else if (list.isSmallInt())
-            return list.toSmallInt();
-        else {
-            int head = sumList(heap, heap.fst(list));
-            int rest = sumList(heap, heap.snd(list));
-            return head + rest;
-        }
+        return switch (list.getType()) {
+            case NIL, SYMBOL_TAG -> 0;
+            case SMALL_INT -> list.toSmallInt();
+            case CONS_REF -> {
+                int head = sumList(heap, heap.fst(list));
+                int rest = sumList(heap, heap.snd(list));
+                yield head + rest;
+            }
+        };
     }
 
     public static <V extends IValue> @NotNull V intList(@NotNull IMachine<V> m, int @NotNull [] nums) {
@@ -60,7 +60,7 @@ public final class Utilities {
     public static <V extends IValue> String listAsString(@NotNull IHeap<V> heap, V list) {
         ArrayList<Integer> codepoints = new ArrayList<>();
         var cur = list;
-        while (!cur.isNil()) {
+        while (cur.getType() == ValueType.CONS_REF) {
             /* XXX record patterns is a Java 19 feature */
 //                if (machine.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
             ConsPair<V> uncons = heap.uncons(cur);
@@ -113,9 +113,9 @@ public final class Utilities {
         var dst = new ArrayList<V>();
         V cur = list;
         while (cur != null) {
-            if (cur.isNil())
+            if (cur.getType() == ValueType.NIL)
                 return dst;
-            if (!cur.isConsRef()) {
+            if (cur.getType() != ValueType.CONS_REF) {
                 dst.add(cur);
                 return dst;
             }

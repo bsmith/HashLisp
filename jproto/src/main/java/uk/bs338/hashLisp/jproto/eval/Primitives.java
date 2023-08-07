@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -15,15 +16,11 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
 public class Primitives {
     private final @NotNull HonsMachine machine;
-//    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Map<HonsValue, IPrimitive> primitives;
-//    private final @NotNull HonsValue lambdaTag;
 
     public Primitives(@NotNull HonsMachine machine) {
         this.machine = machine;
-//        this.exprFactory = exprFactory;
         this.primitives = new HashMap<>();
-//        lambdaTag = machine.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);
@@ -48,7 +45,7 @@ public class Primitives {
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         var arg = evaluator.eval_one(machine.fst(args));
-        if (!arg.isConsRef())
+        if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
             return machine.fst(arg);
@@ -56,7 +53,7 @@ public class Primitives {
 
     public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         var arg = evaluator.eval_one(machine.fst(args));
-        if (!arg.isConsRef())
+        if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
             return machine.snd(arg);
@@ -71,16 +68,16 @@ public class Primitives {
     public @NotNull HonsValue add(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
         int sum = 0;
         var cur = args;
-        while (cur.isConsRef()) {
+        while (cur.getType() == ValueType.CONS_REF) {
             var fst = evaluator.eval_one(machine.fst(cur));
-            if (fst.isSmallInt())
+            if (fst.getType() == ValueType.SMALL_INT)
                 sum += fst.toSmallInt();
             else {
                 throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, machine.valueToString(args), cur, machine.valueToString(cur), fst, machine.valueToString(fst), machine.getCell(fst)));
             }
             cur = machine.snd(cur);
         }
-        if (!cur.isNil())
+        if (cur.getType() != ValueType.NIL)
             throw new EvalException("args not terminated by nil");
         return machine.makeSmallInt(sum);
     }
@@ -88,15 +85,15 @@ public class Primitives {
     public @NotNull HonsValue mul(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
         int product = 1;
         var cur = args;
-        while (cur.isConsRef()) {
+        while (cur.getType() == ValueType.CONS_REF) {
             var fst = evaluator.eval_one(machine.fst(cur));
-            if (fst.isSmallInt())
+            if (fst.getType() == ValueType.SMALL_INT)
                 product *= fst.toSmallInt();
             else
                 throw new EvalException("arg is not a smallint");
             cur = machine.snd(cur);
         }
-        if (!cur.isNil())
+        if (cur.getType() != ValueType.NIL)
             throw new EvalException("args not terminated by nil");
         return machine.makeSmallInt(product);
     }
@@ -106,7 +103,7 @@ public class Primitives {
         var t_val = machine.fst(machine.snd(args));
         var f_val = machine.fst(machine.snd(machine.snd(args)));
         cond = evaluator.eval_one(cond);
-        if (!cond.isSmallInt()) {
+        if (cond.getType() != ValueType.SMALL_INT) {
             return makeList(machine, machine.makeSymbol("error"), machine.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {

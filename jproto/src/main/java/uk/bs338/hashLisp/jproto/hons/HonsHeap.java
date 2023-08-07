@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -139,8 +140,6 @@ public class HonsHeap implements
             
             /* Special cells are checked above, and do not have fst/snd values stored */
             if (!cell.toValue().isSpecial()) {
-//                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
-//                var retrievedByCell = getCell(newCell.getObjectHash());
                 var retrievedByCell = getCell(cons(cell.getFst(), cell.getSnd()));
                 if (cell != retrievedByCell) {
                     System.err.printf("  failed by Cell at 0x%x: %s != %s%n", idx, cell, retrievedByCell);
@@ -181,7 +180,7 @@ public class HonsHeap implements
 
     @NotNull
     public ConsPair<HonsValue> uncons(@NotNull HonsValue val) {
-        if (!val.isObjectHash())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
@@ -190,13 +189,13 @@ public class HonsHeap implements
     }
     
     public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             return Optional.empty();
         return Optional.ofNullable(getCell(val)).map(HonsCell::getMemoEval);
     }
     
     public void setMemoEval(@NotNull HonsValue val, @Nullable HonsValue evalResult) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("can't setMemoEval if its not a ConsRef");
         var cell = getCell(val);
         if (cell == null)
