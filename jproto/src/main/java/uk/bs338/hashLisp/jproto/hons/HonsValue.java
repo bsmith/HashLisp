@@ -3,6 +3,7 @@ package uk.bs338.hashLisp.jproto.hons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IValue;
+import uk.bs338.hashLisp.jproto.ValueType;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -49,7 +50,7 @@ public final class HonsValue implements IValue {
             return null;
     }
 
-    @Override
+//    @Override
     public boolean isSymbolTag() {
         return this.value == symbolTag.value;
     }
@@ -96,6 +97,22 @@ public final class HonsValue implements IValue {
 
     public boolean isNil() {
         return value == 1;
+    }
+
+    @Override
+    public @NotNull ValueType getType() {
+        if ((value & 1) == 0) {
+            return ValueType.SMALL_INT;
+        }
+        else if (value == 1) {
+            return ValueType.NIL;
+        }
+        else if (value == 3) {
+            return ValueType.SYMBOL_TAG;
+        }
+        else {
+            return ValueType.CONS_REF;
+        }
     }
 
     /* XXX Are these two operations the best?  Most javaish? */

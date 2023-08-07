@@ -1,9 +1,10 @@
 package uk.bs338.hashLisp.jproto;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface IValue {
-    boolean isNil();
-    boolean isSymbolTag();
-    boolean isSmallInt();
-    boolean isConsRef();
+    @NotNull ValueType getType();
+    
+    /* throw NoSuchElementException if not a small int */
     int toSmallInt();
 }

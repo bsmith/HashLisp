@@ -3,6 +3,7 @@ package uk.bs338.hashLisp.jproto.wrapped;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -36,23 +37,8 @@ public class WrappedValue implements IWrappedValue<HonsValue, WrappedValue> {
     }
 
     @Override
-    public boolean isNil() {
-        return value.isNil();
-    }
-
-    @Override
-    public boolean isSymbolTag() {
-        return value.isSymbolTag();
-    }
-
-    @Override
-    public boolean isSmallInt() {
-        return value.isSmallInt();
-    }
-
-    @Override
-    public boolean isConsRef() {
-        return value.isConsRef();
+    public @NotNull ValueType getType() {
+        return value.getType();
     }
 
     @Override
