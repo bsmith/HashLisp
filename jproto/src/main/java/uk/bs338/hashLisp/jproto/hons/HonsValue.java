@@ -50,11 +50,6 @@ public final class HonsValue implements IValue {
             return null;
     }
 
-//    @Override
-    public boolean isSymbolTag() {
-        return this.value == symbolTag.value;
-    }
-
     @NotNull
     public static HonsValue fromSmallInt(int num) {
         assert SMALLINT_MIN <= num && num <= SMALLINT_MAX;
@@ -82,23 +77,6 @@ public final class HonsValue implements IValue {
         throw new NoSuchElementException();
     }
 
-    public boolean isSmallInt() {
-        return (value & 1) == 0;
-    }
-
-    public boolean isObjectHash() {
-        /* nil is not an object hash */
-        return (value & 1) == 1 && value != 1;
-    }
-    
-    public boolean isConsRef() {
-        return isObjectHash() && !isSpecial();
-    }
-
-    public boolean isNil() {
-        return value == 1;
-    }
-
     @Override
     public @NotNull ValueType getType() {
         if ((value & 1) == 0) {
@@ -118,12 +96,14 @@ public final class HonsValue implements IValue {
     /* XXX Are these two operations the best?  Most javaish? */
     /* XXX using fromInteger does some checks for overflow, but not all? */
     public static HonsValue applySmallIntOperation(@NotNull IntUnaryOperator func, @NotNull HonsValue val) {
+        if (val.getType() != ValueType.SMALL_INT)
+            return nil;
         var rvInt = func.applyAsInt(val.value >> 1);
-        return val.isSmallInt() ? HonsValue.fromSmallInt(rvInt) : nil;
+        return HonsValue.fromSmallInt(rvInt);
     }
 
     public static HonsValue applySmallIntOperation(@NotNull IntBinaryOperator func, @NotNull HonsValue left, @NotNull HonsValue right) {
-        if (!left.isSmallInt() || !right.isSmallInt()) {
+        if (left.getType() != ValueType.SMALL_INT || right.getType() != ValueType.SMALL_INT) {
             return nil;
         }
         var rvInt = func.applyAsInt(left.value >> 1, right.value >> 1);
@@ -133,14 +113,23 @@ public final class HonsValue implements IValue {
     /* this is an immutable record, ie the Object is equivalent to its int value */
     @Override
     public @NotNull String toString() {
-        if (this.isNil())
-            return "nil";
-        if ((this.value & 1) == 1) {
-            if (this.isSpecial())
-                return "#" + (this.value >> 1) + ":" + this.getSpecialName();
-            return "#" + (this.value >> 1);
-        } else {
-            return Integer.toString(this.value >> 1);
+        switch (this.getType()) {
+            case NIL -> {
+                return "nil";
+            }
+            case SYMBOL_TAG -> {
+                return "#1:symbol";
+            }
+            case SMALL_INT -> {
+                return Integer.toString(this.value >> 1);
+            }
+            case CONS_REF -> {
+                return "#" + (this.value >> 1);
+            }
+            default -> {
+                assert false; /* switch should be exhaustive */
+                return "##" + this.value;
+            }
         }
     }
 

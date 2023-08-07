@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.driver;
 
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -20,11 +21,11 @@ public class Driver {
         System.out.printf("program = %s%n", heap.valueToString(program));
         
         var result = evaluator.eval_one(program);
-        if (result.isConsRef())
+        if (result.getType() == ValueType.CONS_REF)
             System.out.printf("head = %s%n", heap.valueToString(heap.fst(result)));
         
         /* XXX: interpret result */
-        if (!result.isConsRef() || !heap.isSymbol(heap.fst(result))) {
+        if (result.getType() != ValueType.CONS_REF || !heap.isSymbol(heap.fst(result))) {
             /* Not a io-monad command: print it */
             System.out.printf("result = %s%n", heap.valueToString(result));
             return;

@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -44,7 +45,7 @@ public class Primitives {
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         var arg = evaluator.eval_one(heap.fst(args));
-        if (!arg.isConsRef())
+        if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
             return heap.fst(arg);
@@ -52,7 +53,7 @@ public class Primitives {
 
     public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
         var arg = evaluator.eval_one(heap.fst(args));
-        if (!arg.isConsRef())
+        if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
             return heap.snd(arg);
@@ -67,16 +68,16 @@ public class Primitives {
     public @NotNull HonsValue add(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
         int sum = 0;
         var cur = args;
-        while (cur.isConsRef()) {
+        while (cur.getType() == ValueType.CONS_REF) {
             var fst = evaluator.eval_one(heap.fst(cur));
-            if (fst.isSmallInt())
+            if (fst.getType() == ValueType.SMALL_INT)
                 sum += fst.toSmallInt();
             else {
                 throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, heap.valueToString(args), cur, heap.valueToString(cur), fst, heap.valueToString(fst), heap.getCell(fst)));
             }
             cur = heap.snd(cur);
         }
-        if (!cur.isNil())
+        if (cur.getType() != ValueType.NIL)
             throw new EvalException("args not terminated by nil");
         return heap.makeSmallInt(sum);
     }
@@ -84,15 +85,15 @@ public class Primitives {
     public @NotNull HonsValue mul(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
         int product = 1;
         var cur = args;
-        while (cur.isConsRef()) {
+        while (cur.getType() == ValueType.CONS_REF) {
             var fst = evaluator.eval_one(heap.fst(cur));
-            if (fst.isSmallInt())
+            if (fst.getType() == ValueType.SMALL_INT)
                 product *= fst.toSmallInt();
             else
                 throw new EvalException("arg is not a smallint");
             cur = heap.snd(cur);
         }
-        if (!cur.isNil())
+        if (cur.getType() != ValueType.NIL)
             throw new EvalException("args not terminated by nil");
         return heap.makeSmallInt(product);
     }
@@ -102,7 +103,7 @@ public class Primitives {
         var t_val = heap.fst(heap.snd(args));
         var f_val = heap.fst(heap.snd(heap.snd(args)));
         cond = evaluator.eval_one(cond);
-        if (!cond.isSmallInt()) {
+        if (cond.getType() != ValueType.SMALL_INT) {
             return makeList(heap, heap.makeSymbol("error"), heap.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {

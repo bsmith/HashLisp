@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -214,7 +215,7 @@ public class HonsHeap implements
 
     @NotNull
     public ConsPair<HonsValue> uncons(@NotNull HonsValue val) {
-        if (!val.isObjectHash())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
@@ -223,13 +224,13 @@ public class HonsHeap implements
     }
     
     public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             return Optional.empty();
         return Optional.ofNullable(getCell(val)).map(HonsCell::getMemoEval);
     }
     
     public void setMemoEval(@NotNull HonsValue val, @Nullable HonsValue evalResult) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("can't setMemoEval if its not a ConsRef");
         var cell = getCell(val);
         if (cell == null)

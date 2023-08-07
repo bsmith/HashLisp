@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.driver;
 
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.hons.*;
 
 import java.util.ArrayList;
@@ -32,23 +33,18 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
     }
     
     private boolean isNormalForm(HonsValue val) {
-        if (val.isNil() || val.isSmallInt() || val.isSpecial())
-            return true;
-        else if (heap.isSymbol(val))
-            return true;
-        
-        if (val.isConsRef()) {
-            if (heap.isSymbol(heap.fst(val)) && heap.symbolNameAsString(heap.fst(val)).startsWith("*"))
+        switch (val.getType()) {
+            case NIL, SYMBOL_TAG, SMALL_INT -> {
                 return true;
+            }
         }
+        assert val.getType() == ValueType.CONS_REF;
         
-        return false;
-    }
-    
-    private boolean isHeadNormalForm(HonsValue val) {
-        if (!val.isConsRef())
+        if (heap.isSymbol(val))
             return true;
-        return isNormalForm(heap.fst(val));
+
+        HonsValue fst = heap.fst(val);
+        return heap.isSymbol(fst) && heap.symbolNameAsString(fst).startsWith("*");
     }
     
     @Override
@@ -65,15 +61,9 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
             if (!memoEval.equals(evaluated))
                 reason = "eval-diff";
             
-            /* XXX: Not sure that this is correct, need to consult the specification:
-             *      consider (cons '(1 . 2) 3)
-             *      this evaluates once to ((1 . 2) . 3)
-             *      then the eval fails as (1 . 2) is not applicable/normal-form
-             * Current compromise: cons is effectively apply
-             */
             /* even more strict! be in head normal form */
-            if (!isHeadNormalForm(memoEval))
-                reason = "not-hnf";
+            if (!isNormalForm(memoEval))
+                reason = "not-nf";
         }
         catch (Exception e) {
             e.printStackTrace();

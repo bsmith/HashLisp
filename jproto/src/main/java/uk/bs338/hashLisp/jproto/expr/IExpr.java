@@ -34,12 +34,14 @@ public interface IExpr {
      *   application: any other cons-ref
      */
     static @NotNull IExpr wrap(@NotNull HonsHeap heap, @NotNull HonsValue value) {
-        if (value.isConsRef()) {
-            if (heap.isSymbol(value))
-                return new ExprBase.SymbolExpr(heap, value);
-            return new ExprBase.ConsExpr(heap, value);
-        }
-        return new ExprBase.SimpleExpr(heap, value);
+        return switch (value.getType()) {
+            case NIL, SMALL_INT -> new ExprBase.SimpleExpr(heap, value);
+            case SYMBOL_TAG -> throw new IllegalArgumentException("Cannot wrap a symbol-tag!");
+            case CONS_REF ->
+                heap.isSymbol(value) ?
+                    new ExprBase.SymbolExpr(heap, value) :
+                new ExprBase.ConsExpr(heap, value);
+        };
     }
     
     static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {

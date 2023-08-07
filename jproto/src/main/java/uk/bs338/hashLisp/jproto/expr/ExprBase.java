@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -67,7 +68,11 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public ExprType getType() {
-            return value.isNil() ? ExprType.NIL : value.isSmallInt() ? ExprType.SMALL_INT : null;
+            return switch (value.getType()) {
+                case NIL -> ExprType.NIL;
+                case SMALL_INT -> ExprType.SMALL_INT;
+                default -> throw new IllegalStateException("SimpleExpr cannot wrap a " + value.getType());
+            };
         }
 
         @Override
@@ -138,7 +143,7 @@ abstract class ExprBase implements IExpr {
 
         ConsExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
             super(heap, value);
-            assert value.isConsRef();
+            assert value.getType() == ValueType.CONS_REF;
             uncons = heap.uncons(value);
             /* Be lazy about further wrapping */
             fst = null;
