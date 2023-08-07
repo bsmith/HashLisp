@@ -113,24 +113,12 @@ public final class HonsValue implements IValue {
     /* this is an immutable record, ie the Object is equivalent to its int value */
     @Override
     public @NotNull String toString() {
-        switch (this.getType()) {
-            case NIL -> {
-                return "nil";
-            }
-            case SYMBOL_TAG -> {
-                return "#1:symbol";
-            }
-            case SMALL_INT -> {
-                return Integer.toString(this.value >> 1);
-            }
-            case CONS_REF -> {
-                return "#" + (this.value >> 1);
-            }
-            default -> {
-                assert false; /* switch should be exhaustive */
-                return "##" + this.value;
-            }
-        }
+        return switch (this.getType()) {
+            case NIL -> "nil";
+            case SYMBOL_TAG -> "#1:symbol";
+            case SMALL_INT -> Integer.toString(this.value >> 1);
+            case CONS_REF -> "#" + (this.value >> 1);
+        };
     }
 
     /* this is an immutable record, ie the Object is equivalent to its int value */

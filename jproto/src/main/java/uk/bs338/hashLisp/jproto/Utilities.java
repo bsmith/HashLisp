@@ -33,23 +33,15 @@ public final class Utilities {
     
     @NotNull
     public static <V extends IValue> V sumList(@NotNull IHeap<V> heap, @NotNull V list) {
-        switch (list.getType()) {
-            case NIL, SYMBOL_TAG -> {
-                return heap.makeSmallInt(0);
-            }
-            case SMALL_INT -> {
-                return list;
-            }
+        return switch (list.getType()) {
+            case NIL, SYMBOL_TAG -> heap.makeSmallInt(0);
+            case SMALL_INT -> list;
             case CONS_REF -> {
                 V head = sumList(heap, heap.fst(list));
                 V rest = sumList(heap, heap.snd(list));
-                return applySmallIntOperation(heap, Integer::sum, head, rest);
+                yield applySmallIntOperation(heap, Integer::sum, head, rest);
             }
-            default -> {
-                assert false; /* Unreachable if switch is exhaustive */
-                return heap.makeSmallInt(0);
-            }
-        }
+        };
     }
 
     @NotNull
@@ -71,7 +63,7 @@ public final class Utilities {
     public static <V extends IValue> String listAsString(@NotNull IHeap<V> heap, V list) {
         ArrayList<Integer> codepoints = new ArrayList<>();
         var cur = list;
-        while (cur.getType() != ValueType.NIL) {
+        while (cur.getType() == ValueType.CONS_REF) {
             /* XXX record patterns is a Java 19 feature */
 //                if (heap.uncons(cur) instanceof ConsPair<V>(var fst, var snd)) {
             ConsPair<V> uncons = heap.uncons(cur);
