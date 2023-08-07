@@ -201,7 +201,8 @@ public class HonsHeap implements
                 System.err.println("Heap validation completed successfully");
         }
     }
-    
+
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_ -> param1")
     public <V extends IIterateHeapVisitor> @NotNull V iterateHeap(@NotNull V visitor) {
         for (int idx = 0; idx < table.length; idx++) {

@@ -25,6 +25,7 @@ public interface IExpr {
         return false;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_->param1")
     <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
