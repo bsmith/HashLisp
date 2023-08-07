@@ -15,15 +15,11 @@ import static uk.bs338.hashLisp.jproto.Utilities.makeList;
 
 public class Primitives {
     private final @NotNull HonsHeap heap;
-//    private final @NotNull ExprFactory exprFactory;
     private final @NotNull Map<HonsValue, IPrimitive> primitives;
-//    private final @NotNull HonsValue lambdaTag;
 
     public Primitives(@NotNull HonsHeap heap) {
         this.heap = heap;
-//        this.exprFactory = exprFactory;
         this.primitives = new HashMap<>();
-//        lambdaTag = heap.makeSymbol(Tag.LAMBDA.getSymbolStr());
 
         put("fst", this::fst);
         put("snd", this::snd);

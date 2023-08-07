@@ -2,7 +2,7 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface ISymbolExpr extends ISimpleExpr {
+public interface ISymbolExpr extends IExpr {
     @NotNull IConsExpr symbolName();
     @NotNull String symbolNameAsString();
     

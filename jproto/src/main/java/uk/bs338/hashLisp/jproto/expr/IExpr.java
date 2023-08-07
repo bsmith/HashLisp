@@ -30,7 +30,6 @@ public interface IExpr {
     <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
-    boolean isHeadNormalForm();
 
     default boolean hasHeadTag(Tag tag) {
         return false;
@@ -38,11 +37,6 @@ public interface IExpr {
 
     default boolean isTag(Tag tag) {
         return false;
-    }
-    
-    /* XXX is this the best exception?  I just copied Optional/ReadResult */
-    default ISimpleExpr asSimpleExpr() {
-        throw new NoSuchElementException();
     }
 
     default ISymbolExpr asSymbolExpr() {

@@ -21,11 +21,6 @@ public interface IConsExpr extends IExpr {
     }
 
     @Override
-    default boolean isHeadNormalForm() {
-        return fst().isNormalForm();
-    }
-
-    @Override
     default IConsExpr asConsExpr() {
         return this;
     }

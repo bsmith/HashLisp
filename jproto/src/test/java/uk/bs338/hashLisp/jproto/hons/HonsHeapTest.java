@@ -12,13 +12,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class HonsHeapTest {
     HonsHeap heap;
-    HonsValue one, two, cons, sym;
+    HonsValue one, two, cons;
 
     @BeforeEach void setUp() {
         heap = new HonsHeap(8);
         one = HonsValue.fromSmallInt(1);
         two = HonsValue.fromSmallInt(2);
-        sym = heap.makeSymbol("sym");
         cons = heap.cons(one, two);
     }
 

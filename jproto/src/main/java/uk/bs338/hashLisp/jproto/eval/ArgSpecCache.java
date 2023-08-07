@@ -7,7 +7,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ArgSpecCache implements IArgSpecFactory {
+public class ArgSpecCache {
     private final @NotNull HonsHeap heap;
     private final @NotNull Map<HonsValue, ArgSpec> cache;
 
@@ -16,7 +16,6 @@ public class ArgSpecCache implements IArgSpecFactory {
         this.cache = new HashMap<>();
     }
 
-    @Override
     public @NotNull ArgSpec get(@NotNull HonsValue argSpec) throws EvalException {
         // Annoyingly this can't cope with exceptions
 //        return cache.computeIfAbsent(argSpec, (spec) -> new ArgSpec(heap, spec));
@@ -28,7 +27,6 @@ public class ArgSpecCache implements IArgSpecFactory {
         return value;
     }
     
-    @Override
     public @NotNull Assignments match(@NotNull HonsValue argSpec, @NotNull HonsValue args) throws EvalException {
         return get(argSpec).match(args);
     }

@@ -78,7 +78,7 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
     }
 
     @Override
-    public void visitSimple(ISimpleExpr simpleExpr) {
+    public void visitSimple(IExpr simpleExpr) {
         result.put(simpleExpr);
     }
 

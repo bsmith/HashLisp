@@ -14,8 +14,6 @@ public final class Utilities {
         throw new AssertionError("No Utilities instances for you!");
     }
     
-    /* XXX Are these two operations the best?  Most javaish? */
-    /* XXX using fromInteger does some checks for overflow, but not all? */
     @NotNull
     public static <V extends IValue> V applySmallIntOperation(@NotNull IValueFactory<V> ivf, @NotNull IntUnaryOperator func, @NotNull V val) {
         if (val.getType() != ValueType.SMALL_INT)

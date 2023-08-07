@@ -62,12 +62,17 @@ abstract class ExprBase implements IExpr {
     }
 
 
-    public static class SimpleExpr extends ExprBase implements ISimpleExpr {
+    public static class SimpleExpr extends ExprBase {
         SimpleExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
             super(heap, value);
         }
 
         @Override public boolean isSimple() {
+            return true;
+        }
+
+        @Override
+        public boolean isNormalForm() {
             return true;
         }
 
@@ -116,10 +121,8 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public boolean isTag(Tag tag) {
-            /* XXX slow implementation */
+            /* XXX slow implementation: add Tag cache to IMachine! */
             return value.equals(heap.makeSymbol(tag.getSymbolStr()));
-//            throw new Error("unimplemented");
-//            return value.equals(makeSymbol(tag).getValue());
         }
     }
 

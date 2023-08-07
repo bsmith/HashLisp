@@ -139,7 +139,7 @@ class IExprTest {
             IExpr expr;
             
             @Override
-            public void visitSimple(ISimpleExpr simpleExpr) {
+            public void visitSimple(IExpr simpleExpr) {
                 type = "simple";
                 expr = simpleExpr;
             }
