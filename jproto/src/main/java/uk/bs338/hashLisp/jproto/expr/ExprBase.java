@@ -36,8 +36,6 @@ abstract class ExprBase implements IExpr {
     protected HonsValue unwrap(IExpr wrapped) {
         if (wrapped == null)
             return null;
-        if (wrapped.isSimple())
-            return wrapped.getValue();
         if (heap != wrapped.getHeap())
             throw new IllegalArgumentException("Mismatched heap between IExpr objects");
         return wrapped.getValue();
@@ -67,8 +65,9 @@ abstract class ExprBase implements IExpr {
             super(heap, value);
         }
 
-        @Override public boolean isSimple() {
-            return true;
+        @Override
+        public ExprType getType() {
+            return value.isNil() ? ExprType.NIL : value.isSmallInt() ? ExprType.SMALL_INT : null;
         }
 
         @Override
@@ -82,13 +81,19 @@ abstract class ExprBase implements IExpr {
         }
     }
 
-    public static class SymbolExpr extends SimpleExpr implements ISymbolExpr {
+    public static class SymbolExpr extends ExprBase implements ISymbolExpr {
         SymbolExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
             super(heap, value);
             assert heap.isSymbol(value);
         }
 
-        @Override public boolean isSymbol() {
+        @Override
+        public ExprType getType() {
+            return ExprType.SYMBOL;
+        }
+
+        @Override
+        public boolean isNormalForm() {
             return true;
         }
 
@@ -126,7 +131,6 @@ abstract class ExprBase implements IExpr {
         }
     }
 
-    /* XXX how is this different from ConsPair?! */
     public static class ConsExpr extends ExprBase implements IConsExpr {
         private final ConsPair<HonsValue> uncons;
         private IExpr fst;
@@ -135,16 +139,15 @@ abstract class ExprBase implements IExpr {
         ConsExpr(@NotNull HonsHeap heap, @NotNull HonsValue value) {
             super(heap, value);
             assert value.isConsRef();
-            /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
-//            var uncons = heap.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
             uncons = heap.uncons(value);
             /* Be lazy about further wrapping */
             fst = null;
             snd = null;
         }
 
-        @Override public boolean isCons() {
-            return true;
+        @Override
+        public ExprType getType() {
+            return ExprType.CONS;
         }
 
         @Override public <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor) {
@@ -179,7 +182,10 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public boolean hasHeadTag(Tag tag) {
-            return fst().isTag(tag);
+            if (fst().getType() == ExprType.SYMBOL)
+                return fst().asSymbolExpr().isTag(tag);
+            else
+                return false;
         }
     }
 }

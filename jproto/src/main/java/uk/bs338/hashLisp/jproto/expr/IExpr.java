@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -10,35 +9,16 @@ import java.util.NoSuchElementException;
 
 public interface IExpr {
     @NotNull HonsValue getValue();
-    default @NotNull HonsHeap getHeap() { throw new NoSuchElementException(); }
-
-    /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
-    default boolean isSimple() {
-        return false;
-    }
-
-    default boolean isSymbol() {
-        return false;
-    }
-
-    default boolean isCons() {
-        return false;
-    }
+    @NotNull HonsHeap getHeap();
+    
+    ExprType getType();
 
     @SuppressWarnings("UnusedReturnValue")
     @Contract("_->param1")
     <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
-
-    default boolean hasHeadTag(Tag tag) {
-        return false;
-    }
-
-    default boolean isTag(Tag tag) {
-        return false;
-    }
-
+    
     default ISymbolExpr asSymbolExpr() {
         throw new NoSuchElementException();
     }

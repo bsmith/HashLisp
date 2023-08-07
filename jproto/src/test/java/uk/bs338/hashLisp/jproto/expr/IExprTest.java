@@ -2,7 +2,6 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.Utilities;
-import uk.bs338.hashLisp.jproto.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -67,33 +66,25 @@ class IExprTest {
     class Basics {
         @Test
         void nil() {
-            assertTrue(nil.isSimple());
-            assertFalse(nil.isSymbol());
-            assertFalse(nil.isCons());
+            assertEquals(ExprType.NIL, nil.getType());
             assertEquals(HonsValue.nil, nil.getValue());
         }
 
         @Test
         void smallInt() {
-            assertTrue(smallInt.isSimple());
-            assertFalse(smallInt.isSymbol());
-            assertFalse(smallInt.isCons());
+            assertEquals(ExprType.SMALL_INT, smallInt.getType());
             assertEquals(123, smallInt.getValue().toSmallInt());
         }
 
         @Test
         void symbol() {
-            assertTrue(sym.isSimple());
-            assertTrue(sym.isSymbol());
-            assertFalse(sym.isCons());
+            assertEquals(ExprType.SYMBOL, sym.getType());
             assertEquals("symbol", heap.symbolNameAsString(sym.getValue()));
         }
 
         @Test
         void cons() {
-            assertFalse(cons.isSimple());
-            assertFalse(cons.isSymbol());
-            assertTrue(cons.isCons());
+            assertEquals(ExprType.CONS, cons.getType());
             assertEquals(heap.cons(sym.getValue(), smallInt.getValue()), cons.getValue());
         }
     }
