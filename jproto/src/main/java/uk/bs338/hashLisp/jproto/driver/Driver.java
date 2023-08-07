@@ -2,45 +2,45 @@ package uk.bs338.hashLisp.jproto.driver;
 
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 public class Driver {
-    private final HonsHeap heap;
+    private final HonsMachine machine;
     private final IReader<HonsValue> reader;
     private final IEvaluator<HonsValue> evaluator;
 
-    public Driver(HonsHeap heap, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
-        this.heap = heap;
+    public Driver(HonsMachine machine, IReader<HonsValue> reader, IEvaluator<HonsValue> evaluator) {
+        this.machine = machine;
         this.evaluator = evaluator;
         this.reader = reader;
     }
 
     protected void runOneProgram(HonsValue program) {
-        System.out.printf("program = %s%n", heap.valueToString(program));
+        System.out.printf("program = %s%n", machine.valueToString(program));
         
         var result = evaluator.eval_one(program);
         if (result.isConsRef())
-            System.out.printf("head = %s%n", heap.valueToString(heap.fst(result)));
+            System.out.printf("head = %s%n", machine.valueToString(machine.fst(result)));
         
         /* XXX: interpret result */
-        if (!result.isConsRef() || !heap.isSymbol(heap.fst(result))) {
+        if (!result.isConsRef() || !machine.isSymbol(machine.fst(result))) {
             /* Not a io-monad command: print it */
-            System.out.printf("result = %s%n", heap.valueToString(result));
+            System.out.printf("result = %s%n", machine.valueToString(result));
             return;
         }
         
         /* Is it a recognised io-monad value? */
-        var head_name = heap.symbolNameAsString(heap.fst(result)); 
+        var head_name = machine.symbolNameAsString(machine.fst(result)); 
         if (head_name.equals("io-print!")) {
-            var value = heap.fst(heap.snd(result));
+            var value = machine.fst(machine.snd(result));
             /* XXX another bug in PrintOnlyEvaluator — it needs to quote its argument! */
             /* alternatively, ditch eval_hnf, and register the io-monad primitives? */
             /* I like the idea of unregistered symbols as constructors though, very Wolframish */
             /* eval rules for quote vs hold?  eval("(quote <x>)") == "<x>", eval("(hold <x>)") == "(hold <x>)"
              * actually the latter rule is for any unregistered symbol!
              */
-            System.out.println(heap.valueToString(value));
+            System.out.println(machine.valueToString(value));
             
             /* handle continuation, is it lambda wrapped? */
             /* XXX share a head with all IO?  eg (io! print <val> <cont>?) */

@@ -3,14 +3,14 @@ package uk.bs338.hashLisp.jproto.expr;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.eval.Tag;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 
 public interface IExpr {
     @NotNull HonsValue getValue();
-    default @NotNull HonsHeap getHeap() { throw new NoSuchElementException(); }
+    default @NotNull HonsMachine getMachine() { throw new NoSuchElementException(); }
 
     /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
     default boolean isSimple() {
@@ -58,19 +58,27 @@ public interface IExpr {
      *   simple: nil, smallInt, symbol
      *   application: any other cons-ref
      */
-    static @NotNull IExpr wrap(@NotNull HonsHeap heap, @NotNull HonsValue value) {
+    static @NotNull IExpr wrap(@NotNull HonsMachine machine, @NotNull HonsValue value) {
         if (value.isConsRef()) {
-            if (heap.isSymbol(value))
-                return new ExprBase.SymbolExpr(heap, value);
-            return new ExprBase.ConsExpr(heap, value);
+            if (machine.isSymbol(value))
+                return new ExprBase.SymbolExpr(machine, value);
+            return new ExprBase.ConsExpr(machine, value);
         }
-        return new ExprBase.SimpleExpr(heap, value);
+        return new ExprBase.SimpleExpr(machine, value);
+    }
+    
+    static @NotNull IExpr nil(@NotNull HonsMachine machine) {
+        return IExpr.wrap(machine, HonsValue.nil);
+    }
+    
+    static @NotNull IExpr ofSmallInt(@NotNull HonsMachine machine, int num) {
+        return IExpr.wrap(machine, HonsValue.fromSmallInt(num));
     }
     
     static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        HonsHeap heap = left.getHeap();
-        if (heap != right.getHeap())
-            throw new IllegalArgumentException("Mismatched heaps between left IExpr and right IExpr");
-        return wrap(heap, heap.cons(left.getValue(), right.getValue())).asConsExpr();
+        HonsMachine machine = left.getMachine();
+        if (machine != right.getMachine())
+            throw new IllegalArgumentException("Mismatched machines between left IExpr and right IExpr");
+        return wrap(machine, machine.cons(left.getValue(), right.getValue())).asConsExpr();
     }
 }
