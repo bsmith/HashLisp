@@ -12,16 +12,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 abstract class ExprBase implements IExpr {
-    protected final HonsMachine heap;
+    protected final @NotNull HonsMachine machine;
     protected final @NotNull HonsValue value;
 
-    private ExprBase(HonsMachine heap, @NotNull HonsValue value) {
-        this.heap = heap;
+    private ExprBase(@NotNull HonsMachine machine, @NotNull HonsValue value) {
+        this.machine = machine;
         this.value = value;
     }
 
-    public @NotNull HonsMachine getHeap() {
-        return heap;
+    public @NotNull HonsMachine getMachine() {
+        return machine;
     }
 
     public @NotNull HonsValue getValue() {
@@ -29,7 +29,7 @@ abstract class ExprBase implements IExpr {
     }
 
     protected IExpr wrap(HonsValue value) {
-        return IExpr.wrap(heap, value);
+        return IExpr.wrap(machine, value);
     }
 
     @Contract("null -> null; !null -> !null")
@@ -38,7 +38,7 @@ abstract class ExprBase implements IExpr {
             return null;
         if (wrapped.isSimple())
             return wrapped.getValue();
-        if (heap != wrapped.getHeap())
+        if (machine != wrapped.getMachine())
             throw new IllegalArgumentException("Mismatched heap between IExpr objects");
         return wrapped.getValue();
     }
@@ -48,23 +48,23 @@ abstract class ExprBase implements IExpr {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExprBase exprBase = (ExprBase) o;
-        return Objects.equals(getHeap(), exprBase.getHeap()) && Objects.equals(getValue(), exprBase.getValue());
+        return Objects.equals(getMachine(), exprBase.getMachine()) && Objects.equals(getValue(), exprBase.getValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getHeap(), getValue());
+        return Objects.hash(getMachine(), getValue());
     }
 
     @Override
     public @NotNull String valueToString() {
-        return heap.valueToString(value);
+        return machine.valueToString(value);
     }
 
 
     public static class SimpleExpr extends ExprBase implements ISimpleExpr {
-        SimpleExpr(HonsMachine heap, @NotNull HonsValue value) {
-            super(heap, value);
+        SimpleExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
+            super(machine, value);
         }
 
         @Override public boolean isSimple() {
@@ -78,9 +78,9 @@ abstract class ExprBase implements IExpr {
     }
 
     public static class SymbolExpr extends SimpleExpr implements ISymbolExpr {
-        SymbolExpr(@NotNull HonsMachine heap, @NotNull HonsValue value) {
-            super(heap, value);
-            assert heap.isSymbol(value);
+        SymbolExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
+            super(machine, value);
+            assert machine.isSymbol(value);
         }
 
         @Override public boolean isSymbol() {
@@ -94,30 +94,30 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public @NotNull IConsExpr symbolName() {
-            return (IConsExpr)wrap(heap.symbolName(value));
+            return (IConsExpr)wrap(machine.symbolName(value));
         }
 
         @Override
         public @NotNull String symbolNameAsString() {
-            return heap.symbolNameAsString(value);
+            return machine.symbolNameAsString(value);
         }
 
         @Override
         public boolean isDataHead() {
-            return heap.fst(heap.symbolName(value)).toSmallInt() == '*';
+            return machine.fst(machine.symbolName(value)).toSmallInt() == '*';
         }
 
         @Override
         public ISymbolExpr makeDataHead() {
             if (isDataHead())
                 return this;
-            return wrap(heap.makeSymbol(heap.cons(HonsValue.fromSmallInt('*'), heap.symbolName(value)))).asSymbolExpr();
+            return wrap(machine.makeSymbol(machine.cons(HonsValue.fromSmallInt('*'), machine.symbolName(value)))).asSymbolExpr();
         }
 
         @Override
         public boolean isTag(Tag tag) {
             /* XXX slow implementation */
-            return value.equals(heap.makeSymbol(tag.getSymbolStr()));
+            return value.equals(machine.makeSymbol(tag.getSymbolStr()));
 //            throw new Error("unimplemented");
 //            return value.equals(makeSymbol(tag).getValue());
         }
@@ -129,12 +129,12 @@ abstract class ExprBase implements IExpr {
         private IExpr fst;
         private IExpr snd;
 
-        ConsExpr(HonsMachine heap, @NotNull HonsValue value) {
-            super(heap, value);
+        ConsExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
+            super(machine, value);
             assert value.isConsRef();
             /* We can't do this because ExprBase doesn't implement IValue and ConsPair is strict */
-//            var uncons = heap.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
-            uncons = heap.uncons(value);
+//            var uncons = machine.uncons(value).<ExprBase>fmap(ExprFactory.this::of);
+            uncons = machine.uncons(value);
             /* Be lazy about further wrapping */
             fst = null;
             snd = null;
@@ -165,13 +165,13 @@ abstract class ExprBase implements IExpr {
 
         @Override
         public @NotNull Optional<IExpr> getMemoEval() {
-            return heap.getMemoEval(value).map(this::wrap);
+            return machine.getMemoEval(value).map(this::wrap);
         }
 
         @Override
         public void setMemoEval(@Nullable IExpr expr) {
             var memo = expr == null ? null : unwrap(expr);
-            heap.setMemoEval(value, memo);
+            machine.setMemoEval(value, memo);
         }
 
         @Override

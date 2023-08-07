@@ -414,7 +414,7 @@ public class App {
         if (dumpHeap) {
             System.out.flush();
             System.err.printf("%n---%nHeap dump:%n");
-            machine.getHeap().dumpHeap(System.err);
+            machine.dumpMachine(System.err);
             System.err.printf("---%n");
             System.err.flush();
         }

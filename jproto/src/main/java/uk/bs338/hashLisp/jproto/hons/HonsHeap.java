@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
 import uk.bs338.hashLisp.jproto.ConsPair;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -100,23 +99,6 @@ public class HonsHeap implements
             cell.bumpObjectHash();
         } while (true);
     }
-
-    public void dumpHeap(@NotNull PrintStream stream) {
-        dumpHeap(stream, false);
-    }
-    
-    public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
-        stream.printf("HonsHeap.dumpHeap(size=%d,load=%d)%n", table.length, tableLoad);
-
-        for (int idx = 0; idx < table.length; idx++) {
-            var cell = table[idx];
-            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null)) {
-                stream.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(this, cell.toValue()));
-                if (cell.getMemoEval() != null)
-                    stream.printf("  memoEval: %s%n", PrettyPrinter.valueToString(this, cell.getMemoEval()));
-            }
-        }
-    }
     
     public void validateHeap() {
         validateHeap(false);
@@ -171,12 +153,12 @@ public class HonsHeap implements
             System.err.printf("*** HEAP FAILED VALIDATION ***%n");
             System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
             
+            /* create a temporary machine */
+            HonsMachine machine = new HonsMachine(this);
             for (var idx : brokenCells) {
                 var cell = table[idx];
-                System.err.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(this, cell.toValue()));
+                System.err.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(machine, cell.toValue()));
             }
-            
-            dumpHeap(System.err);
             
             throw new HeapValidationError();
         } else {
@@ -184,7 +166,8 @@ public class HonsHeap implements
                 System.err.println("Heap validation completed successfully");
         }
     }
-    
+
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_ -> param1")
     public <V extends IIterateHeapVisitor> @NotNull V iterateHeap(@NotNull V visitor) {
         for (int idx = 0; idx < table.length; idx++) {
@@ -220,16 +203,12 @@ public class HonsHeap implements
             throw new IllegalStateException("can't find cell for ConsRef: " + val);
         cell.setMemoEval(evalResult);
     }
-    
-    /* This is an optimisation!
-     * symbols evaluate to themselves
-     */
-    /* Really, we shouldn't be evaluating symbols but short-circuiting elsewhere */
-//    @Override
-//    public @NotNull HonsValue makeSymbol(@NotNull HonsValue name) {
-//        var symbol = ISymbolMixin.super.makeSymbol(name);
-//        assert getCell(symbol) != null;
-//        getCell(symbol).setMemoEval(symbol);
-//        return symbol;
-//    }
+
+    public int getSize() {
+        return table.length;
+    }
+
+    public int getTableLoad() {
+        return tableLoad;
+    }
 }

@@ -14,19 +14,19 @@ import java.util.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
-    private final @NotNull HonsMachine heap;
+    private final @NotNull HonsMachine machine;
     private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
     private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
-    public LazyEvaluator(HonsMachine heap) {
-        this.heap = heap;
-        this.context = new EvalContext(heap);
+    public LazyEvaluator(HonsMachine machine) {
+        this.machine = machine;
+        this.context = new EvalContext(machine);
         argSpecCache = context.argSpecCache;
         primitives = new Primitives(context.machine);
-        blackholeSentinel = IExpr.wrap(heap, context.blackholeTag).asSymbolExpr();
+        blackholeSentinel = IExpr.wrap(machine, context.blackholeTag).asSymbolExpr();
         debug = false;
     }
     
@@ -43,7 +43,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     private IExpr wrap(HonsValue value) {
-        return IExpr.wrap(heap, value);
+        return IExpr.wrap(machine, value);
     }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
@@ -55,14 +55,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
              *   This means evaluate the args, and then prepend the *
              */
             if (function.isDataHead())
-                return wrap(heap.cons(function.getValue(), args.getValue()));
+                return wrap(machine.cons(function.getValue(), args.getValue()));
             
             /* recursively evaluate */
-            var constrArgs = unmakeList(heap, args.getValue());
+            var constrArgs = unmakeList(machine, args.getValue());
             eval_multi_inplace(constrArgs);
             
             var starredSymbol = function.makeDataHead();
-            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs)));
+            return wrap(machine.cons(starredSymbol.getValue(), makeList(machine, constrArgs)));
         }
         try {
             /* may recursively evaluate */
@@ -231,7 +231,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
         catch (EvalException e) { /* XXX */
             e.printStackTrace();
-            return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
         }
     }
     
@@ -257,30 +257,30 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 return val;
             var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
             if (memoEval.isEmpty())
-                return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+                return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
             return memoEval.get().getValue();
         });
         
         return vals;
     }
 
-    public static void demo(HonsMachine heap) {
+    public static void demo(@NotNull HonsMachine machine) {
         System.out.println("Evaluator demo");
         
-        var evaluator = new LazyEvaluator(heap);
+        var evaluator = new LazyEvaluator(machine);
         
-        var add = heap.makeSymbol("add");
-        var program = makeList(heap,
+        var add = machine.makeSymbol("add");
+        var program = makeList(machine,
             add,
-            heap.makeSmallInt(5),
-            makeList(heap,
+            machine.makeSmallInt(5),
+            makeList(machine,
                 add,
-                heap.makeSmallInt(2),
-                heap.makeSmallInt(3)
+                machine.makeSmallInt(2),
+                machine.makeSmallInt(3)
             )
         );
-        System.out.println(heap.valueToString(program));
+        System.out.println(machine.valueToString(program));
 
-        System.out.println(heap.valueToString(evaluator.eval_one(program)));
+        System.out.println(machine.valueToString(evaluator.eval_one(program)));
     }
 }

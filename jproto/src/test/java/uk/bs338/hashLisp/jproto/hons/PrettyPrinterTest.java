@@ -79,12 +79,10 @@ class PrettyPrinterTest {
         assertEquals("(nil)", prettyPrinter.valueToString(machine.cons(HonsValue.nil, HonsValue.nil)));
     }
     
-    @Disabled
     @Test void string() {
         assertEquals("\"\\\\\\\"abc\"", prettyPrinter.valueToString(machine.cons(machine.makeSymbol("*string"), stringAsList(machine, "\\\"abc"))));
     }
     
-    @Disabled
     @Test void stringWithMoreEscapes() {
         /* \t, \b, \n, \r, \f, \' */
         var input = "\t\b\n\r\f'";
@@ -92,7 +90,6 @@ class PrettyPrinterTest {
         assertEquals(expected, prettyPrinter.valueToString(machine.cons(machine.makeSymbol("*string"), stringAsList(machine, input))));
     }
     
-    @Disabled
     @Test void stringWithEmojis() {
         /* "🇬🇧" == "\\u{1F1EC}\\u{1f1e7}" */
         /* Build the string explicitly using codepoints not UTF-16 */

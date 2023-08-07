@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 
 public interface IExpr {
     @NotNull HonsValue getValue();
-    default HonsMachine getHeap() { throw new NoSuchElementException(); }
+    default @NotNull HonsMachine getMachine() { throw new NoSuchElementException(); }
 
     /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
     default boolean isSimple() {
@@ -67,9 +67,17 @@ public interface IExpr {
         return new ExprBase.SimpleExpr(heap, value);
     }
     
+    static @NotNull IExpr nil(@NotNull HonsMachine machine) {
+        return IExpr.wrap(machine, HonsValue.nil);
+    }
+    
+    static @NotNull IExpr ofSmallInt(@NotNull HonsMachine machine, int num) {
+        return IExpr.wrap(machine, HonsValue.fromSmallInt(num));
+    }
+    
     static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        HonsMachine heap = left.getHeap();
-        if (heap != right.getHeap())
+        HonsMachine heap = left.getMachine();
+        if (heap != right.getMachine())
             throw new IllegalArgumentException("Mismatched heaps between left IExpr and right IExpr");
         return wrap(heap, heap.cons(left.getValue(), right.getValue())).asConsExpr();
     }

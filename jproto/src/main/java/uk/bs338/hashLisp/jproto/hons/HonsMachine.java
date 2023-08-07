@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.IMachine;
 import uk.bs338.hashLisp.jproto.ISymbolMixin;
 
+import java.io.PrintStream;
 import java.util.Optional;
 
 public class HonsMachine implements IMachine<HonsValue>, ISymbolMixin<HonsValue> {
@@ -60,6 +61,7 @@ public class HonsMachine implements IMachine<HonsValue>, ISymbolMixin<HonsValue>
         heap.setMemoEval(val, evalResult);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_ -> param1")
     public <V extends IIterateHeapVisitor> @NotNull V iterateHeap(@NotNull V visitor) {
         return heap.iterateHeap(visitor);
@@ -68,5 +70,21 @@ public class HonsMachine implements IMachine<HonsValue>, ISymbolMixin<HonsValue>
     @Nullable
     public HonsCell getCell(@NotNull HonsValue obj) {
         return heap.getCell(obj);
+    }
+
+    public void dumpMachine(@NotNull PrintStream stream) {
+        dumpMachine(stream, false);
+    }
+
+    public void dumpMachine(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
+        stream.printf("HonsMachine.dumpHeap(size=%d,load=%d)%n", heap.getSize(), heap.getTableLoad());
+
+        heap.iterateHeap((idx, cell) -> {
+            if (!onlyWithMemoValues || cell.getMemoEval() != null) {
+                stream.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(this, cell.toValue()));
+                if (cell.getMemoEval() != null)
+                    stream.printf("  memoEval: %s%n", PrettyPrinter.valueToString(this, cell.getMemoEval()));
+            }
+        });
     }
 }

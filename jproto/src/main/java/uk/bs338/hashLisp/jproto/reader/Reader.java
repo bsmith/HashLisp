@@ -19,12 +19,12 @@ public class Reader implements IReader<HonsValue> {
     public record ReadError(@NotNull String reason, Token token) {
     }
     
-    private final IMachine<HonsValue> machine;
-    private final ITokeniserFactory tokeniserFactory;
+    private final @NotNull IMachine<HonsValue> machine;
+    private final @NotNull ITokeniserFactory tokeniserFactory;
     private @NotNull List<ReadError> errors;
     private HonsValue stringSym = null;
 
-    public Reader(IMachine<HonsValue> machine, ITokeniserFactory tokeniserFactory) {
+    public Reader(@NotNull IMachine<HonsValue> machine, @NotNull ITokeniserFactory tokeniserFactory) {
         this.machine = machine;
         this.tokeniserFactory = tokeniserFactory;
         this.errors = new ArrayList<>();

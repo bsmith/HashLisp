@@ -26,8 +26,8 @@ public class LispExamplesTest {
         evaluator.setDebug(true);
     }
     
-    @AfterAll void dumpHeap() {
-        machine.getHeap().dumpHeap(System.out, true);
+    @AfterAll void dumpMachine() {
+        machine.dumpMachine(System.out, true);
     }
 
     @AfterEach
