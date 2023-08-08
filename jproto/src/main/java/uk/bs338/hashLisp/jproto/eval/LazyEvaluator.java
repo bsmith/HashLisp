@@ -15,13 +15,11 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull HonsMachine machine;
     private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
-    private final @NotNull ArgSpecCache argSpecCache;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsMachine machine) {
         this.machine = machine;
         this.context = new EvalContext(machine);
-        argSpecCache = context.argSpecCache;
         primitives = new Primitives(context.machine);
         debug = false;
     }
@@ -80,7 +78,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         IExpr argSpec = lambda.snd().asConsExpr().fst();
         IExpr body = lambda.snd().asConsExpr().snd().asConsExpr().fst();
         
-        var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
+        var assignments = context.parseArgSpec(argSpec.getValue()).match(args.getValue());
 
         return substitute(assignments, body);
     }

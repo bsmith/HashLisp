@@ -27,4 +27,8 @@ public class EvalContext {
         blackholeTag = IExpr.wrap(machine, tagSymbols.get(Tag.BLACKHOLE)).asSymbolExpr();
         lambdaTag = IExpr.wrap(machine, tagSymbols.get(Tag.LAMBDA)).asSymbolExpr();
     }
+    
+    public ArgSpec parseArgSpec(HonsValue spec) throws EvalException {
+        return argSpecCache.get(spec);
+    }
 }

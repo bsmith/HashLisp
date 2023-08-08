@@ -151,7 +151,7 @@ public class Primitives {
             /* Alpha conversion.
              * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
              */
-            var parsedSpec = evaluator.getContext().argSpecCache.get(argSpec);
+            var parsedSpec = evaluator.getContext().parseArgSpec(argSpec);
             Set<HonsValue> argNames = parsedSpec.getBoundVariables();
 
             Assignments transformation = parsedSpec.alphaConversion(args.toObjectHash());
