@@ -44,11 +44,6 @@ public class WrappedValue implements IValue, IWrappedValue, IWrappedValue.IGetVa
     }
 
     @Override
-    public boolean isCons() {
-        return value.getType() == ValueType.CONS_REF;
-    }
-
-    @Override
     public int toSmallInt() {
         return value.toSmallInt();
     }

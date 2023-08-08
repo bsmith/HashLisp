@@ -12,4 +12,6 @@ public interface IWrappedCons extends IWrappedValue {
     @NotNull Optional<? extends IWrappedValue> getMemoEval();
 
     <V extends IWrappedValue> void setMemoEval(@Nullable V expr);
+
+    IWrappedSymbol makeSymbol();
 }
