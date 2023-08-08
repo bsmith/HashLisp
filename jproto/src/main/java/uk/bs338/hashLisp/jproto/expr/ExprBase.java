@@ -177,5 +177,10 @@ abstract class ExprBase implements IExpr {
             var memo = expr == null ? null : unwrap(expr);
             machine.setMemoEval(value, memo);
         }
+
+        @Override
+        public @NotNull ISymbolExpr makeSymbol() {
+            return wrap(machine.makeSymbol(value)).asSymbolExpr();
+        }
     }
 }

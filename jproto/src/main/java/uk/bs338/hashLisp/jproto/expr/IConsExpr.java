@@ -24,4 +24,6 @@ public interface IConsExpr extends IExpr {
     default @NotNull IConsExpr asConsExpr() {
         return this;
     }
+    
+    @NotNull ISymbolExpr makeSymbol();
 }
