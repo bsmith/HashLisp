@@ -44,7 +44,7 @@ public class Primitives {
     }
     
     public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(machine.fst(args));
+        var arg = evaluator.evaluate(machine.fst(args));
         if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
@@ -52,7 +52,7 @@ public class Primitives {
     }
 
     public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(machine.fst(args));
+        var arg = evaluator.evaluate(machine.fst(args));
         if (arg.getType() != ValueType.CONS_REF)
             return HonsValue.nil;
         else
@@ -60,8 +60,8 @@ public class Primitives {
     }
 
     public @NotNull HonsValue cons(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var fst = evaluator.eval_one(machine.fst(args));
-        var snd = evaluator.eval_one(machine.fst(machine.snd(args)));
+        var fst = evaluator.evaluate(machine.fst(args));
+        var snd = evaluator.evaluate(machine.fst(machine.snd(args)));
         return machine.cons(fst, snd);
     }
 
@@ -69,7 +69,7 @@ public class Primitives {
         int sum = 0;
         var cur = args;
         while (cur.getType() == ValueType.CONS_REF) {
-            var fst = evaluator.eval_one(machine.fst(cur));
+            var fst = evaluator.evaluate(machine.fst(cur));
             if (fst.getType() == ValueType.SMALL_INT)
                 sum += fst.toSmallInt();
             else {
@@ -86,7 +86,7 @@ public class Primitives {
         int product = 1;
         var cur = args;
         while (cur.getType() == ValueType.CONS_REF) {
-            var fst = evaluator.eval_one(machine.fst(cur));
+            var fst = evaluator.evaluate(machine.fst(cur));
             if (fst.getType() == ValueType.SMALL_INT)
                 product *= fst.toSmallInt();
             else
@@ -102,15 +102,15 @@ public class Primitives {
         var cond = machine.fst(args);
         var t_val = machine.fst(machine.snd(args));
         var f_val = machine.fst(machine.snd(machine.snd(args)));
-        cond = evaluator.eval_one(cond);
+        cond = evaluator.evaluate(cond);
         if (cond.getType() != ValueType.SMALL_INT) {
             return makeList(machine, machine.makeSymbol("error"), machine.makeSymbol("zerop-not-smallint"));
         }
         else if (cond.toSmallInt() == 0) {
-            return evaluator.eval_one(t_val);
+            return evaluator.evaluate(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evaluate(f_val);
         }
     }
     
@@ -119,13 +119,13 @@ public class Primitives {
         var right = machine.fst(machine.snd(args));
         var t_val = machine.fst(machine.snd(machine.snd(args)));
         var f_val = machine.fst(machine.snd(machine.snd(machine.snd(args))));
-        left = evaluator.eval_one(left);
-        right = evaluator.eval_one(right);
+        left = evaluator.evaluate(left);
+        right = evaluator.evaluate(right);
         if (left.equals(right)) {
-            return evaluator.eval_one(t_val);
+            return evaluator.evaluate(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evaluate(f_val);
         }
     }
 
@@ -134,7 +134,7 @@ public class Primitives {
     }
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return evaluator.eval_one(machine.fst(args));
+        return evaluator.evaluate(machine.fst(args));
     }
     
     private class Lambda implements IPrimitive {

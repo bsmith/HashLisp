@@ -58,4 +58,8 @@ public interface IExpr {
             throw new IllegalArgumentException("Mismatched machines between left IExpr and right IExpr");
         return wrap(machine, machine.cons(left.getValue(), right.getValue())).asConsExpr();
     }
+    
+    static @NotNull ISymbolExpr makeSymbol(@NotNull HonsMachine machine, @NotNull String name) {
+        return wrap(machine, machine.makeSymbol(name)).asSymbolExpr();
+    }
 }

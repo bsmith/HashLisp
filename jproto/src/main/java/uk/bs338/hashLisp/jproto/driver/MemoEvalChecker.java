@@ -57,7 +57,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         
         try {
             /* valid if you can eval the program and get the same thing! */
-            var evaluated = evaluator.eval_one(cell.toValue());
+            var evaluated = evaluator.evaluate(cell.toValue());
             if (!memoEval.equals(evaluated))
                 reason = "eval-diff";
             
@@ -78,6 +78,7 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
 
     @Override
     public void finished() {
+        //noinspection NonStrictComparisonCanBeEquality
         if (brokenCells.size() <= 0) {
             if (verbose)
                 System.err.println("Memo eval checker completed successfully");

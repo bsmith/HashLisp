@@ -20,7 +20,7 @@ public class Driver {
     protected void runOneProgram(HonsValue program) {
         System.out.printf("program = %s%n", machine.valueToString(program));
         
-        var result = evaluator.eval_one(program);
+        var result = evaluator.evaluate(program);
         if (result.getType() == ValueType.CONS_REF)
             System.out.printf("head = %s%n", machine.valueToString(machine.fst(result)));
         

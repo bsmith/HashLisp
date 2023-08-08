@@ -16,7 +16,7 @@ class IExprTest {
         machine = new HonsMachine();
         nil = IExpr.wrap(machine, HonsValue.nil);
         smallInt = IExpr.wrap(machine, HonsValue.fromSmallInt(123));
-        sym = IExpr.wrap(machine, machine.makeSymbol("symbol"));
+        sym = IExpr.makeSymbol(machine, "symbol");
         cons = IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue()));
     }
     
@@ -31,7 +31,7 @@ class IExprTest {
         void equalsTheSameWrappedValue() {
             assertEquals(nil, IExpr.wrap(machine, HonsValue.nil));
             assertEquals(smallInt, IExpr.wrap(machine, HonsValue.fromSmallInt(123)));
-            assertEquals(sym, IExpr.wrap(machine, machine.makeSymbol("symbol")));
+            assertEquals(sym, IExpr.makeSymbol(machine, "symbol"));
             assertEquals(cons, IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue())));
         }
 
@@ -39,7 +39,7 @@ class IExprTest {
         void hashCodeTheSameForTheSameWrappedValue() {
             assertEquals(nil.hashCode(), IExpr.wrap(machine, HonsValue.nil).hashCode());
             assertEquals(smallInt.hashCode(), IExpr.wrap(machine, HonsValue.fromSmallInt(123)).hashCode());
-            assertEquals(sym.hashCode(), IExpr.wrap(machine, machine.makeSymbol("symbol")).hashCode());
+            assertEquals(sym.hashCode(), IExpr.makeSymbol(machine, "symbol").hashCode());
             assertEquals(cons.hashCode(), IExpr.wrap(machine, machine.cons(sym.getValue(), smallInt.getValue())).hashCode());
         }
         
