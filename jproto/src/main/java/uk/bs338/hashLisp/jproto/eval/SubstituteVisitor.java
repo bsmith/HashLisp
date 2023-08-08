@@ -3,12 +3,11 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
-import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Optional;
 
 /* since this recurses into itself, I suppose we can just reuse result, instead of creating lots of new visitors */
-class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
+class SubstituteVisitor implements IExprVisitor, ISubstitutor {
     public static class TakePut<T> {
         private T value;
         public TakePut() {
@@ -50,20 +49,20 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         return result.take();
     }
 
-    @Override
-    public @NotNull HonsValue substitute(@NotNull HonsValue body) {
-        return substitute(IExpr.wrap(machine, body)).getValue();
-    }
+//    @Override
+//    public @NotNull HonsValue substitute(@NotNull HonsValue body) {
+//        return substitute(IExpr.wrap(machine, body)).getValue();
+//    }
 
     @NotNull
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
         return substitute(evaluator, assignments, body);
     }
 
-    @Override
-    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
-        return substitute(assignments, IExpr.wrap(machine, body)).getValue();
-    }
+//    @Override
+//    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
+//        return substitute(assignments, IExpr.wrap(machine, body)).getValue();
+//    }
 
     /* convenience function */
     public static @NotNull IExpr substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull IExpr body) {
@@ -96,10 +95,20 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
             if (consExpr.fst().asSymbolExpr().isDataHead())
                 /* do not substitute under data heads */
                 rv = Optional.of(consExpr);
-            else
-                rv = primitives.get(consExpr.fst().getValue())
-                    .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
-                    .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(machine, val)));
+            else {
+                var prim = primitives.get(consExpr.fst().getValue());
+                if (prim.isPresent()) {
+                    try {
+                        var valOpt = prim.get().substitute(evaluator, assignments, consExpr, consExpr.snd());
+                        rv = valOpt.map(val -> IExpr.cons(consExpr.fst(), val));
+                    }
+                    catch (EvalException e) {
+                        /* XXX better handling */
+                        e.printStackTrace();
+                        rv = Optional.of(consExpr);
+                    }
+                }
+            }
         }
         
         result.put(rv.orElseGet(() -> visitApply(consExpr)));

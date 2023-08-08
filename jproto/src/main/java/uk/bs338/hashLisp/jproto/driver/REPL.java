@@ -3,7 +3,6 @@ package uk.bs338.hashLisp.jproto.driver;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.ValueType;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.wrapped.Context;
@@ -18,7 +17,7 @@ public class REPL extends Context {
     protected void runOneProgram(WrappedValue program) {
         System.out.printf("program = %s%n", this.valueToString(program));
         
-        var result = eval_one(program);
+        var result = evaluate(program);
         
         /* Is it a recognised io-monad value? */
         if (result.getType() == ValueType.CONS_REF) {

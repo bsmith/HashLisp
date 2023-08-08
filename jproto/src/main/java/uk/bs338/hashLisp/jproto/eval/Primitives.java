@@ -1,18 +1,19 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.ValueType;
+import uk.bs338.hashLisp.jproto.expr.ExprType;
 import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static uk.bs338.hashLisp.jproto.Utilities.makeList;
+import static uk.bs338.hashLisp.jproto.expr.ExprUtilities.makeList;
 
 public class Primitives {
     private final @NotNull HonsMachine machine;
@@ -29,7 +30,6 @@ public class Primitives {
         put("mul", this::mul);
         put("zerop", this::zerop);
         put("eq?", this::eqp);
-        put("eval", this::eval);
         put("lambda", new Lambda());
         put("error", this::error);
     }
@@ -42,112 +42,108 @@ public class Primitives {
         return Optional.ofNullable(primitives.get(name));
     }
     
-    public @NotNull HonsValue fst(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(machine.fst(args));
-        if (arg.getType() != ValueType.CONS_REF)
-            return HonsValue.nil;
+    public @NotNull IExpr fst(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var arg = evaluator.evalExpr(args.asConsExpr().fst());
+        if (arg.getType() != ExprType.CONS)
+            return IExpr.nil(machine);
         else
-            return machine.fst(arg);
+            return arg.asConsExpr().fst();
     }
 
-    public @NotNull HonsValue snd(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var arg = evaluator.eval_one(machine.fst(args));
-        if (arg.getType() != ValueType.CONS_REF)
-            return HonsValue.nil;
+    public @NotNull IExpr snd(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var arg = evaluator.evalExpr(args.asConsExpr().fst());
+        if (arg.getType() != ExprType.CONS)
+            return IExpr.nil(machine);
         else
-            return machine.snd(arg);
+            return arg.asConsExpr().snd();
     }
 
-    public @NotNull HonsValue cons(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var fst = evaluator.eval_one(machine.fst(args));
-        var snd = evaluator.eval_one(machine.fst(machine.snd(args)));
-        return machine.cons(fst, snd);
+    public @NotNull IExpr cons(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var fst = evaluator.evalExpr(args.asConsExpr().fst());
+        var snd = evaluator.evalExpr(args.asConsExpr().snd().asConsExpr().fst());
+        return IExpr.cons(fst, snd);
     }
 
-    public @NotNull HonsValue add(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+    public @NotNull IExpr add(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         int sum = 0;
         var cur = args;
-        while (cur.getType() == ValueType.CONS_REF) {
-            var fst = evaluator.eval_one(machine.fst(cur));
-            if (fst.getType() == ValueType.SMALL_INT)
-                sum += fst.toSmallInt();
+        while (cur.getType() == ExprType.CONS) {
+            var fst = evaluator.evalExpr(cur.asConsExpr().fst());
+            if (fst.getType() == ExprType.SMALL_INT)
+                sum += fst.getValue().toSmallInt();
             else {
-                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, machine.valueToString(args), cur, machine.valueToString(cur), fst, machine.valueToString(fst), machine.getCell(fst)));
+                throw new EvalException("arg is not a smallint: args=%s=%s cur=%s=%s fst=%s=%s wtf=%s".formatted(args, args.valueToString(), cur, cur.valueToString(), fst, fst.valueToString(), machine.getHeap().getCell(fst.getValue())));
             }
-            cur = machine.snd(cur);
+            cur = cur.asConsExpr().snd();
         }
-        if (cur.getType() != ValueType.NIL)
+        if (cur.getType() != ExprType.NIL)
             throw new EvalException("args not terminated by nil");
-        return machine.makeSmallInt(sum);
+        return IExpr.ofSmallInt(machine, sum);
     }
 
-    public @NotNull HonsValue mul(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+    public @NotNull IExpr mul(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         int product = 1;
         var cur = args;
-        while (cur.getType() == ValueType.CONS_REF) {
-            var fst = evaluator.eval_one(machine.fst(cur));
-            if (fst.getType() == ValueType.SMALL_INT)
-                product *= fst.toSmallInt();
+        while (cur.getType() == ExprType.CONS) {
+            var fst = evaluator.evalExpr(cur.asConsExpr().fst());
+            if (fst.getType() == ExprType.SMALL_INT)
+                product *= fst.getValue().toSmallInt();
             else
                 throw new EvalException("arg is not a smallint");
-            cur = machine.snd(cur);
+            cur = cur.asConsExpr().snd();
         }
-        if (cur.getType() != ValueType.NIL)
+        if (cur.getType() != ExprType.NIL)
             throw new EvalException("args not terminated by nil");
-        return machine.makeSmallInt(product);
+        return IExpr.ofSmallInt(machine, product);
     }
 
-    public @NotNull HonsValue zerop(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var cond = machine.fst(args);
-        var t_val = machine.fst(machine.snd(args));
-        var f_val = machine.fst(machine.snd(machine.snd(args)));
-        cond = evaluator.eval_one(cond);
-        if (cond.getType() != ValueType.SMALL_INT) {
-            return makeList(machine, machine.makeSymbol("error"), machine.makeSymbol("zerop-not-smallint"));
+    public @NotNull IExpr zerop(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var cond = args.asConsExpr().fst();
+        var t_val = args.asConsExpr().snd().asConsExpr().fst();
+        var f_val = args.asConsExpr().snd().asConsExpr().snd().asConsExpr().fst();
+        cond = evaluator.evalExpr(cond);
+        if (cond.getType() != ExprType.SMALL_INT) {
+            return makeList(IExpr.nil(machine), List.of(IExpr.makeSymbol(machine, "error"), IExpr.makeSymbol(machine, "zerop-not-smallint")));
         }
-        else if (cond.toSmallInt() == 0) {
-            return evaluator.eval_one(t_val);
+        else if (cond.getValue().toSmallInt() == 0) {
+            return evaluator.evalExpr(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evalExpr(f_val);
         }
     }
     
-    public @NotNull HonsValue eqp(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        var left = machine.fst(args);
-        var right = machine.fst(machine.snd(args));
-        var t_val = machine.fst(machine.snd(machine.snd(args)));
-        var f_val = machine.fst(machine.snd(machine.snd(machine.snd(args))));
-        left = evaluator.eval_one(left);
-        right = evaluator.eval_one(right);
+    public @NotNull IExpr eqp(@NotNull IExprEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+        var left = args.asConsExpr().fst();
+        var right = args.asConsExpr().snd().asConsExpr().fst();
+        var t_val = args.asConsExpr().snd().asConsExpr().snd().asConsExpr().fst();
+        var f_val = args.asConsExpr().snd().asConsExpr().snd().asConsExpr().snd().asConsExpr().fst();
+        left = evaluator.evalExpr(left);
+        right = evaluator.evalExpr(right);
         if (left.equals(right)) {
-            return evaluator.eval_one(t_val);
+            return evaluator.evalExpr(t_val);
         }
         else {
-            return evaluator.eval_one(f_val);
+            return evaluator.evalExpr(f_val);
         }
-    }
-    
-    public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return evaluator.eval_one(machine.fst(args));
     }
     
     private class Lambda implements IPrimitive {
         @Override
-        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
-            var argSpec = new ArgSpec(machine, machine.fst(args));
-            var body = machine.fst(machine.snd(args));
-            return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec.getOrigArgSpec(), machine.cons(body, HonsValue.nil)));
+        public @NotNull IExpr apply(@NotNull LazyEvaluator evaluator, @NotNull IExpr args) throws EvalException {
+            ArgSpec argSpec = new ArgSpec(machine, args.asConsExpr().fst());
+            IExpr body = args.asConsExpr().snd().asConsExpr().fst();
+            return IExpr.cons(evaluator.getContext().lambdaTag, IExpr.cons(argSpec.getOrigArgSpec(), IExpr.cons(body, IExpr.nil(machine))));
         }
 
         @Override
-        public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) {
+        public @NotNull Optional<IExpr> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull IExpr value, @NotNull IExpr args) {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
-            var argSpec = machine.fst(args);
-            var body = machine.fst(machine.snd(args));
-            Set<HonsValue> argNames = Set.of();
+            IExpr argSpec = args.asConsExpr().fst();
+            IExpr body = args.asConsExpr().snd().asConsExpr().fst();
+            Set<ISymbolExpr> argNames = Set.of();
             Assignments transformation;
             
             /* Alpha conversion.
@@ -157,10 +153,10 @@ public class Primitives {
                 var parsedSpec = new ArgSpec(machine, argSpec);
                 argNames = parsedSpec.getBoundVariables();
 
-                transformation = parsedSpec.alphaConversion(args.toObjectHash());
+                transformation = parsedSpec.alphaConversion(args.getValue().toObjectHash());
                 if (!transformation.getAssignmentsAsMap().isEmpty()) {
                     var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
-                    argSpec = transformationVisitor.substitute(IExpr.wrap(machine, argSpec)).getValue();
+                    argSpec = transformationVisitor.substitute(argSpec);
                     /* body is transformed below using addAssignments */
                 }
             } catch (EvalException e) {
@@ -168,13 +164,13 @@ public class Primitives {
                 transformation = new Assignments(machine, Map.of());
             }
 
-            var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());
-            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue() : body;
-            return Optional.of(makeList(machine, argSpec, newBody));
+            Assignments newAssignments = assignments.withoutNameExprs(argNames).addAssignments(transformation.getAssignmentsAsMap());
+            IExpr newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, body) : body;
+            return Optional.of(makeList(IExpr.nil(machine), List.of(argSpec, newBody)));
         }
     }
     
-    public @NotNull HonsValue error(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) throws EvalException {
+    public @NotNull IExpr error(@NotNull LazyEvaluator evaluator, @NotNull IExpr args) throws EvalException {
         throw new EvalException("error primitive");
     }
 }

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
@@ -27,10 +26,10 @@ class ContextTest {
     }
 
     @Test
-    void eval_one() {
+    void evaluate() {
         /* this also exercises using Context as a WrappedHeap/IHeap! */
         var value = Utilities.makeList(context, context.makeSymbol("add"), context.makeSmallInt(1), context.makeSmallInt(2));
-        var retval = context.eval_one(value);
+        var retval = context.evaluate(value);
         assertEquals(context.makeSmallInt(3), retval);
     }
 
