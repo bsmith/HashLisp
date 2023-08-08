@@ -8,7 +8,7 @@ import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import java.util.Optional;
 
 /* since this recurses into itself, I suppose we can just reuse result, instead of creating lots of new visitors */
-class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
+class SubstituteVisitor implements IExprVisitor {
     public static class TakePut<T> {
         private T value;
         public TakePut() {
@@ -50,7 +50,6 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         return result.take();
     }
 
-    @Override
     public @NotNull HonsValue substitute(@NotNull HonsValue body) {
         return substitute(IExpr.wrap(machine, body)).getValue();
     }
@@ -60,7 +59,6 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         return substitute(evaluator, assignments, body);
     }
 
-    @Override
     public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
         return substitute(assignments, IExpr.wrap(machine, body)).getValue();
     }
@@ -72,7 +70,6 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         return new SubstituteVisitor(evaluator, assignments).substitute(body);
     }
 
-    @Override
     public @NotNull Assignments getAssignments() {
         return assignments;
     }

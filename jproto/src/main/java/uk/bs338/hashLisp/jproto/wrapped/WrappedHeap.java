@@ -1,6 +1,5 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
@@ -35,7 +34,6 @@ public class WrappedHeap implements IMachine<WrappedValue> {
     }
     
     /* was 'checkSameHeap' */
-    @Contract("null -> null; !null -> !null")
     public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
         if (machine != wrapped.getMachine())
             throw new IllegalArgumentException("Mismatched machine between WrappedValue and WrappedHeap");
