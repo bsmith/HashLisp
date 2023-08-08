@@ -10,7 +10,7 @@ public interface IPrimitive  {
     @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException;
     
     /* Return empty to mean: recurse into this as if it were an apply */
-    default @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) {
+    default @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) throws EvalException {
         return Optional.empty();
     }
 }

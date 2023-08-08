@@ -33,6 +33,10 @@ class Assignments {
     public @NotNull Map<HonsValue, HonsValue> getAssignmentsAsMap() {
         return Map.copyOf(assignments);
     }
+    
+    public boolean isEmpty() {
+        return this.assignments.isEmpty();
+    }
 
     public @NotNull String toString() {
         return "Assignments{" + machine.valueToString(getAssignmentsAsValue()) + "}";
@@ -50,11 +54,11 @@ class Assignments {
         return new Assignments(machine, reducedAssignments);
     }
     
-    public @NotNull Assignments addAssignments(@NotNull Map<HonsValue, HonsValue> newAssignments) {
+    public @NotNull Assignments addAssignments(@NotNull Assignments newAssignments) {
         if (newAssignments.isEmpty())
             return this;
         var combined = new HashMap<>(assignments);
-        combined.putAll(newAssignments);
+        combined.putAll(newAssignments.assignments);
         return new Assignments(machine, combined);
     }
 }

@@ -71,7 +71,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
 
-    public @NotNull IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
+    public @NotNull IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) throws EvalException {
         return SubstituteVisitor.substitute(this, assignments, body);
     }
 
@@ -245,17 +245,25 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         try {
             return evalExpr(expr).getValue();
         }
-        catch (EvalException e) { /* XXX */
+        catch (EvalException e) {
+            /* XXX */
             e.printStackTrace();
-                return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
+            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
         }
     }
         
     @Override
     public @NotNull HonsValue evaluateWith(@NotNull Map<HonsValue, HonsValue> globals, @NotNull HonsValue val) {
         Assignments assignments = new Assignments(machine, globals);
-        IExpr afterSubstitution = SubstituteVisitor.substitute(this, assignments, wrap(val));
-        return evaluate(afterSubstitution.getValue());
+        try {
+            IExpr afterSubstitution = SubstituteVisitor.substitute(this, assignments, wrap(val));
+            return evalExpr(afterSubstitution).getValue();
+        }
+        catch (EvalException e) {
+            /* XXX */
+            e.printStackTrace();
+            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
+        }
     }
 
     public static void demo(@NotNull HonsMachine machine) {

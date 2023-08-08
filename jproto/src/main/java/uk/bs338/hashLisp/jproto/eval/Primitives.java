@@ -141,35 +141,29 @@ public class Primitives {
         }
 
         @Override
-        public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) {
+        public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) throws EvalException {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
             var argSpec = machine.fst(args);
             var body = machine.fst(machine.snd(args));
-            Set<HonsValue> argNames = Set.of();
-            Assignments transformation;
-            
+
             /* Alpha conversion.
              * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
              */
-            try {
-                var parsedSpec = evaluator.getContext().argSpecCache.get(argSpec);
-                argNames = parsedSpec.getBoundVariables();
+            var parsedSpec = evaluator.getContext().argSpecCache.get(argSpec);
+            Set<HonsValue> argNames = parsedSpec.getBoundVariables();
 
-                transformation = parsedSpec.alphaConversion(args.toObjectHash());
-                if (!transformation.getAssignmentsAsMap().isEmpty()) {
-                    var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
-                    argSpec = transformationVisitor.substitute(IExpr.wrap(machine, argSpec)).getValue();
-                    /* body is transformed below using addAssignments */
-                }
-            } catch (EvalException e) {
-                /* XXX report error better */
-                transformation = new Assignments(machine, Map.of());
+            Assignments transformation = parsedSpec.alphaConversion(args.toObjectHash());
+            if (!transformation.isEmpty()) {
+                var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
+                argSpec = transformationVisitor.substitute(IExpr.wrap(machine, argSpec)).getValue();
+                /* body is transformed below using addAssignments */
             }
 
-            var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation.getAssignmentsAsMap());
-            var newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue() : body;
+            var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation);
+            var newBody = newAssignments.isEmpty() ? body :
+                SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue();
             return Optional.of(makeList(machine, argSpec, newBody));
         }
     }

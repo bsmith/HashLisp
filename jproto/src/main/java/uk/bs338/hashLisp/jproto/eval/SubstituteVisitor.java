@@ -12,6 +12,7 @@ import java.util.Optional;
 class SubstituteVisitor implements IExprVisitor {
     public static class TakePut<T> {
         private @Nullable T value;
+        private @Nullable EvalException exception;
         public TakePut() {
             this.value = null;
         }
@@ -19,7 +20,14 @@ class SubstituteVisitor implements IExprVisitor {
             assert this.value == null;
             this.value = value;
         }
-        public @NotNull T take() {
+        public void putException(@NotNull EvalException e) {
+            this.exception = e;
+        }
+        public @NotNull T take() throws EvalException {
+            if (this.exception != null) {
+                this.value = null;
+                throw exception;
+            }
             assert this.value != null;
             var rv = this.value;
             this.value = null;
@@ -43,28 +51,28 @@ class SubstituteVisitor implements IExprVisitor {
 
     /* for recursive substitution */
     @NotNull
-    public IExpr substitute(@NotNull IExpr body) {
+    public IExpr substitute(@NotNull IExpr body) throws EvalException {
         if (assignments.getAssignmentsAsMap().isEmpty())
             return body;
         body.visit(this);
         return result.take();
     }
 
-    public @NotNull HonsValue substitute(@NotNull HonsValue body) {
+    public @NotNull HonsValue substitute(@NotNull HonsValue body) throws EvalException {
         return substitute(IExpr.wrap(machine, body)).getValue();
     }
 
     @NotNull
-    public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
+    public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) throws EvalException {
         return substitute(evaluator, assignments, body);
     }
 
-    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) {
+    public @NotNull HonsValue substitute(@NotNull Assignments assignments, @NotNull HonsValue body) throws EvalException {
         return substitute(assignments, IExpr.wrap(machine, body)).getValue();
     }
 
     /* convenience function */
-    public static @NotNull IExpr substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull IExpr body) {
+    public static @NotNull IExpr substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull IExpr body) throws EvalException {
         if (assignments.getAssignmentsAsMap().isEmpty())
             return body;
         return new SubstituteVisitor(evaluator, assignments).substitute(body);
@@ -93,19 +101,38 @@ class SubstituteVisitor implements IExprVisitor {
             if (consExpr.fst().asSymbolExpr().isDataHead())
                 /* do not substitute under data heads */
                 rv = Optional.of(consExpr);
-            else
-                rv = primitives.get(consExpr.fst().getValue())
-                    .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
-                    .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(machine, val)));
+            else {
+                Optional<IPrimitive> prim = primitives.get(consExpr.fst().getValue());
+                if (prim.isPresent()) {
+                    try {
+                        rv = prim.get().substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue())
+                            .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(machine, val)));
+                    }
+                    catch (EvalException e) {
+                        result.putException(e);
+                        return;
+                    }
+                }
+            }
         }
         
-        result.put(rv.orElseGet(() -> visitApply(consExpr)));
+        if (rv.isPresent()) {
+            result.put(rv.get());
+            return;
+        }
+        
+        visitApply(consExpr);
     }
 
-    public @NotNull IConsExpr visitApply(@NotNull IConsExpr consExpr) {
-        return IExpr.cons(
-            substitute(consExpr.fst()),
-            substitute(consExpr.snd())
-        );
+    public void visitApply(@NotNull IConsExpr consExpr) {
+        try {
+            result.put(IExpr.cons(
+                substitute(consExpr.fst()),
+                substitute(consExpr.snd())
+            ));
+        }
+        catch (EvalException e) {
+            result.putException(e);
+        }
     }
 }
