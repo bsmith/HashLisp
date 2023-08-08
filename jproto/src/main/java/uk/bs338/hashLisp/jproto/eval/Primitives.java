@@ -7,6 +7,7 @@ import uk.bs338.hashLisp.jproto.expr.IExpr;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -133,38 +134,88 @@ public class Primitives {
     }
     
     private class Lambda implements IPrimitive {
+        public record ParsedLambda(@NotNull HonsValue argSpec, @NotNull HonsValue body, int uniq) {
+            public HonsValue toArgs(HonsMachine machine) {
+                return machine.cons(this.argSpec(), machine.cons(this.body(), HonsValue.nil));
+            }
+        }
+        
+        public ParsedLambda parseLambdaArgs(@NotNull HonsValue args) {
+            return new ParsedLambda(
+                machine.fst(args),
+                machine.fst(machine.snd(args)),
+                args.toObjectHash()
+            );
+        }
+
+        public ParsedLambda doAlphaConversion(@NotNull LazyEvaluator evaluator, @NotNull ParsedLambda parsedLambda) throws EvalException {
+            ArgSpec parsedSpec = evaluator.getContext().argSpecCache.get(parsedLambda.argSpec());
+            
+            var transformation = parsedSpec.alphaConversion(parsedLambda.uniq());
+            if (!transformation.getAssignmentsAsMap().isEmpty()) {
+                var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
+                var argSpec = transformationVisitor.substitute(IExpr.wrap(machine, parsedLambda.argSpec())).getValue();
+                var body = transformationVisitor.substitute(IExpr.wrap(machine, parsedLambda.body())).getValue();
+                parsedLambda = new ParsedLambda(argSpec, body, parsedLambda.uniq());
+            }
+            return parsedLambda;
+        }
+        
         @Override
         public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) {
             var argSpec = machine.fst(args);
             var body = machine.fst(machine.snd(args));
             return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec, machine.cons(body, HonsValue.nil)));
         }
+//        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
+//            var parsedLambda = parseLambdaArgs(args);
+//            parsedLambda = doAlphaConversion(evaluator, parsedLambda);
+//            return machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
+//        }
 
         @Override
         public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) throws EvalException {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
-            var argSpec = machine.fst(args);
-            var body = machine.fst(machine.snd(args));
-
-            /* Alpha conversion.
-             * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
-             */
-            var parsedSpec = evaluator.getContext().parseArgSpec(argSpec);
-            Set<HonsValue> argNames = parsedSpec.getBoundVariables();
-
-            Assignments transformation = parsedSpec.alphaConversion(args.toObjectHash());
-            if (!transformation.isEmpty()) {
-                var transformationVisitor = new SubstituteVisitor(evaluator, transformation);
-                argSpec = transformationVisitor.substitute(IExpr.wrap(machine, argSpec)).getValue();
-                /* body is transformed below using addAssignments */
+            ParsedLambda parsedLambda = parseLambdaArgs(args);
+            
+            /* Alpha conversion. */
+            HonsValue alphaConversionValue = machine.cons(evaluator.getContext().lambdaExprTag.getValue(), parsedLambda.toArgs(machine));
+            Optional<HonsValue> alphaConversionMemo = machine.getMemoEval(alphaConversionValue);
+            
+            if (alphaConversionMemo.isEmpty()) {
+                parsedLambda = doAlphaConversion(evaluator, parsedLambda);
+                HonsValue convertedLambda = machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
+                machine.setMemoEval(alphaConversionValue, convertedLambda);
+            } else {
+                parsedLambda = parseLambdaArgs(machine.snd(alphaConversionMemo.get()));
             }
 
-            var newAssignments = assignments.withoutNames(argNames).addAssignments(transformation);
-            var newBody = newAssignments.isEmpty() ? body :
+            HonsValue argSpec = parsedLambda.argSpec();
+            HonsValue body = parsedLambda.body();
+
+            ArgSpec parsedSpec = evaluator.getContext().parseArgSpec(argSpec);
+            Collection<HonsValue> argNames = parsedSpec.getBoundVariables();
+
+            Assignments newAssignments = assignments.withoutNames(argNames);
+            HonsValue newBody = newAssignments.isEmpty() ? body :
                 SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue();
             return Optional.of(makeList(machine, argSpec, newBody));
+        }
+
+        @Override
+        public @NotNull Set<HonsValue> freeVariables(@NotNull HonsValue args) {
+            try {
+                var argSpec = ArgSpec.parse(machine, machine.fst(args));
+                var body = machine.fst(machine.snd(args));
+                
+                throw new Error("unimplemented");
+            }
+            catch (EvalException e) {
+                /* XXX too silent */
+                return Set.of();
+            }
         }
     }
     

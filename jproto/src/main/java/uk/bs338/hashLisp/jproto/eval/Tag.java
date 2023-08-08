@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public enum Tag {
     BLACKHOLE("***BLACKHOLE"),
     LAMBDA("*lambda"),
+    LAMBDA_EXPR("lambda"),
     DATA("*data");
     
     private final @NotNull String symbolStr;
