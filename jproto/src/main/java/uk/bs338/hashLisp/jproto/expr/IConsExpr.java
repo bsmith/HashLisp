@@ -1,7 +1,6 @@
 package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.Tag;
 
 import java.util.Optional;
 
@@ -20,8 +19,6 @@ public interface IConsExpr extends IExpr {
     default boolean isNormalForm() {
         return fst().getType() == ExprType.SYMBOL && fst().asSymbolExpr().isDataHead();
     }
-
-    boolean hasHeadTag(Tag tag);
 
     @Override
     default IConsExpr asConsExpr() {

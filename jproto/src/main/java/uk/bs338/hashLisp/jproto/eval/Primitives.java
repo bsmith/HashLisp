@@ -142,7 +142,7 @@ public class Primitives {
         public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
             var argSpec = new ArgSpec(machine, machine.fst(args));
             var body = machine.fst(machine.snd(args));
-            return machine.cons(evaluator.getContext().lambdaTag, machine.cons(argSpec.getOrigArgSpec(), machine.cons(body, HonsValue.nil)));
+            return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec.getOrigArgSpec(), machine.cons(body, HonsValue.nil)));
         }
 
         @Override

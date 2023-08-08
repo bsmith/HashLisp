@@ -19,7 +19,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
-    private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
     public LazyEvaluator(@NotNull HonsMachine machine) {
@@ -27,7 +26,6 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         this.context = new EvalContext(machine);
         argSpecCache = context.argSpecCache;
         primitives = new Primitives(context.machine);
-        blackholeSentinel = IExpr.wrap(machine, context.blackholeTag).asSymbolExpr();
         debug = false;
     }
     
@@ -99,7 +97,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (function.getType() == ExprType.SYMBOL) {
             return applyPrimitive(function.asSymbolExpr(), args);
         }
-        else if (function.getType() == ExprType.CONS && function.asConsExpr().hasHeadTag(Tag.LAMBDA)) {
+        else if (function.getType() == ExprType.CONS && function.asConsExpr().fst().equals(context.lambdaTag)) {
             return applyLambdaOnce(function.asConsExpr(), args);
         }
         else {
@@ -132,7 +130,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private @NotNull Optional<IExpr> getMemoEvalCheckingForBlackhole(@NotNull IConsExpr expr) {
         var memoEval = expr.getMemoEval();
         if (memoEval.isPresent()) {
-            if (memoEval.get().equals(blackholeSentinel))
+            if (memoEval.get().equals(context.blackholeTag))
                 throw new IllegalStateException("Encountered blackhole when evaluating");
         }
         return memoEval;
@@ -196,7 +194,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
     
     public @NotNull IExpr eval_cons(@NotNull IConsExpr origExpr) throws EvalException {
-        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
             var eval = evaluateIfNeeded(evaluationQueue, origExpr);
             if (eval.isPresent())
                 return eval.get();
@@ -238,7 +236,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     @Override
     @Contract("_->param1")
     public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
-        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
             /* push all the values onto the evaluation queue */
             for (var val : vals) {
                 evaluateIfNeeded(evaluationQueue, wrap(val));

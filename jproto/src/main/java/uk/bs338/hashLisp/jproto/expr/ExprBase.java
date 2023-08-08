@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
 import uk.bs338.hashLisp.jproto.ValueType;
-import uk.bs338.hashLisp.jproto.eval.Tag;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
@@ -128,12 +127,6 @@ abstract class ExprBase implements IExpr {
                 return this;
             return wrap(machine.makeSymbol(machine.cons(HonsValue.fromSmallInt('*'), machine.symbolName(value)))).asSymbolExpr();
         }
-
-        @Override
-        public boolean isTag(Tag tag) {
-            /* XXX slow implementation: add Tag cache to IMachine! */
-            return value.equals(machine.makeSymbol(tag.getSymbolStr()));
-        }
     }
 
     public static class ConsExpr extends ExprBase implements IConsExpr {
@@ -183,14 +176,6 @@ abstract class ExprBase implements IExpr {
         public void setMemoEval(@Nullable IExpr expr) {
             var memo = expr == null ? null : unwrap(expr);
             machine.setMemoEval(value, memo);
-        }
-
-        @Override
-        public boolean hasHeadTag(Tag tag) {
-            if (fst().getType() == ExprType.SYMBOL)
-                return fst().asSymbolExpr().isTag(tag);
-            else
-                return false;
         }
     }
 }
