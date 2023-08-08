@@ -109,7 +109,7 @@ public final class Utilities {
         return list;
     }
     
-    public static <V extends IValue> List<V> unmakeList(@NotNull IMachine<V> m, @NotNull V list) {
+    public static <V extends IValue> @NotNull List<V> unmakeList(@NotNull IMachine<V> m, @NotNull V list) {
         var dst = new ArrayList<V>();
         V cur = list;
         while (cur != null) {

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.driver;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
 
@@ -9,12 +10,12 @@ public class ReaderIterator<V> implements Iterator<V> {
     private final IReader<V> reader;
     private ReadResult<V> curResult;
     
-    public ReaderIterator(IReader<V> reader, String input) {
+    public ReaderIterator(@NotNull IReader<V> reader, @NotNull String input) {
         this.reader = reader;
         curResult = reader.read(input);
     }
     
-    static <V> ReaderIterator<V> read(IReader<V> reader, String input) {
+    static <V> @NotNull ReaderIterator<V> read(@NotNull IReader<V> reader, @NotNull String input) {
         return new ReaderIterator<>(reader, input);
     }
 
@@ -28,7 +29,7 @@ public class ReaderIterator<V> implements Iterator<V> {
     }
 
     @Override
-    public V next() {
+    public @NotNull V next() {
         V retval = curResult.getValue();
         curResult = reader.read(curResult.getRemaining());
         return retval;

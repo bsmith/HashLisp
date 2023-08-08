@@ -52,7 +52,7 @@ public class EvaluationQueue implements AutoCloseable {
         return queue.size();
     }
     
-    public void pushNeededEvaluation(IConsExpr expr) {
+    public void pushNeededEvaluation(@NotNull IConsExpr expr) {
         queue.addLast(new EvaluationFrame(expr));
 
         /* Set the sentinel: it is cleared in finishEvaluation, or abortQueue */
@@ -64,13 +64,13 @@ public class EvaluationQueue implements AutoCloseable {
         return queue.getLast();
     }
     
-    private void checkForBlackholeSentinel(IConsExpr expr) {
+    private void checkForBlackholeSentinel(@NotNull IConsExpr expr) {
         var prevMemo = expr.getMemoEval();
         if (prevMemo.isEmpty() || !prevMemo.get().equals(blackholeSentinel))
             throw new AssertionError("Didn't find blackhole sentinel when expected");
     }
     
-    public void finishEvaluation(EvaluationFrame frame, IExpr result) {
+    public void finishEvaluation(@NotNull EvaluationFrame frame, IExpr result) {
         /* remove from queue */
         var removedFrame = queue.removeLast();
         if (removedFrame != frame)

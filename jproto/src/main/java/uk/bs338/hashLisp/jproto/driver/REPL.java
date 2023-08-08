@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.driver;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.ValueType;
@@ -14,7 +15,7 @@ public class REPL extends Context {
         super(machine, reader, evaluator);
     }
 
-    protected void runOneProgram(WrappedValue program) {
+    protected void runOneProgram(@NotNull WrappedValue program) {
         System.out.printf("program = %s%n", this.valueToString(program));
         
         var result = evaluate(program);

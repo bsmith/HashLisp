@@ -65,7 +65,7 @@ public class WrappedValue implements IValue, IWrappedValue, IWrappedValue.IGetVa
     }
 
     @Override
-    public IWrappedSymbol makeSymbol() {
+    public @NotNull IWrappedSymbol makeSymbol() {
         return wrap(machine.makeSymbol(value));
     }
 
@@ -80,7 +80,7 @@ public class WrappedValue implements IValue, IWrappedValue, IWrappedValue.IGetVa
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return machine.valueToString(value);
     }
 
@@ -114,12 +114,12 @@ public class WrappedValue implements IValue, IWrappedValue, IWrappedValue.IGetVa
     }
 
     @Override
-    public IWrappedCons asCons() {
+    public @NotNull IWrappedCons asCons() {
         return this;
     }
 
     @Override
-    public IWrappedSymbol asSymbol() {
+    public @NotNull IWrappedSymbol asSymbol() {
         return this;
     }
 

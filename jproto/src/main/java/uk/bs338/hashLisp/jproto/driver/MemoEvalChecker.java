@@ -12,8 +12,8 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
     /* does this extend Context, or HasContext, or has a Context? */
     private final HonsMachine machine;
     private final IEvaluator<HonsValue> evaluator;
-    private final List<HonsCell> brokenCells;
-    private final List<String> brokenCellReasons;
+    private final @NotNull List<HonsCell> brokenCells;
+    private final @NotNull List<String> brokenCellReasons;
     private final boolean verbose;
 
     public MemoEvalChecker(HonsMachine machine, IEvaluator<HonsValue> evaluator, boolean verbose) {
@@ -24,15 +24,15 @@ public class MemoEvalChecker implements IIterateHeapVisitor {
         this.verbose = verbose;
     }
     
-    public static void checkHeap(HonsMachine machine, IEvaluator<HonsValue> evaluator, boolean verbose) {
+    public static void checkHeap(@NotNull HonsMachine machine, IEvaluator<HonsValue> evaluator, boolean verbose) {
         machine.iterateHeap(new MemoEvalChecker(machine, evaluator, verbose));
     }
     
-    public static void checkHeap(HonsMachine machine, IEvaluator<HonsValue> evaluator) {
+    public static void checkHeap(@NotNull HonsMachine machine, IEvaluator<HonsValue> evaluator) {
         checkHeap(machine, evaluator, false);
     }
     
-    private boolean isNormalForm(HonsValue val) {
+    private boolean isNormalForm(@NotNull HonsValue val) {
         switch (val.getType()) {
             case NIL, SYMBOL_TAG, SMALL_INT -> {
                 return true;

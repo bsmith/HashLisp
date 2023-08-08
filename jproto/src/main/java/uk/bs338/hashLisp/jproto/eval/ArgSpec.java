@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ValueType;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -16,7 +17,7 @@ public class ArgSpec {
     private final @NotNull HonsMachine machine;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
-    private HonsValue slurpyName;
+    private @Nullable HonsValue slurpyName;
 
     public ArgSpec(@NotNull HonsMachine machine, @NotNull HonsValue argSpec) throws EvalException {
         this.machine = machine;
@@ -73,7 +74,7 @@ public class ArgSpec {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "ArgSpec{" +
             "argNames=" + argNames.stream().map(machine::valueToString).toList() +
             ", slurpyName=" + machine.valueToString(slurpyName) +

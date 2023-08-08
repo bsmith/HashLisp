@@ -180,7 +180,7 @@ public class App {
         }
     }
 
-    private void parseUserArgs(String[] args)
+    private void parseUserArgs(String @Nullable [] args)
     {
         /* Complicated logic:
          *   If --file or --expr are not given,
@@ -224,7 +224,7 @@ public class App {
     }
 
     /* Return false if the app doesn't need to run */
-    public boolean parseArgs(String[] args)
+    public boolean parseArgs(String @NotNull [] args)
     {
         if (argsParsed)
             throw new IllegalStateException("App.parseArgs is only able to be called once");
@@ -274,7 +274,7 @@ public class App {
         return true;
     }
 
-    private PrintStream getNullPrintStream() {
+    private @NotNull PrintStream getNullPrintStream() {
         /* See https://stackoverflow.com/a/34839209 */
         //noinspection NullableProblems
         return new java.io.PrintStream(new java.io.OutputStream() {
@@ -425,7 +425,7 @@ public class App {
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
-    public static void main(String[] args) {
+    public static void main(String @NotNull [] args) {
         App app = new App();
         System.out.println(app.getGreeting());
 

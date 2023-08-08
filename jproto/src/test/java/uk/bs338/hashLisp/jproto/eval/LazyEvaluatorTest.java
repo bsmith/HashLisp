@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.eval;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import uk.bs338.hashLisp.jproto.Utilities;
@@ -51,10 +52,9 @@ public class LazyEvaluatorTest {
             eval = null;
             throw e;
         }
-        eval = null;
     }
     
-    void assertEvalsTo(HonsValue expected, HonsValue program) {
+    void assertEvalsTo(HonsValue expected, @NotNull HonsValue program) {
         HonsValue rv;
         try {
             rv = eval.evaluate(program);

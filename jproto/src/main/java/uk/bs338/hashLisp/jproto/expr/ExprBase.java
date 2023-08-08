@@ -28,12 +28,12 @@ abstract class ExprBase implements IExpr {
         return value;
     }
 
-    protected IExpr wrap(HonsValue value) {
+    protected @NotNull IExpr wrap(@NotNull HonsValue value) {
         return IExpr.wrap(machine, value);
     }
 
     @Contract("null -> null; !null -> !null")
-    protected HonsValue unwrap(IExpr wrapped) {
+    protected HonsValue unwrap(@Nullable IExpr wrapped) {
         if (wrapped == null)
             return null;
         if (machine != wrapped.getMachine())
@@ -42,7 +42,7 @@ abstract class ExprBase implements IExpr {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExprBase exprBase = (ExprBase) o;
@@ -66,7 +66,7 @@ abstract class ExprBase implements IExpr {
         }
 
         @Override
-        public ExprType getType() {
+        public @NotNull ExprType getType() {
             return switch (value.getType()) {
                 case NIL -> ExprType.NIL;
                 case SMALL_INT -> ExprType.SMALL_INT;
@@ -92,7 +92,7 @@ abstract class ExprBase implements IExpr {
         }
 
         @Override
-        public ExprType getType() {
+        public @NotNull ExprType getType() {
             return ExprType.SYMBOL;
         }
 
@@ -130,9 +130,9 @@ abstract class ExprBase implements IExpr {
     }
 
     public static class ConsExpr extends ExprBase implements IConsExpr {
-        private final ConsPair<HonsValue> uncons;
-        private IExpr fst;
-        private IExpr snd;
+        private final @NotNull ConsPair<HonsValue> uncons;
+        private @Nullable IExpr fst;
+        private @Nullable IExpr snd;
 
         ConsExpr(@NotNull HonsMachine machine, @NotNull HonsValue value) {
             super(machine, value);
@@ -144,7 +144,7 @@ abstract class ExprBase implements IExpr {
         }
 
         @Override
-        public ExprType getType() {
+        public @NotNull ExprType getType() {
             return ExprType.CONS;
         }
 

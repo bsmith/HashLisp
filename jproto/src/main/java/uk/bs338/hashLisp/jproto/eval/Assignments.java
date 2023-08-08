@@ -42,7 +42,7 @@ class Assignments {
         return assignments.get(name);
     }
     
-    public @NotNull Assignments withoutNames(Collection<HonsValue> names) {
+    public @NotNull Assignments withoutNames(@NotNull Collection<HonsValue> names) {
         if (names.isEmpty())
             return this;
         var reducedAssignments = new HashMap<>(assignments);
@@ -50,7 +50,7 @@ class Assignments {
         return new Assignments(machine, reducedAssignments);
     }
     
-    public @NotNull Assignments addAssignments(Map<HonsValue, HonsValue> newAssignments) {
+    public @NotNull Assignments addAssignments(@NotNull Map<HonsValue, HonsValue> newAssignments) {
         if (newAssignments.isEmpty())
             return this;
         var combined = new HashMap<>(assignments);

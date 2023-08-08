@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.expr.*;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -10,16 +11,15 @@ import java.util.Optional;
 /* since this recurses into itself, I suppose we can just reuse result, instead of creating lots of new visitors */
 class SubstituteVisitor implements IExprVisitor {
     public static class TakePut<T> {
-        private T value;
+        private @Nullable T value;
         public TakePut() {
             this.value = null;
         }
-        public void put(T value) {
+        public void put(@NotNull T value) {
             assert this.value == null;
-            assert value != null;
             this.value = value;
         }
-        public T take() {
+        public @NotNull T take() {
             assert this.value != null;
             var rv = this.value;
             this.value = null;
@@ -75,18 +75,18 @@ class SubstituteVisitor implements IExprVisitor {
     }
 
     @Override
-    public void visitSimple(IExpr simpleExpr) {
+    public void visitSimple(@NotNull IExpr simpleExpr) {
         result.put(simpleExpr);
     }
 
     @Override
-    public void visitSymbol(ISymbolExpr symbolExpr) {
+    public void visitSymbol(@NotNull ISymbolExpr symbolExpr) {
         var assignedValue = assignments.get(symbolExpr.getValue());
         result.put(assignedValue == null ? symbolExpr : IExpr.wrap(machine, assignedValue));
     }
 
     @Override
-    public void visitCons(IConsExpr consExpr) {
+    public void visitCons(@NotNull IConsExpr consExpr) {
         Optional<IConsExpr> rv = Optional.empty();
             
         if (consExpr.fst().getType() == ExprType.SYMBOL) {

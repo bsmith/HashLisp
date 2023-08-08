@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.driver;
 
+import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
@@ -11,7 +12,7 @@ public class IODriver {
     private final IReader<HonsValue> reader;
     private final IEvaluator<HonsValue> evaluator;
 
-    public IODriver(Context context) {
+    public IODriver(@NotNull Context context) {
         this.machine = context.getMachine();
         this.evaluator = context.getEvaluator();
         this.reader = context.getReader();

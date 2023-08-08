@@ -9,7 +9,7 @@ public interface ISymbolExpr extends IExpr {
     boolean isDataHead();
     
     @Override
-    default ISymbolExpr asSymbolExpr() {
+    default @NotNull ISymbolExpr asSymbolExpr() {
         return this;
     }
     

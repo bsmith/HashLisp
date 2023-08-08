@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.reader;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IMachine;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
@@ -22,7 +23,7 @@ public class Reader implements IReader<HonsValue> {
     private final @NotNull IMachine<HonsValue> machine;
     private final @NotNull ITokeniserFactory tokeniserFactory;
     private @NotNull List<ReadError> errors;
-    private HonsValue stringSym = null;
+    private @Nullable HonsValue stringSym = null;
 
     public Reader(@NotNull IMachine<HonsValue> machine, @NotNull ITokeniserFactory tokeniserFactory) {
         this.machine = machine;

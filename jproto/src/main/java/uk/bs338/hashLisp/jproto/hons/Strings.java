@@ -8,7 +8,7 @@ public final class Strings {
     }
 
     /* this used to use an IntStream, but a StringBuilder seems simpler */
-    private static void escapeChar(int ch, StringBuilder builder) {
+    private static void escapeChar(int ch, @NotNull StringBuilder builder) {
         /* Java backslash sequences are \t, \b, \n, \r, \f, \', \", \\ */
         switch (ch) {
             case '\t' -> builder.append("\\t");

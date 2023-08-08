@@ -1,6 +1,7 @@
 package uk.bs338.hashLisp.jproto.hons;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IMachine;
 import uk.bs338.hashLisp.jproto.IValue;
 import uk.bs338.hashLisp.jproto.ValueType;
@@ -66,19 +67,19 @@ public class PrettyPrinter<V extends IValue> {
         }
     }
     
-    public @NotNull StringBuilder valueToString(V val, @NotNull StringBuilder builder) {
+    public @NotNull StringBuilder valueToString(@Nullable V val, @NotNull StringBuilder builder) {
         if (val == null)
             return builder.append("<null>");
         return stringifyOneValue(val, builder);
     }
 
-    public @NotNull String valueToString(V val) {
+    public @NotNull String valueToString(@Nullable V val) {
         if (val == null)
             return "<null>";
         return valueToString(val, new StringBuilder()).toString();
     }
     
-    public static <V extends IValue> @NotNull String valueToString(@NotNull IMachine<V> machine, V val) {
+    public static <V extends IValue> @NotNull String valueToString(@NotNull IMachine<V> machine, @Nullable V val) {
         if (val == null)
             return "<null>";
         return new PrettyPrinter<>(machine).valueToString(val);

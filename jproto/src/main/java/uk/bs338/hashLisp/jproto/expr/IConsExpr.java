@@ -21,7 +21,7 @@ public interface IConsExpr extends IExpr {
     }
 
     @Override
-    default IConsExpr asConsExpr() {
+    default @NotNull IConsExpr asConsExpr() {
         return this;
     }
 }

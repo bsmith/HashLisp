@@ -38,7 +38,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return primitives;
     }
 
-    private IExpr wrap(HonsValue value) {
+    private @NotNull IExpr wrap(@NotNull HonsValue value) {
         return IExpr.wrap(machine, value);
     }
 
@@ -71,7 +71,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
     }
 
-    public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
+    public @NotNull IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
         return SubstituteVisitor.substitute(this, assignments, body);
     }
 
@@ -86,7 +86,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     /* result needs further evaluation */
-    public IExpr apply_hnf(@NotNull IExpr function, @NotNull IExpr args) throws EvalException {
+    public @NotNull IExpr apply_hnf(@NotNull IExpr function, @NotNull IExpr args) throws EvalException {
         if (debug)
             System.out.printf("%sapply %s to %s%n", evalIndent, function.valueToString(), args.valueToString());
         if (!function.isNormalForm())
@@ -133,7 +133,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return memoEval;
     }
     
-    public Optional<IExpr> evaluateIfNeeded(EvaluationQueue evaluationQueue, IExpr expr) {
+    public @NotNull Optional<IExpr> evaluateIfNeeded(@NotNull EvaluationQueue evaluationQueue, @NotNull IExpr expr) {
         /* Ensure the head is evaluated to normal form first */
         if (!expr.isNormalForm()) {
             /* we need to evaluate the head first! */
@@ -152,7 +152,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         return Optional.of(expr);
     }
     
-    public void evaluateQueue(EvaluationQueue evaluationQueue) throws EvalException {
+    public void evaluateQueue(@NotNull EvaluationQueue evaluationQueue) throws EvalException {
         while (evaluationQueue.hasEntries()) {
             var frame = evaluationQueue.getCurrentFrame();
             IConsExpr expr = frame.getOrigExpr();
