@@ -19,7 +19,7 @@ public interface ISymbolMixin<V extends IValue> extends IMachine<V> {
     }
 
     default @NotNull V symbolName(@NotNull V symbol) {
-        ConsPair<V> uncons = uncons(symbol);
+        ConsPair<? extends V> uncons = uncons(symbol);
         if (uncons.fst().getType() != ValueType.SYMBOL_TAG)
             throw new IllegalArgumentException("Cannot get symbolName of non-symbol");
         return uncons.snd();

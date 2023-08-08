@@ -159,6 +159,8 @@ public class HonsHeap implements
                 System.err.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(machine, cell.toValue()));
             }
             
+            machine.dumpMachine(System.err);
+            
             throw new HeapValidationError();
         } else {
             if (verbose)

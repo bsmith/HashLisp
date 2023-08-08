@@ -10,7 +10,7 @@ public interface IHeap<V extends IValue> {
     V cons(@NotNull V fst, @NotNull V snd);
     
     @NotNull
-    ConsPair<V> uncons(@NotNull V cons);
+    ConsPair<? extends V> uncons(@NotNull V cons);
 
     @NotNull
     default V fst(@NotNull V val) {

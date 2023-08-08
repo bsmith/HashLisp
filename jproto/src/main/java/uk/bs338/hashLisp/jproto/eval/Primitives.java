@@ -29,7 +29,6 @@ public class Primitives {
         put("mul", this::mul);
         put("zerop", this::zerop);
         put("eq?", this::eqp);
-        put("quote", this::quote);
         put("eval", this::eval);
         put("lambda", new Lambda());
         put("error", this::error);
@@ -127,10 +126,6 @@ public class Primitives {
         else {
             return evaluator.evaluate(f_val);
         }
-    }
-
-    public @NotNull HonsValue quote(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {
-        return machine.fst(args);
     }
     
     public @NotNull HonsValue eval(@NotNull IEvaluator<HonsValue> evaluator, @NotNull HonsValue args) {

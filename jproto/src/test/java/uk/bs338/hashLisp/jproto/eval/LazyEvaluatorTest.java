@@ -2,10 +2,13 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.hons.HeapValidationError;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
+
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
@@ -57,7 +60,7 @@ public class LazyEvaluatorTest {
             rv = eval.evaluate(program);
         }
         catch (Exception e) {
-            System.err.println("Exception during eval_one of " + machine.valueToString(program) + " (e: " + e + ")");
+            System.err.println("Exception during evaluate of " + machine.valueToString(program) + " (e: " + e + ")");
             throw e;
         }
         assertEquals(expected, rv);
@@ -144,5 +147,15 @@ public class LazyEvaluatorTest {
             var expected = machine.makeSmallInt(7);
             assertEvalsTo(expected, code);
         }
+    }
+
+    @Test
+    void evaluateWith() {
+        /* this also exercises using Context as a WrappedHeap/IHeap! */
+        var value = Utilities.makeList(machine, machine.makeSymbol("add"), machine.makeSmallInt(1), machine.makeSymbol("two"));
+        var globals = new HashMap<HonsValue, HonsValue>();
+        globals.put(machine.makeSymbol("two"), machine.makeSmallInt(2));
+        var retval = eval.evaluateWith(globals, value);
+        assertEquals(machine.makeSmallInt(3), retval);
     }
 }

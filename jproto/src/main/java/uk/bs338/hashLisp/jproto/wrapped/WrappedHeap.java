@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto.wrapped;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
@@ -13,11 +14,11 @@ import java.util.Optional;
 /* XXX: instead of just wrapping a heap, wrap a whole Context, optionally with Evaluators, Readers etc */
 
 public class WrappedHeap implements IMachine<WrappedValue> {
-    private final HonsMachine machine;
+    protected final HonsMachine machine;
     private WrappedValue nil;
     private WrappedValue symbolTag;
 
-    private WrappedHeap(HonsMachine machine) {
+    protected WrappedHeap(HonsMachine machine) {
         this.machine = machine;
     }
     
@@ -34,6 +35,7 @@ public class WrappedHeap implements IMachine<WrappedValue> {
     }
     
     /* was 'checkSameHeap' */
+    @Contract("null -> null; !null -> !null")
     public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
         if (machine != wrapped.getMachine())
             throw new IllegalArgumentException("Mismatched machine between WrappedValue and WrappedHeap");

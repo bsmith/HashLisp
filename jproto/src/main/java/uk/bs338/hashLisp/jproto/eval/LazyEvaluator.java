@@ -247,14 +247,15 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
         catch (EvalException e) { /* XXX */
             e.printStackTrace();
-            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
+                return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
         }
     }
-
+        
     @Override
     public @NotNull HonsValue evaluateWith(@NotNull Map<HonsValue, HonsValue> globals, @NotNull HonsValue val) {
-        var assignments = new Assignments(machine, globals);
-        return SubstituteVisitor.substitute(this, assignments, wrap(val)).getValue();
+        Assignments assignments = new Assignments(machine, globals);
+        IExpr afterSubstitution = SubstituteVisitor.substitute(this, assignments, wrap(val));
+        return evaluate(afterSubstitution.getValue());
     }
 
     public static void demo(@NotNull HonsMachine machine) {

@@ -93,9 +93,13 @@ class SubstituteVisitor implements IExprVisitor, ISubstitutor<HonsValue> {
         Optional<IConsExpr> rv = Optional.empty();
             
         if (consExpr.fst().getType() == ExprType.SYMBOL) {
-            rv = primitives.get(consExpr.fst().getValue())
-                .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
-                .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(machine, val)));
+            if (consExpr.fst().asSymbolExpr().isDataHead())
+                /* do not substitute under data heads */
+                rv = Optional.of(consExpr);
+            else
+                rv = primitives.get(consExpr.fst().getValue())
+                    .flatMap(prim -> prim.substitute(evaluator, assignments, consExpr.getValue(), consExpr.snd().getValue()))
+                    .map(val -> IExpr.cons(consExpr.fst(), IExpr.wrap(machine, val)));
         }
         
         result.put(rv.orElseGet(() -> visitApply(consExpr)));

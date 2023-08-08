@@ -16,9 +16,7 @@ import com.beust.jcommander.ParameterException;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.driver.Driver;
-import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
-import uk.bs338.hashLisp.jproto.driver.PrintOnlyReader;
+import uk.bs338.hashLisp.jproto.driver.*;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
 import uk.bs338.hashLisp.jproto.hons.HonsMachine;
@@ -98,15 +96,14 @@ public class App {
     }
 
     public @NotNull IReader<HonsValue> getReader() {
-        var reader = new Reader(machine, Tokeniser.getFactory(new CharClassifier()));
-        if (readMode)
-            return new PrintOnlyReader<>(machine, reader);
-        else
-            return reader;
+        return new Reader(machine, Tokeniser.getFactory(new CharClassifier()));
     }
     
     public @NotNull IEvaluator<HonsValue> getEvaluator() {
-        return new LazyEvaluator(machine);
+        if (readMode)
+            return new NoOpEvaluator<>();
+        else
+            return new LazyEvaluator(machine);
     }
     
     @SuppressWarnings({"UnnecessaryLabelOnContinueStatement", "UnnecessaryLabelOnBreakStatement"})
@@ -392,7 +389,7 @@ public class App {
             if (debug && evaluator instanceof LazyEvaluator)
                 ((LazyEvaluator) evaluator).setDebug(true);
 
-            var driver = new Driver(machine, reader, evaluator);
+            var repl = new REPL(machine, reader, evaluator);
 
             if (source == null && sourceFilename != null) {
                 try {
@@ -406,7 +403,7 @@ public class App {
                 System.out.println("No program supplied");
             }
             else {
-                driver.runSource(source);
+                repl.runSource(source);
                 System.out.flush();
             }
         }
