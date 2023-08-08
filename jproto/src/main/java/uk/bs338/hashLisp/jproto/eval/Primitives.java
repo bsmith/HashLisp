@@ -154,13 +154,8 @@ public class Primitives {
             );
         }
 
-        public ParsedLambda doAlphaConversion(@NotNull LazyEvaluator evaluator, @NotNull ParsedLambda parsedLambda) {
-            ArgSpec parsedSpec;
-            try {
-                parsedSpec = new ArgSpec(machine, parsedLambda.argSpec());
-            } catch (EvalException e) {
-                return parsedLambda;
-            }
+        public ParsedLambda doAlphaConversion(@NotNull LazyEvaluator evaluator, @NotNull ParsedLambda parsedLambda) throws EvalException {
+            ArgSpec parsedSpec = evaluator.getContext().argSpecCache.get(parsedLambda.argSpec());
             
             var transformation = parsedSpec.alphaConversion(parsedLambda.uniq());
             if (!transformation.getAssignmentsAsMap().isEmpty()) {
@@ -173,26 +168,26 @@ public class Primitives {
         }
         
         @Override
-        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) {
+        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
             var parsedLambda = parseLambdaArgs(args);
             parsedLambda = doAlphaConversion(evaluator, parsedLambda);
             return machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
         }
 
         @Override
-        public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) {
+        public @NotNull Optional<HonsValue> substitute(@NotNull LazyEvaluator evaluator, @NotNull Assignments assignments, @NotNull HonsValue value, @NotNull HonsValue args) throws EvalException {
             /* we want to remove from our assignments map any var mentioned in argSpec */
             /* if our assignments map becomes empty, skip recursion */
             /* otherwise, apply the reduced assignments map to the body */
-            var parsedLambda = parseLambdaArgs(args);
+            ParsedLambda parsedLambda = parseLambdaArgs(args);
             
             /* Alpha conversion. */
-            var alphaConversionValue = machine.cons(evaluator.getContext().lambdaExprTag.getValue(), parsedLambda.toArgs(machine));
-            var alphaConversionMemo = machine.getMemoEval(alphaConversionValue);
+            HonsValue alphaConversionValue = machine.cons(evaluator.getContext().lambdaExprTag.getValue(), parsedLambda.toArgs(machine));
+            Optional<HonsValue> alphaConversionMemo = machine.getMemoEval(alphaConversionValue);
             
             if (alphaConversionMemo.isEmpty()) {
                 parsedLambda = doAlphaConversion(evaluator, parsedLambda);
-                var convertedLambda = machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
+                HonsValue convertedLambda = machine.cons(evaluator.getContext().lambdaTag.getValue(), parsedLambda.toArgs(machine));
                 machine.setMemoEval(alphaConversionValue, convertedLambda);
             } else {
                 parsedLambda = parseLambdaArgs(machine.snd(alphaConversionMemo.get()));
@@ -201,15 +196,8 @@ public class Primitives {
             HonsValue argSpec = parsedLambda.argSpec();
             HonsValue body = parsedLambda.body();
 
-            Collection<HonsValue> argNames = Set.of();
-            try {
-                var parsedSpec = new ArgSpec(machine, argSpec);
-                argNames = parsedSpec.getBoundVariables();
-            }
-            catch (EvalException e) {
-                /* XXX report error better */
-                return Optional.empty();
-            }
+            ArgSpec parsedSpec = evaluator.getContext().argSpecCache.get(argSpec);
+            Collection<HonsValue> argNames = parsedSpec.getBoundVariables();
 
             Assignments newAssignments = assignments.withoutNames(argNames);
             HonsValue newBody = newAssignments.getAssignmentsAsMap().size() > 0 ? SubstituteVisitor.substitute(evaluator, newAssignments, IExpr.wrap(machine, body)).getValue() : body;
