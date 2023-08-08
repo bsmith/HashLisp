@@ -15,7 +15,7 @@ class ArgSpecTest {
     @BeforeEach
     void setUp() throws EvalException {
         machine = new HonsMachine();
-        argSpec = new ArgSpec(machine, Utilities.makeListWithDot(machine,
+        argSpec = ArgSpec.parse(machine, Utilities.makeListWithDot(machine,
             machine.makeSymbol("a"),
             machine.makeSymbol("b"),
             machine.makeSymbol("rest")));

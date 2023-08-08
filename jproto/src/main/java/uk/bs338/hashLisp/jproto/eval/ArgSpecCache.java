@@ -21,7 +21,7 @@ public class ArgSpecCache {
 //        return cache.computeIfAbsent(argSpec, (spec) -> new ArgSpec(machine, spec));
         var value = cache.get(argSpec);
         if (value == null) {
-            value = new ArgSpec(machine, argSpec);
+            value = ArgSpec.parse(machine, argSpec);
             cache.put(argSpec, value);
         }
         return value;

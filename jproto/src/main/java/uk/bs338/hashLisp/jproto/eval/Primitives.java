@@ -134,10 +134,10 @@ public class Primitives {
     
     private class Lambda implements IPrimitive {
         @Override
-        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) throws EvalException {
-            var argSpec = new ArgSpec(machine, machine.fst(args));
+        public @NotNull HonsValue apply(@NotNull LazyEvaluator evaluator, @NotNull HonsValue args) {
+            var argSpec = machine.fst(args);
             var body = machine.fst(machine.snd(args));
-            return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec.getOrigArgSpec(), machine.cons(body, HonsValue.nil)));
+            return machine.cons(evaluator.getContext().lambdaTag.getValue(), machine.cons(argSpec, machine.cons(body, HonsValue.nil)));
         }
 
         @Override
@@ -154,7 +154,7 @@ public class Primitives {
              * XXX This is currently slow as it doesn't combine any processing if this lambda ends up duplicated
              */
             try {
-                var parsedSpec = new ArgSpec(machine, argSpec);
+                var parsedSpec = evaluator.getContext().argSpecCache.get(argSpec);
                 argNames = parsedSpec.getBoundVariables();
 
                 transformation = parsedSpec.alphaConversion(args.toObjectHash());

@@ -15,24 +15,18 @@ import java.util.Set;
 
 public class ArgSpec {
     private final @NotNull HonsMachine machine;
-    private final @NotNull HonsValue origArgSpec;
-    private List<HonsValue> argNames;
-    private @Nullable HonsValue slurpyName;
+    private final List<HonsValue> argNames;
+    private final @Nullable HonsValue slurpyName;
 
-    public ArgSpec(@NotNull HonsMachine machine, @NotNull HonsValue argSpec) throws EvalException {
+    protected ArgSpec(@NotNull HonsMachine machine, @NotNull List<HonsValue> argNames, @Nullable HonsValue slurpyName) {
         this.machine = machine;
-        this.origArgSpec = argSpec;
-        
-        parseArgSpec(argSpec);
+        this.argNames = argNames;
+        this.slurpyName = slurpyName;
     }
-
-    public @NotNull HonsValue getOrigArgSpec() {
-        return origArgSpec;
-    }
-
-    private void parseArgSpec(HonsValue argSpec) throws EvalException {
-        argNames = new ArrayList<>();
-        slurpyName = null;
+    
+    public static ArgSpec parse(@NotNull HonsMachine machine, @NotNull HonsValue argSpec) throws EvalException {
+        List<HonsValue> argNames = new ArrayList<>();
+        HonsValue slurpyName = null;
 
         var curSpec = argSpec;
         while (curSpec.getType() != ValueType.NIL) {
@@ -51,6 +45,8 @@ public class ArgSpec {
                 throw new EvalException("Cannot parse argSpec at: " + machine.valueToString(curSpec));
             }
         }
+        
+        return new ArgSpec(machine, argNames, slurpyName);
     }
 
     public @NotNull Assignments match(@NotNull HonsValue args) {
