@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 /* This mixin extends a heap with symbol support */
-public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
+public interface ISymbolMixin<V extends IValue> extends IMachine<V> {
     default @NotNull V makeSymbol(@NotNull V name) {
         return cons(symbolTag(), name);
     }
@@ -15,16 +15,12 @@ public interface ISymbolMixin<V extends IValue> extends IHeap<V> {
     }
 
     default boolean isSymbol(@NotNull V symbol) {
-        try {
-            return fst(symbol).isSymbolTag();
-        } catch (Exception e) {
-            return false;
-        }
+        return symbol.getType() == ValueType.CONS_REF && fst(symbol).getType() == ValueType.SYMBOL_TAG;
     }
 
     default @NotNull V symbolName(@NotNull V symbol) {
         ConsPair<? extends V> uncons = uncons(symbol);
-        if (!uncons.fst().isSymbolTag())
+        if (uncons.fst().getType() != ValueType.SYMBOL_TAG)
             throw new IllegalArgumentException("Cannot get symbolName of non-symbol");
         return uncons.snd();
     }

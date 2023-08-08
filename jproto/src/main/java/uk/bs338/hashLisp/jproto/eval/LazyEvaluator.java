@@ -3,11 +3,11 @@ package uk.bs338.hashLisp.jproto.eval;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.bs338.hashLisp.jproto.IEvaluator;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
-import uk.bs338.hashLisp.jproto.eval.expr.IConsExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.IExpr;
-import uk.bs338.hashLisp.jproto.eval.expr.ISymbolExpr;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.expr.ExprType;
+import uk.bs338.hashLisp.jproto.expr.IConsExpr;
+import uk.bs338.hashLisp.jproto.expr.IExpr;
+import uk.bs338.hashLisp.jproto.expr.ISymbolExpr;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.*;
@@ -15,28 +15,34 @@ import java.util.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 public class LazyEvaluator implements IEvaluator<HonsValue> {
-    private final @NotNull HonsHeap heap;
-    private final @NotNull ExprFactory exprFactory;
+    private final @NotNull HonsMachine machine;
+    private final @NotNull EvalContext context;
     private final @NotNull Primitives primitives;
     private final @NotNull ArgSpecCache argSpecCache;
-    private final @NotNull ISymbolExpr blackholeSentinel;
     private boolean debug;
 
-    public LazyEvaluator(@NotNull HonsHeap heap) {
-        this.heap = heap;
-        exprFactory = new ExprFactory(heap);
-        primitives = new Primitives(heap);
-        argSpecCache = new ArgSpecCache(exprFactory);
-        blackholeSentinel = exprFactory.makeSymbol(Tag.BLACKHOLE);
+    public LazyEvaluator(@NotNull HonsMachine machine) {
+        this.machine = machine;
+        this.context = new EvalContext(machine);
+        argSpecCache = context.argSpecCache;
+        primitives = new Primitives(context.machine);
         debug = false;
     }
     
     public void setDebug(boolean flag) {
         debug = flag;
     }
-    
+
+    public @NotNull EvalContext getContext() {
+        return context;
+    }
+
+    public @NotNull Primitives getPrimitives() {
+        return primitives;
+    }
+
     private IExpr wrap(HonsValue value) {
-        return exprFactory.wrap(value);
+        return IExpr.wrap(machine, value);
     }
 
     /* If applyPrimitive needs to evaluate anything, it should call eval recursively */
@@ -48,14 +54,14 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
              *   This means evaluate the args, and then prepend the *
              */
             if (function.isDataHead())
-                return wrap(heap.cons(function.getValue(), args.getValue()));
+                return wrap(machine.cons(function.getValue(), args.getValue()));
             
             /* recursively evaluate */
-            var constrArgs = unmakeList(heap, args.getValue());
+            var constrArgs = unmakeList(machine, args.getValue());
             eval_multi_inplace(constrArgs);
             
             var starredSymbol = function.makeDataHead();
-            return wrap(heap.cons(starredSymbol.getValue(), makeList(heap, constrArgs)));
+            return wrap(machine.cons(starredSymbol.getValue(), makeList(machine, constrArgs)));
         }
         try {
             /* may recursively evaluate */
@@ -69,13 +75,13 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
 
     public IExpr substitute(@NotNull Assignments assignments, @NotNull IExpr body) {
-        return SubstituteVisitor.substitute(exprFactory, primitives, this, assignments, body);
+        return SubstituteVisitor.substitute(this, assignments, body);
     }
 
     /* result needs further evaluation */
     public @NotNull IExpr applyLambdaOnce(@NotNull IConsExpr lambda, @NotNull IExpr args) throws EvalException {
-        IExpr argSpec = lambda.snd().asCons().fst();
-        IExpr body = lambda.snd().asCons().snd().asCons().fst();
+        IExpr argSpec = lambda.snd().asConsExpr().fst();
+        IExpr body = lambda.snd().asConsExpr().snd().asConsExpr().fst();
         
         var assignments = argSpecCache.match(argSpec.getValue(), args.getValue());
 
@@ -88,11 +94,11 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
             System.out.printf("%sapply %s to %s%n", evalIndent, function.valueToString(), args.valueToString());
         if (!function.isNormalForm())
             throw new EvalException("apply_hnf called but function not in normal form");
-        if (function.isSymbol()) {
-            return applyPrimitive(function.asSymbol(), args);
+        if (function.getType() == ExprType.SYMBOL) {
+            return applyPrimitive(function.asSymbolExpr(), args);
         }
-        else if (function.hasHeadTag(Tag.LAMBDA)) {
-            return applyLambdaOnce(function.asCons(), args);
+        else if (function.getType() == ExprType.CONS && function.asConsExpr().fst().equals(context.lambdaTag)) {
+            return applyLambdaOnce(function.asConsExpr(), args);
         }
         else {
             var e = new EvalException("Cannot apply something that is not a symbol or lambda");
@@ -124,7 +130,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     private @NotNull Optional<IExpr> getMemoEvalCheckingForBlackhole(@NotNull IConsExpr expr) {
         var memoEval = expr.getMemoEval();
         if (memoEval.isPresent()) {
-            if (memoEval.get().equals(blackholeSentinel))
+            if (memoEval.get().equals(context.blackholeTag))
                 throw new IllegalStateException("Encountered blackhole when evaluating");
         }
         return memoEval;
@@ -134,13 +140,13 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         /* Ensure the head is evaluated to normal form first */
         if (!expr.isNormalForm()) {
             /* we need to evaluate the head first! */
-            assert expr.isCons(); /* !isNormalForm() => isCons() */
+            assert expr.getType() == ExprType.CONS; /* !isNormalForm() => isCons() */
 
-            var memoEval = getMemoEvalCheckingForBlackhole(expr.asCons());
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
             if (memoEval.isEmpty()) {
                 if (debug)
                     System.out.printf("%s  not in nf: pushing %s%n", evalIndent, expr.valueToString());
-                evaluationQueue.pushNeededEvaluation(expr.asCons());
+                evaluationQueue.pushNeededEvaluation(expr.asConsExpr());
                 return Optional.empty();
             } else {
                 return memoEval;
@@ -168,8 +174,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
                 /* actually perform the application */
                 try (var ignored = new EvalIndenter()) {
                     applied = apply_hnf(function.get(), expr.snd());
-                    if (applied.isCons()) /* XXX */
-                        frame.setApplyResult(applied.asCons());
+                    frame.setApplyResult(applied);
                 }
             }
 
@@ -189,7 +194,7 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
     }
     
     public @NotNull IExpr eval_cons(@NotNull IConsExpr origExpr) throws EvalException {
-        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
             var eval = evaluateIfNeeded(evaluationQueue, origExpr);
             if (eval.isPresent())
                 return eval.get();
@@ -209,8 +214,8 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         if (expr.isNormalForm())
             return expr;
         
-        assert expr.isCons();
-        var consExpr = expr.asCons();
+        assert expr.getType() == ExprType.CONS;
+        var consExpr = expr.asConsExpr();
         var result = eval_cons(consExpr);
         if (!result.isNormalForm())
             throw new AssertionError("expression not evaluated to normal form");
@@ -224,17 +229,17 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
         }
         catch (EvalException e) { /* XXX */
             e.printStackTrace();
-            return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+            return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
         }
     }
     
     @Override
     @Contract("_->param1")
     public @NotNull List<HonsValue> eval_multi_inplace(@NotNull List<HonsValue> vals) {
-        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(blackholeSentinel)) {
+        try (final EvaluationQueue evaluationQueue = new EvaluationQueue(context.blackholeTag)) {
             /* push all the values onto the evaluation queue */
             for (var val : vals) {
-                evaluateIfNeeded(evaluationQueue, exprFactory.wrap(val));
+                evaluateIfNeeded(evaluationQueue, wrap(val));
             }
 
             evaluateQueue(evaluationQueue);
@@ -245,35 +250,35 @@ public class LazyEvaluator implements IEvaluator<HonsValue> {
 
         /* Now update them all in-place */
         vals.replaceAll(val -> {
-            var expr = exprFactory.wrap(val);
+            var expr = wrap(val);
             if (expr.isNormalForm())
                 return val;
-            var memoEval = getMemoEvalCheckingForBlackhole(expr.asCons());
+            var memoEval = getMemoEvalCheckingForBlackhole(expr.asConsExpr());
             if (memoEval.isEmpty())
-                return heap.cons(heap.makeSymbol("error"), HonsValue.nil);
+                return machine.cons(machine.makeSymbol("error"), HonsValue.nil);
             return memoEval.get().getValue();
         });
         
         return vals;
     }
 
-    public static void demo(@NotNull HonsHeap heap) {
+    public static void demo(@NotNull HonsMachine machine) {
         System.out.println("Evaluator demo");
         
-        var evaluator = new LazyEvaluator(heap);
+        var evaluator = new LazyEvaluator(machine);
         
-        var add = heap.makeSymbol("add");
-        var program = makeList(heap,
+        var add = machine.makeSymbol("add");
+        var program = makeList(machine,
             add,
-            heap.makeSmallInt(5),
-            makeList(heap,
+            machine.makeSmallInt(5),
+            makeList(machine,
                 add,
-                heap.makeSmallInt(2),
-                heap.makeSmallInt(3)
+                machine.makeSmallInt(2),
+                machine.makeSmallInt(3)
             )
         );
-        System.out.println(heap.valueToString(program));
+        System.out.println(machine.valueToString(program));
 
-        System.out.println(heap.valueToString(evaluator.eval_one(program)));
+        System.out.println(machine.valueToString(evaluator.eval_one(program)));
     }
 }

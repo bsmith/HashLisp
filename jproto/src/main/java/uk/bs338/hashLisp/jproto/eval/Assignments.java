@@ -2,8 +2,7 @@ package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.bs338.hashLisp.jproto.eval.expr.*;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Collection;
@@ -11,14 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Assignments {
-    private final ExprFactory exprFactory;
-    private final HonsHeap heap;
+    private final @NotNull HonsMachine machine;
     private @Nullable HonsValue assignmentsAsValue;
-    private final Map<HonsValue, HonsValue> assignments;
+    private final @NotNull Map<HonsValue, HonsValue> assignments;
 
-    public Assignments(ExprFactory exprFactory, Map<HonsValue, HonsValue> assignments) {
-        this.exprFactory = exprFactory;
-        this.heap = exprFactory.getHeap();
+    public Assignments(@NotNull HonsMachine machine, @NotNull Map<HonsValue, HonsValue> assignments) {
+        this.machine = machine;
         this.assignmentsAsValue = null;
         this.assignments = assignments;
     }
@@ -28,7 +25,7 @@ class Assignments {
             return assignmentsAsValue;
         var assignmentsList = HonsValue.nil;
         for (var assignment : assignments.entrySet()) {
-            assignmentsList = heap.cons(heap.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
+            assignmentsList = machine.cons(machine.cons(assignment.getKey(), assignment.getValue()), assignmentsList);
         }
         return assignmentsAsValue = assignmentsList;
     }
@@ -38,7 +35,7 @@ class Assignments {
     }
 
     public @NotNull String toString() {
-        return "Assignments{" + heap.valueToString(getAssignmentsAsValue()) + "}";
+        return "Assignments{" + machine.valueToString(getAssignmentsAsValue()) + "}";
     }
     
     public @Nullable HonsValue get(@NotNull HonsValue name) {
@@ -46,8 +43,18 @@ class Assignments {
     }
     
     public @NotNull Assignments withoutNames(Collection<HonsValue> names) {
+        if (names.isEmpty())
+            return this;
         var reducedAssignments = new HashMap<>(assignments);
         reducedAssignments.keySet().removeAll(names);
-        return new Assignments(exprFactory, reducedAssignments);
+        return new Assignments(machine, reducedAssignments);
+    }
+    
+    public @NotNull Assignments addAssignments(Map<HonsValue, HonsValue> newAssignments) {
+        if (newAssignments.isEmpty())
+            return this;
+        var combined = new HashMap<>(assignments);
+        combined.putAll(newAssignments);
+        return new Assignments(machine, combined);
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.Utilities;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
 import uk.bs338.hashLisp.jproto.reader.Tokeniser;
@@ -12,17 +13,17 @@ import uk.bs338.hashLisp.jproto.reader.Tokeniser;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ContextTest {
-    HonsHeap heap;
+    HonsMachine machine;
     Reader reader;
     LazyEvaluator evaluator;
     Context context;
 
     @BeforeEach
     void setUp() {
-        heap = new HonsHeap();
-        reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
-        evaluator = new LazyEvaluator(heap);
-        context = new Context(heap, reader, evaluator);
+        machine = new HonsMachine();
+        reader = new Reader(machine, Tokeniser.getFactory(new CharClassifier()));
+        evaluator = new LazyEvaluator(machine);
+        context = new Context(machine, reader, evaluator);
     }
 
     @Test

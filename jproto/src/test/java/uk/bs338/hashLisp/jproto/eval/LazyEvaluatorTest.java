@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.hons.HeapValidationError;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,39 +12,39 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class LazyEvaluatorTest {
-    HonsHeap heap;
+    HonsMachine machine;
     LazyEvaluator eval;
 
     /* share a heap with all tests */
     @BeforeAll
     void setUpHeap() {
-        heap = new HonsHeap();
+        machine = new HonsMachine();
     }
 
     @AfterEach
     void validateHeap() {
         try {
-            heap.validateHeap();
+            machine.getHeap().validateHeap();
         }
         catch (HeapValidationError e) {
             /* If the heap didn't validate, we should get a new heap */
-            heap = new HonsHeap();
+            machine = new HonsMachine();
             throw e;
         }
     }
 
     @BeforeEach
     void setUpEvaluator() {
-        eval = new LazyEvaluator(heap);
+        eval = new LazyEvaluator(machine);
     }
 
     @AfterEach
     void tearDownEvaluator() {
         try {
-            MemoEvalChecker.checkHeap(heap, eval);
+            MemoEvalChecker.checkHeap(machine, eval);
         }
         catch (HeapValidationError e) {
-            heap = new HonsHeap();
+            machine = new HonsMachine();
             eval = null;
             throw e;
         }
@@ -57,7 +57,7 @@ public class LazyEvaluatorTest {
             rv = eval.eval_one(program);
         }
         catch (Exception e) {
-            System.err.println("Exception during eval_one of " + heap.valueToString(program) + " (e: " + e + ")");
+            System.err.println("Exception during eval_one of " + machine.valueToString(program) + " (e: " + e + ")");
             throw e;
         }
         assertEquals(expected, rv);
@@ -66,36 +66,36 @@ public class LazyEvaluatorTest {
     @Nested
     class ThingsAlreadyInNormalForm {
         @Test void nil() {
-            var nil = heap.nil();
+            var nil = machine.nil();
             assertEvalsTo(nil, nil);
         }
 
         @Test void smallInt() {
-            var intval = heap.makeSmallInt(17);
+            var intval = machine.makeSmallInt(17);
             assertEvalsTo(intval, intval);
         }
 
         @Test void symbol() {
-            var symval = heap.makeSymbol("example");
+            var symval = machine.makeSymbol("example");
             assertEvalsTo(symval, symval);
         }
 
         @Test void string() {
-            var val = heap.cons(heap.makeSymbol("*string"), stringAsList(heap, "example string"));
+            var val = machine.cons(machine.makeSymbol("*string"), stringAsList(machine, "example string"));
             assertEvalsTo(val, val);
         }
         
         @Test void hasDataHeadButContainsCode() {
-            var code = makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-            var val = heap.cons(heap.makeSymbol("*UNKNOWN"), heap.cons(code, heap.nil()));
+            var code = makeList(machine, machine.makeSymbol("add"), machine.makeSmallInt(1), machine.makeSmallInt(2));
+            var val = machine.cons(machine.makeSymbol("*UNKNOWN"), machine.cons(code, machine.nil()));
             assertEvalsTo(val, val);
         }
         
         @Test void lambda() {
-            var args = makeList(heap, heap.makeSymbol("a"), heap.makeSymbol("b"));
-            var body = makeList(heap, heap.makeSymbol("add"), heap.makeSymbol("a"), heap.makeSymbol("b"));
-            var lambda = makeList(heap, heap.makeSymbol("lambda"), args, body);
-            var expected = makeList(heap, heap.makeSymbol("*lambda"), args, body);
+            var args = makeList(machine, machine.makeSymbol("a"), machine.makeSymbol("b"));
+            var body = makeList(machine, machine.makeSymbol("add"), machine.makeSymbol("a"), machine.makeSymbol("b"));
+            var lambda = makeList(machine, machine.makeSymbol("lambda"), args, body);
+            var expected = makeList(machine, machine.makeSymbol("*lambda"), args, body);
             assertEvalsTo(expected, lambda);
         }
     }
@@ -103,19 +103,19 @@ public class LazyEvaluatorTest {
     @Nested
     class ApplySimpleThingsNotLambdas {
         @Test void simplePrimitive() {
-            var code = makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-            var expected = heap.makeSmallInt(3);
+            var code = makeList(machine, machine.makeSymbol("add"), machine.makeSmallInt(1), machine.makeSmallInt(2));
+            var expected = machine.makeSmallInt(3);
             assertEvalsTo(expected, code);
         }
         
         @Test void unknownSymbolIsStrictDataConstructor() {
-            var code = makeList(heap, heap.makeSymbol("UNKNOWN"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-            var expected = makeList(heap, heap.makeSymbol("*UNKNOWN"), heap.makeSmallInt(1), heap.makeSmallInt(2));
+            var code = makeList(machine, machine.makeSymbol("UNKNOWN"), machine.makeSmallInt(1), machine.makeSmallInt(2));
+            var expected = makeList(machine, machine.makeSymbol("*UNKNOWN"), machine.makeSmallInt(1), machine.makeSmallInt(2));
             assertEvalsTo(expected, code);
         }
         
         @Test void errorPrimitiveThrowsException() {
-            var code = makeList(heap, heap.makeSymbol("error"));
+            var code = makeList(machine, machine.makeSymbol("error"));
             assertEvalsTo(code, code);
         }
     }
@@ -125,23 +125,23 @@ public class LazyEvaluatorTest {
         HonsValue addLambda;
         
         @BeforeEach void setUp() {
-            var args = makeList(heap, heap.makeSymbol("a"), heap.makeSymbol("b"));
-            var body = makeList(heap, heap.makeSymbol("add"), heap.makeSymbol("a"), heap.makeSymbol("b"));
-            addLambda = makeList(heap, heap.makeSymbol("lambda"), args, body);
+            var args = makeList(machine, machine.makeSymbol("a"), machine.makeSymbol("b"));
+            var body = makeList(machine, machine.makeSymbol("add"), machine.makeSymbol("a"), machine.makeSymbol("b"));
+            addLambda = makeList(machine, machine.makeSymbol("lambda"), args, body);
         }
         
         @Test void applyLambda() {
-            var code = makeList(heap, addLambda, heap.makeSmallInt(1), heap.makeSmallInt(2));
-            var expected = heap.makeSmallInt(3);
+            var code = makeList(machine, addLambda, machine.makeSmallInt(1), machine.makeSmallInt(2));
+            var expected = machine.makeSmallInt(3);
             assertEvalsTo(expected, code);
         }
         
         @Test void nestedLambdaUsingSameArgLetter() {
-            var args = makeList(heap, heap.makeSymbol("a"), heap.makeSymbol("b"));
-            var body = makeList(heap, addLambda, heap.makeSmallInt(3), heap.makeSmallInt(4));
-            var lambda2 = makeList(heap, heap.makeSymbol("lambda"), args, body);
-            var code = makeList(heap, lambda2, heap.makeSmallInt(1), heap.makeSmallInt(2));
-            var expected = heap.makeSmallInt(7);
+            var args = makeList(machine, machine.makeSymbol("a"), machine.makeSymbol("b"));
+            var body = makeList(machine, addLambda, machine.makeSmallInt(3), machine.makeSmallInt(4));
+            var lambda2 = makeList(machine, machine.makeSymbol("lambda"), args, body);
+            var code = makeList(machine, lambda2, machine.makeSmallInt(1), machine.makeSmallInt(2));
+            var expected = machine.makeSmallInt(7);
             assertEvalsTo(expected, code);
         }
     }

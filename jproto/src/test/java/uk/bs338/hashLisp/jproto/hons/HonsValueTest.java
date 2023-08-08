@@ -2,6 +2,7 @@ package uk.bs338.hashLisp.jproto.hons;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import uk.bs338.hashLisp.jproto.ValueType;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,32 +23,26 @@ public class HonsValueTest {
     
     @Test void integerValuesWork() {
         HonsValue val = HonsValue.fromSmallInt(17);
-        assertTrue(val.isSmallInt());
-        assertFalse(val.isObjectHash());
-        assertFalse(val.isNil());
+        assertSame(ValueType.SMALL_INT, val.getType());
         assertEquals(17, val.toSmallInt());
     }
 
     @Test void objectHashValuesWork() {
         HonsValue val = HonsValue.fromObjectHash(17);
-        assertTrue(val.isObjectHash());
-        assertFalse(val.isSmallInt());
-        assertFalse(val.isNil());
+        assertSame(ValueType.CONS_REF, val.getType());
         assertEquals(17, val.toObjectHash());
     }
 
     @Test void nilIsNil() {
         var nil = HonsValue.nil;
-        assertTrue(nil.isNil());
-        assertFalse(nil.isSmallInt());
-        assertFalse(nil.isObjectHash());
+        assertSame(ValueType.NIL, nil.getType());
     }
 
     @Test void canApplyUnaryIntegerOperation() {
         HonsValue val = HonsValue.fromSmallInt(17);
         IntUnaryOperator operation = n -> -n;
         HonsValue rv = HonsValue.applySmallIntOperation(operation, val);
-        assertTrue(rv.isSmallInt());
+        assertSame(ValueType.SMALL_INT, rv.getType());
         assertEquals(-17, rv.toSmallInt());
     }
 
@@ -55,7 +50,7 @@ public class HonsValueTest {
         HonsValue val = HonsValue.fromObjectHash(17);
         IntUnaryOperator operation = n -> -n;
         HonsValue rv = HonsValue.applySmallIntOperation(operation, val);
-        assertTrue(rv.isNil());
+        assertSame(ValueType.NIL, rv.getType());
     }
 
     @Test void canApplyBinaryIntegerOperation() {
@@ -63,7 +58,7 @@ public class HonsValueTest {
         HonsValue right = HonsValue.fromSmallInt(21);
         IntBinaryOperator operation = Integer::sum;
         HonsValue rv = HonsValue.applySmallIntOperation(operation, left, right);
-        assertTrue(rv.isSmallInt());
+        assertSame(ValueType.SMALL_INT, rv.getType());
         assertEquals(38, rv.toSmallInt());
     }
 
@@ -72,7 +67,7 @@ public class HonsValueTest {
         HonsValue right = HonsValue.fromSmallInt(21);
         IntBinaryOperator operation = Integer::sum;
         HonsValue rv = HonsValue.applySmallIntOperation(operation, left, right);
-        assertTrue(rv.isNil());
+        assertSame(ValueType.NIL, rv.getType());
     }
     
     @Test void getSpecialNameOfSpecial() {
@@ -84,11 +79,11 @@ public class HonsValueTest {
     }
     
     @Test void symbolTagIsSymbolTag() {
-        assertTrue(HonsValue.symbolTag.isSymbolTag());
+        assertSame(HonsValue.symbolTag.getType(), ValueType.SYMBOL_TAG);
     }
     
     @Test void nonTagIsNotSymbolTag() {
-        assertFalse(HonsValue.fromSmallInt(123).isSymbolTag());
+        assertNotSame(HonsValue.fromSmallInt(123).getType(), ValueType.SYMBOL_TAG);
     }
     
     @Test void exceptionThrownByToSmallIntThatIsNotSmallInt() {
@@ -99,21 +94,21 @@ public class HonsValueTest {
         assertThrows(NoSuchElementException.class, () -> HonsValue.fromSmallInt(123).toObjectHash());
     }
     
-    @Nested class isConsRef {
-        @Test void trueForObjectHash() {
-            assertTrue(HonsValue.fromObjectHash(123).isConsRef());
+    @Nested class getType {
+        @Test void objectHash() {
+            assertSame(ValueType.CONS_REF, HonsValue.fromObjectHash(123).getType());
         }
         
-        @Test void falseForSmallInt() {
-            assertFalse(HonsValue.fromSmallInt(123).isConsRef());
+        @Test void smallInt() {
+            assertSame(ValueType.SMALL_INT, HonsValue.fromSmallInt(123).getType());
         }
         
-        @Test void falseForNil() {
-            assertFalse(HonsValue.nil.isConsRef());
+        @Test void nil() {
+            assertSame(ValueType.NIL, HonsValue.nil.getType());
         }
         
-        @Test void falseForSymbolTag() {
-            assertFalse(HonsValue.symbolTag.isConsRef());
+        @Test void symbolTag() {
+            assertSame(ValueType.SYMBOL_TAG, HonsValue.symbolTag.getType());
         }
     }
 

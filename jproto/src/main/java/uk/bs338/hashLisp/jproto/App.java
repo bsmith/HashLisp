@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.driver.*;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
 import uk.bs338.hashLisp.jproto.hons.HonsCell;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
@@ -29,7 +29,7 @@ import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 @SuppressWarnings("CanBeFinal")
 public class App {
-    private @NotNull HonsHeap heap;
+    private HonsMachine machine;
 
     @Parameter(
         names = {"--help"},
@@ -82,7 +82,7 @@ public class App {
     boolean argsParsed = false;
 
     public App() {
-        heap = new HonsHeap();
+        machine = new HonsMachine();
     }
 
     @SuppressWarnings("SameReturnValue")
@@ -91,19 +91,19 @@ public class App {
     }
     
     /* NB All HonsValues, Readers, Evaluators, etc. become invalid when you do this */
-    public void replaceHeap() {
-        heap = new HonsHeap();
+    public void replaceMachine() {
+        machine = new HonsMachine();
     }
 
     public @NotNull IReader<HonsValue> getReader() {
-        return new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
+        return new Reader(machine, Tokeniser.getFactory(new CharClassifier()));
     }
     
     public @NotNull IEvaluator<HonsValue> getEvaluator() {
         if (readMode)
             return new NoOpEvaluator<>();
         else
-            return new LazyEvaluator(heap);
+            return new LazyEvaluator(machine);
     }
     
     @SuppressWarnings({"UnnecessaryLabelOnContinueStatement", "UnnecessaryLabelOnBreakStatement"})
@@ -121,11 +121,11 @@ public class App {
                 System.out.println(new HonsCell(HonsValue.fromSmallInt(5+1), HonsValue.nil));
                 System.out.println(new HonsCell(HonsValue.fromSmallInt(i+1), HonsValue.nil));
 
-                var heaped = heap.cons(HonsValue.fromSmallInt(i), HonsValue.nil);
+                var heaped = machine.cons(HonsValue.fromSmallInt(i), HonsValue.nil);
                 System.out.println(heaped);
 
-                System.out.println(heap.cons(HonsValue.fromSmallInt(5), HonsValue.nil));
-                System.out.println(heap.cons(HonsValue.fromSmallInt(i), HonsValue.nil));
+                System.out.println(machine.cons(HonsValue.fromSmallInt(5), HonsValue.nil));
+                System.out.println(machine.cons(HonsValue.fromSmallInt(i), HonsValue.nil));
                 break collision;
             }
         }
@@ -141,29 +141,29 @@ public class App {
         HonsCell cell = new HonsCell(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.printf("cell: %s%n", cell);
 
-        HonsValue val = heap.cons(HonsValue.fromSmallInt(5), HonsValue.nil);
+        HonsValue val = machine.cons(HonsValue.fromSmallInt(5), HonsValue.nil);
         System.out.printf("hons: %s%n", val);
-        System.out.printf("      %s%n", heap.valueToString(val));
+        System.out.printf("      %s%n", machine.valueToString(val));
 
         System.out.print("again: ");
-        System.out.println(heap.cons(HonsValue.fromSmallInt(5), HonsValue.nil));
+        System.out.println(machine.cons(HonsValue.fromSmallInt(5), HonsValue.nil));
         System.out.println();
 
         System.out.print("pair: ");
-        System.out.println(heap.valueToString(heap.cons(
+        System.out.println(machine.valueToString(machine.cons(
                 HonsValue.fromSmallInt(HonsValue.SMALLINT_MIN),
                 HonsValue.fromSmallInt(HonsValue.SMALLINT_MAX)
             )));
 
-        var list = intList(heap, new int[]{1, 2, 3, 4, 5});
+        @NotNull HonsValue list = intList(machine, new int[]{1, 2, 3, 4, 5});
         System.out.print("list: ");
-        System.out.println(heap.valueToString(list));
+        System.out.println(machine.valueToString(list));
         System.out.println();
 
-        System.out.printf("sum: %s%n", sumList(heap, list));
+        System.out.printf("sum: %s%n", sumList(machine, list));
         System.out.println();
         
-        System.out.printf("symbol: %s%n", heap.valueToString(heap.makeSymbol("example")));
+        System.out.printf("symbol: %s%n", machine.valueToString(machine.makeSymbol("example")));
         System.out.println();
 
         forceCollision();
@@ -332,7 +332,7 @@ public class App {
             long loops = 0;
             while (System.nanoTime() - startTime < 10e9) {
                 /* Use a fresh Heap for each run */
-                replaceHeap();
+                replaceMachine();
                 
                 run();
                 loops++;
@@ -380,7 +380,7 @@ public class App {
         if (demoMode) {
             demo();
             System.out.println();
-            LazyEvaluator.demo(heap);
+            LazyEvaluator.demo(machine);
         } else {
             String source = sourceExpr;
 
@@ -389,7 +389,7 @@ public class App {
             if (debug && evaluator instanceof LazyEvaluator)
                 ((LazyEvaluator) evaluator).setDebug(true);
 
-            var repl = new REPL(heap, reader, evaluator);
+            var repl = new REPL(machine, reader, evaluator);
 
             if (source == null && sourceFilename != null) {
                 try {
@@ -411,17 +411,17 @@ public class App {
         if (dumpHeap) {
             System.out.flush();
             System.err.printf("%n---%nHeap dump:%n");
-            heap.dumpHeap(System.err);
+            machine.dumpMachine(System.err);
             System.err.printf("---%n");
             System.err.flush();
         }
         
         /* Always try to validate the heap */
-        heap.validateHeap(dumpHeap || debug);
+        machine.getHeap().validateHeap(dumpHeap || debug);
         
         /* If debugging or dumping the heap, this verifies all the memoEvals are correct! */
         if (dumpHeap || debug)
-            MemoEvalChecker.checkHeap(heap, getEvaluator(), dumpHeap || debug);
+            MemoEvalChecker.checkHeap(machine, getEvaluator(), dumpHeap || debug);
     }
 
     @SuppressWarnings("BlockingMethodInNonBlockingContext")

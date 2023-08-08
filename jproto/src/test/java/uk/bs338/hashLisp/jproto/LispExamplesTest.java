@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import uk.bs338.hashLisp.jproto.driver.MemoEvalChecker;
 import uk.bs338.hashLisp.jproto.eval.LazyEvaluator;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.reader.CharClassifier;
 import uk.bs338.hashLisp.jproto.reader.Reader;
 import uk.bs338.hashLisp.jproto.reader.Tokeniser;
@@ -13,34 +13,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class LispExamplesTest {
-    HonsHeap heap;
+    HonsMachine machine;
     Reader reader;
     LazyEvaluator evaluator;
     
     @BeforeEach void setUp() {
-        if (heap == null)
-            heap = new HonsHeap();
+        if (machine == null)
+            machine = new HonsMachine();
         if (reader == null)
-            reader = new Reader(heap, Tokeniser.getFactory(new CharClassifier()));
-        evaluator = new LazyEvaluator(heap);
+            reader = new Reader(machine, Tokeniser.getFactory(new CharClassifier()));
+        evaluator = new LazyEvaluator(machine);
         evaluator.setDebug(true);
     }
     
-    @AfterAll void dumpHeap() {
-        heap.dumpHeap(System.out, true);
+    @AfterAll void dumpMachine() {
+        machine.dumpMachine(System.out, true);
     }
 
     @AfterEach
     void validateHeap() {
-        heap.validateHeap();
-        MemoEvalChecker.checkHeap(heap, evaluator);
+        machine.getHeap().validateHeap();
+        MemoEvalChecker.checkHeap(machine, evaluator);
     }
     
     void assertEval(@NotNull String expectedStr, @NotNull String programStr) {
         var expected = reader.read(expectedStr).getValue();
         var program = reader.read(programStr).getValue();
         var actual = evaluator.eval_one(program);
-        assertEquals(heap.valueToString(expected), heap.valueToString(actual));
+        assertEquals(machine.valueToString(expected), machine.valueToString(actual));
         assertEquals(expected, actual);
     }
     
@@ -73,6 +73,20 @@ public class LispExamplesTest {
         assertEval(
             "120", 
             "((lambda (Y fib$) ((Y fib$) 5)) (lambda (f) ((lambda (x) (f (x x))) (lambda (x) (f (x x))))) (lambda (fib$$) (lambda (n) (zerop n 1 (mul n (fib$$ (add n -1)))))))"
+        );
+    }
+    
+    @Test void nameCaptureProblem() {
+        assertEval(
+            "(*data y z)",
+            "(((lambda (x) (lambda (y) (data x y))) y) z)"
+        );
+    }
+    
+    @Test void nameCaptureProblemDeeper() {
+        assertEval(
+            "(*data (*data y y) z)",
+            "(((lambda (x) (lambda (y) (data x y))) (data y y)) z))"
         );
     }
 }

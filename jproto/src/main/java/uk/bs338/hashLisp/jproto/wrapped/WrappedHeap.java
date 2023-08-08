@@ -4,118 +4,125 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.ConsPair;
-import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.IMachine;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /* XXX: instead of just wrapping a heap, wrap a whole Context, optionally with Evaluators, Readers etc */
 
-public class WrappedHeap implements IHeap<WrappedValue> {
-    protected final HonsHeap heap;
+public class WrappedHeap implements IMachine<WrappedValue> {
+    protected final HonsMachine machine;
     private WrappedValue nil;
     private WrappedValue symbolTag;
 
-    protected WrappedHeap(HonsHeap heap) {
-        this.heap = heap;
+    protected WrappedHeap(HonsMachine machine) {
+        this.machine = machine;
     }
     
-    public static @NotNull WrappedHeap wrap(HonsHeap heap) {
-        return new WrappedHeap(heap);
+    public static @NotNull WrappedHeap wrap(HonsMachine machine) {
+        return new WrappedHeap(machine);
     }
 
-    public HonsHeap getHeap() {
-        return heap;
+    public HonsMachine getMachine() {
+        return machine;
     }
     
     public @NotNull WrappedValue wrap(@NotNull HonsValue value) {
-        return WrappedValue.wrap(heap, value);
+        return WrappedValue.wrap(machine, value);
     }
     
     /* was 'checkSameHeap' */
     @Contract("null -> null; !null -> !null")
-    public HonsValue unwrap(IWrappedValue wrapped) {
-        if (wrapped == null)
-            return null;
-        if (!(wrapped instanceof WrappedValue))
-            throw new IllegalArgumentException("Unwrapping IExpr which is not WrappedValue");
-        if (heap != ((WrappedValue)wrapped).getHeap())
-            throw new IllegalArgumentException("Mismatched heap between WrappedValue and WrappedHeap");
-        return ((WrappedValue)wrapped).getValue();
+    public @NotNull HonsValue unwrap(@NotNull WrappedValue wrapped) {
+        if (machine != wrapped.getMachine())
+            throw new IllegalArgumentException("Mismatched machine between WrappedValue and WrappedHeap");
+        return wrapped.getValue();
     }
 
     @NotNull
-//    @Override
+    @Override
     public WrappedValue cons(@NotNull WrappedValue fst, @NotNull WrappedValue snd) {
-        return wrap(heap.cons(unwrap(fst), unwrap(snd)));
+        return wrap(machine.cons(unwrap(fst), unwrap(snd)));
     }
     
     @NotNull
-//    @Override
+    @Override
     public ConsPair<WrappedValue> uncons(@NotNull WrappedValue cons) {
-        var pair = heap.uncons(unwrap(cons));
+        var pair = machine.uncons(unwrap(cons));
         return pair.fmap(this::wrap);
     }
 
     @NotNull
-//    @Override
+    @Override
     public WrappedValue makeSymbol(@NotNull WrappedValue name) {
-        return wrap(heap.makeSymbol(unwrap(name)));
+        return wrap(machine.makeSymbol(unwrap(name)));
     }
 
     @NotNull
-//    @Override
+    @Override
     public WrappedValue makeSymbol(@NotNull String name) {
-        return wrap(heap.makeSymbol(name));
+        return wrap(machine.makeSymbol(name));
     }
 
-//    @Override
+    @Override
     public boolean isSymbol(@NotNull WrappedValue symbol) {
-        return heap.isSymbol(unwrap(symbol));
+        return machine.isSymbol(unwrap(symbol));
     }
 
     @NotNull
-//    @Override
+    @Override
     public WrappedValue symbolName(@NotNull WrappedValue symbol) {
-        return wrap(heap.symbolName(unwrap(symbol)));
+        return wrap(machine.symbolName(unwrap(symbol)));
     }
 
     @NotNull
-//    @Override
+    @Override
     public String symbolNameAsString(@NotNull WrappedValue symbol) {
-        return heap.symbolNameAsString(unwrap(symbol));
+        return machine.symbolNameAsString(unwrap(symbol));
     }
 
-    //    @Override
+    @Override
     public @NotNull WrappedValue nil() {
         if (nil == null)
             nil = wrap(HonsValue.nil);
         return nil;
     }
 
-//    @Override
+    @Override
     public @NotNull WrappedValue makeSmallInt(int num) {
         return wrap(HonsValue.fromSmallInt(num));
     }
 
-//    @Override
+    @Override
     public @NotNull WrappedValue symbolTag() {
         if (symbolTag == null)
             symbolTag = wrap(HonsValue.symbolTag);
         return symbolTag;
     }
 
-//    @Override
+    @Override
+    public @NotNull Optional<WrappedValue> getMemoEval(@NotNull WrappedValue val) {
+        throw new Error("unimplemented");
+    }
+
+    @Override
+    public void setMemoEval(@NotNull WrappedValue val, @Nullable WrappedValue evalResult) {
+        throw new Error("unimplemented");
+    }
+
+    @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WrappedHeap that = (WrappedHeap) o;
-        return Objects.equals(heap, that.heap);
+        return Objects.equals(machine, that.machine);
     }
 
-//    @Override
+    @Override
     public int hashCode() {
-        return heap.hashCode();
+        return machine.hashCode();
     }
 }

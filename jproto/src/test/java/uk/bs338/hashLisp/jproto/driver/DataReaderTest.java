@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.Utilities;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedHeap;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedValue;
@@ -38,7 +38,7 @@ class DataReaderTest {
     }
     
     @BeforeEach void setUp() {
-        heap = WrappedHeap.wrap(new HonsHeap());
+        heap = WrappedHeap.wrap(new HonsMachine());
         mockReader = new MockReader<>();
         dataReader = new DataReader<>(heap, mockReader);
         exampleValue = Utilities.makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));

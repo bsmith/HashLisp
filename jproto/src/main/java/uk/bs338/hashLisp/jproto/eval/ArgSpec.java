@@ -1,24 +1,25 @@
 package uk.bs338.hashLisp.jproto.eval;
 
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.expr.ExprFactory;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.ValueType;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ArgSpec {
-    private final @NotNull ExprFactory exprFactory;
-    private final @NotNull HonsHeap heap;
+    private final @NotNull HonsMachine machine;
     private final @NotNull HonsValue origArgSpec;
     private List<HonsValue> argNames;
     private HonsValue slurpyName;
 
-    public ArgSpec(@NotNull ExprFactory exprFactory, @NotNull HonsValue argSpec) throws EvalException {
-        this.exprFactory = exprFactory;
-        this.heap = exprFactory.getHeap();
+    public ArgSpec(@NotNull HonsMachine machine, @NotNull HonsValue argSpec) throws EvalException {
+        this.machine = machine;
         this.origArgSpec = argSpec;
         
         parseArgSpec(argSpec);
@@ -33,20 +34,20 @@ public class ArgSpec {
         slurpyName = null;
 
         var curSpec = argSpec;
-        while (!curSpec.isNil()) {
+        while (curSpec.getType() != ValueType.NIL) {
             /* XXX Would a visitor make sense here? Or an iterator? */
-            if (heap.isSymbol(curSpec)) {
+            if (machine.isSymbol(curSpec)) {
                 slurpyName = curSpec;
                 break;
-            } else if (curSpec.isConsRef()) {
-                var uncons = heap.uncons(curSpec);
-                if (!heap.isSymbol(uncons.fst())) {
-                    throw new EvalException("Found non-symbol " + uncons.fst() + " in argSpec: " + heap.valueToString(argSpec));
+            } else if (curSpec.getType() == ValueType.CONS_REF) {
+                var uncons = machine.uncons(curSpec);
+                if (!machine.isSymbol(uncons.fst())) {
+                    throw new EvalException("Found non-symbol " + uncons.fst() + " in argSpec: " + machine.valueToString(argSpec));
                 }
                 argNames.add(uncons.fst());
                 curSpec = uncons.snd();
             } else {
-                throw new EvalException("Cannot parse argSpec at: " + heap.valueToString(curSpec));
+                throw new EvalException("Cannot parse argSpec at: " + machine.valueToString(curSpec));
             }
         }
     }
@@ -57,8 +58,8 @@ public class ArgSpec {
         /* XXX would an iterator make sense here? */
         for (var argName : argNames) {
             HonsValue value = HonsValue.nil;
-            if (curArg.isConsRef()) {
-                var uncons = heap.uncons(curArg);
+            if (curArg.getType() == ValueType.CONS_REF) {
+                var uncons = machine.uncons(curArg);
                 value = uncons.fst();
                 curArg = uncons.snd();
             } else {
@@ -68,14 +69,46 @@ public class ArgSpec {
         }
         if (slurpyName != null)
             assignmentsMap.put(slurpyName, curArg);
-        return new Assignments(exprFactory, assignmentsMap);
+        return new Assignments(machine, assignmentsMap);
     }
 
     @Override
     public String toString() {
         return "ArgSpec{" +
-            "argNames=" + argNames.stream().map(heap::valueToString).toList() +
-            ", slurpyName=" + heap.valueToString(slurpyName) +
+            "argNames=" + argNames.stream().map(machine::valueToString).toList() +
+            ", slurpyName=" + machine.valueToString(slurpyName) +
             '}';
+    }
+    
+    public @NotNull Set<HonsValue> getBoundVariables() {
+        Set<HonsValue> names = new HashSet<>(argNames.size() + 1);
+
+        if (slurpyName != null)
+            names.add(slurpyName);
+
+        names.addAll(argNames);
+
+        return names;
+    }
+    
+    public @NotNull Assignments alphaConversion(int uniqNumber) {
+        Map<HonsValue, HonsValue> oldNameToNewName = new HashMap<>(argNames.size() + 1);
+        String prefix = "$%x$".formatted(uniqNumber);
+        
+        var boundVariables = this.getBoundVariables();
+        
+        for (var old : boundVariables) {
+            var oldName = machine.symbolName(old);
+            if (machine.fst(oldName).toSmallInt() == '$')
+                continue;
+            
+            var newName = machine.symbolName(old);
+            for (int idx = prefix.length() - 1; idx >= 0; idx--) {
+                newName = machine.cons(HonsValue.fromSmallInt(prefix.charAt(idx)), newName);
+            }
+            oldNameToNewName.put(old, machine.makeSymbol(newName));
+        }
+        
+        return new Assignments(machine, oldNameToNewName);
     }
 }

@@ -1,5 +1,6 @@
 package uk.bs338.hashLisp.jproto;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,25 +10,10 @@ class ConsPairTest {
     record MockValue(int value) implements IValue {
 
         @Override
-        public boolean isNil() {
-            return false;
+        public @NotNull ValueType getType() {
+            return ValueType.SMALL_INT;
         }
-    
-        @Override
-        public boolean isSymbolTag() {
-            return false;
-        }
-    
-        @Override
-        public boolean isSmallInt() {
-            return true;
-        }
-    
-        @Override
-        public boolean isConsRef() {
-            return false;
-        }
-    
+
         @Override
         public int toSmallInt() {
             return value;
