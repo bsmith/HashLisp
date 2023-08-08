@@ -48,7 +48,7 @@ public sealed abstract class ReadResult<V> {
         return failedRead(this.remaining, getFailureMessage());
     }
 
-    public <R> ReadResult<R> mapValueIfSuccess(@NotNull Function<? super V, ? extends R> mapper) {
+    public <R> @NotNull ReadResult<R> mapValueIfSuccess(@NotNull Function<? super V, ? extends R> mapper) {
         if (isSuccess())
             return replaceValueIfSuccess(mapper.apply(this.getValue()));
         return failedRead(this.remaining, getFailureMessage());

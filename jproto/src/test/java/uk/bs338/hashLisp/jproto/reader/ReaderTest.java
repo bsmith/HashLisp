@@ -3,7 +3,7 @@ package uk.bs338.hashLisp.jproto.reader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,23 +11,23 @@ import static org.junit.jupiter.api.Assertions.*;
 import static uk.bs338.hashLisp.jproto.Utilities.*;
 
 class ReaderTest {
-    HonsHeap heap;
+    HonsMachine machine;
     CharClassifier charClassifier;
     Reader reader;
 
     @BeforeEach
     void setUp() {
         /* reuse heap */
-        if (heap == null)
-            heap = new HonsHeap();
+        if (machine == null)
+            machine = new HonsMachine();
         if (charClassifier == null)
             charClassifier = new CharClassifier();
         var tokeniserFactory = Tokeniser.getFactory(charClassifier); 
-        reader = new Reader(heap, tokeniserFactory);
+        reader = new Reader(machine, tokeniserFactory);
     }
     
     @AfterEach void validateHeap() {
-        heap.validateHeap();
+        machine.getHeap().validateHeap();
     }
     
     @Nested
@@ -41,7 +41,7 @@ class ReaderTest {
 
         @Test void symbol() {
             var input = "abc";
-            var expected = ReadResult.successfulRead("", heap.makeSymbol("abc"));
+            var expected = ReadResult.successfulRead("", machine.makeSymbol("abc"));
             var actual = reader.read(input);
             assertEquals(expected, actual);
         }
@@ -66,7 +66,7 @@ class ReaderTest {
         @Test void pairOfInts() {
             var input = "(123 . 345)";
             var expected = ReadResult.successfulRead("",
-                heap.cons(
+                machine.cons(
                     HonsValue.fromSmallInt(123),
                     HonsValue.fromSmallInt(345)
                 ));
@@ -77,7 +77,7 @@ class ReaderTest {
         @Test void oneElementList() {
             var input = "(123)";
             var expected = ReadResult.successfulRead("",
-                heap.cons(
+                machine.cons(
                     HonsValue.fromSmallInt(123),
                     HonsValue.nil
                 ));
@@ -88,9 +88,9 @@ class ReaderTest {
         @Test void twoElementList() {
             var input = "(123 456)";
             var expected = ReadResult.successfulRead("",
-                heap.cons(
+                machine.cons(
                     HonsValue.fromSmallInt(123),
-                    heap.cons(
+                    machine.cons(
                         HonsValue.fromSmallInt(456),
                         HonsValue.nil
                     )
@@ -102,7 +102,7 @@ class ReaderTest {
         @Test void oneElementListWrittenAsPair() {
             var input = "(123 . ())";
             var expected = ReadResult.successfulRead("",
-                heap.cons(
+                machine.cons(
                     HonsValue.fromSmallInt(123),
                     HonsValue.nil
                 ));
@@ -154,10 +154,10 @@ class ReaderTest {
     class StringValues {
         void assertStringRead(@NotNull String expectedStr, @NotNull String input) {
             var actual = reader.read(input);
-            var expected = heap.cons(heap.makeSymbol("*string"), stringAsList(heap, expectedStr));
+            var expected = machine.cons(machine.makeSymbol("*string"), stringAsList(machine, expectedStr));
             assertTrue(actual.isSuccess());
             /* test this in two ways, as it gives nicer failure reporting! */
-            assertEquals(heap.valueToString(expected), heap.valueToString(actual.getValue()));
+            assertEquals(machine.valueToString(expected), machine.valueToString(actual.getValue()));
             assertEquals(expected, actual.getValue());
             assertEquals("", actual.getRemaining());
         }
@@ -195,7 +195,7 @@ class ReaderTest {
             ;comment
             2) ;comment
             """;
-        var expected = heap.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
+        var expected = machine.cons(HonsValue.fromSmallInt(1), HonsValue.fromSmallInt(2));
         ReadResult<HonsValue> rv = reader.read(input);
         assertTrue(rv.isSuccess());
         assertEquals(expected, rv.getValue());
@@ -205,10 +205,10 @@ class ReaderTest {
     @Test
     void read(@NotNull TestReporter testReporter) {
         var input = "(add (add 1 2) 3 4)";
-        var addSym = heap.makeSymbol("add");
-        var expected = makeList(heap,
+        var addSym = machine.makeSymbol("add");
+        var expected = makeList(machine,
             addSym,
-            makeList(heap,
+            makeList(machine,
                 addSym,
                 HonsValue.fromSmallInt(1),
                 HonsValue.fromSmallInt(2)

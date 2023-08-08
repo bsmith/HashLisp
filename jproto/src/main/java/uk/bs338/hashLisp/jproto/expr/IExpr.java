@@ -2,48 +2,23 @@ package uk.bs338.hashLisp.jproto.expr;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import uk.bs338.hashLisp.jproto.eval.Tag;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.hons.HonsValue;
 
 import java.util.NoSuchElementException;
 
 public interface IExpr {
     @NotNull HonsValue getValue();
-    default @NotNull HonsHeap getHeap() { throw new NoSuchElementException(); }
+    @NotNull HonsMachine getMachine();
+    
+    ExprType getType();
 
-    /* XXX: use enum instead of isSimple+isSymbol+isCons as a only-one-may-be-true */
-    default boolean isSimple() {
-        return false;
-    }
-
-    default boolean isSymbol() {
-        return false;
-    }
-
-    default boolean isCons() {
-        return false;
-    }
-
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_->param1")
     <V extends IExprVisitor> @NotNull V visit(@NotNull V visitor);
 
     boolean isNormalForm();
-    boolean isHeadNormalForm();
-
-    default boolean hasHeadTag(Tag tag) {
-        return false;
-    }
-
-    default boolean isTag(Tag tag) {
-        return false;
-    }
     
-    /* XXX is this the best exception?  I just copied Optional/ReadResult */
-    default ISimpleExpr asSimpleExpr() {
-        throw new NoSuchElementException();
-    }
-
     default ISymbolExpr asSymbolExpr() {
         throw new NoSuchElementException();
     }
@@ -58,19 +33,33 @@ public interface IExpr {
      *   simple: nil, smallInt, symbol
      *   application: any other cons-ref
      */
-    static @NotNull IExpr wrap(@NotNull HonsHeap heap, @NotNull HonsValue value) {
-        if (value.isConsRef()) {
-            if (heap.isSymbol(value))
-                return new ExprBase.SymbolExpr(heap, value);
-            return new ExprBase.ConsExpr(heap, value);
-        }
-        return new ExprBase.SimpleExpr(heap, value);
+    static @NotNull IExpr wrap(@NotNull HonsMachine machine, @NotNull HonsValue value) {
+        return switch (value.getType()) {
+            case NIL, SMALL_INT -> new ExprBase.SimpleExpr(machine, value);
+            case SYMBOL_TAG -> throw new IllegalArgumentException("Cannot wrap a symbol-tag!");
+            case CONS_REF ->
+                machine.isSymbol(value) ?
+                    new ExprBase.SymbolExpr(machine, value) :
+                new ExprBase.ConsExpr(machine, value);
+        };
+    }
+    
+    static @NotNull IExpr nil(@NotNull HonsMachine machine) {
+        return IExpr.wrap(machine, HonsValue.nil);
+    }
+    
+    static @NotNull IExpr ofSmallInt(@NotNull HonsMachine machine, int num) {
+        return IExpr.wrap(machine, HonsValue.fromSmallInt(num));
     }
     
     static @NotNull IConsExpr cons(@NotNull IExpr left, @NotNull IExpr right) {
-        HonsHeap heap = left.getHeap();
-        if (heap != right.getHeap())
-            throw new IllegalArgumentException("Mismatched heaps between left IExpr and right IExpr");
-        return wrap(heap, heap.cons(left.getValue(), right.getValue())).asConsExpr();
+        HonsMachine machine = left.getMachine();
+        if (machine != right.getMachine())
+            throw new IllegalArgumentException("Mismatched machines between left IExpr and right IExpr");
+        return wrap(machine, machine.cons(left.getValue(), right.getValue())).asConsExpr();
+    }
+    
+    static @NotNull ISymbolExpr makeSymbol(@NotNull HonsMachine machine, @NotNull String name) {
+        return wrap(machine, machine.makeSymbol(name)).asSymbolExpr();
     }
 }

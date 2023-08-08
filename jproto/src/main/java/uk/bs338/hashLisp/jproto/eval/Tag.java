@@ -5,7 +5,8 @@ import org.jetbrains.annotations.NotNull;
 /* Tags are used to tag objects known to the evaluator.  Tags should be different from primitives */
 public enum Tag {
     BLACKHOLE("***BLACKHOLE"),
-    LAMBDA("*lambda");
+    LAMBDA("*lambda"),
+    DATA("*data");
     
     private final @NotNull String symbolStr;
     

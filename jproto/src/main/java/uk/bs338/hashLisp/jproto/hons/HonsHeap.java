@@ -4,16 +4,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.bs338.hashLisp.jproto.IHeap;
-import uk.bs338.hashLisp.jproto.ISymbolMixin;
 import uk.bs338.hashLisp.jproto.ConsPair;
+import uk.bs338.hashLisp.jproto.ValueType;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Optional;
 
 public class HonsHeap implements
-    IHeap<HonsValue>,
-    ISymbolMixin<HonsValue>
+    IHeap<HonsValue>
 {
     private HonsCell[] table;
     private int tableLoad;
@@ -85,21 +83,6 @@ public class HonsHeap implements
         return null;
     }
 
-    @Override
-    public @NotNull HonsValue nil() {
-        return HonsValue.nil;
-    }
-
-    @Override
-    public @NotNull HonsValue makeSmallInt(int num) {
-        return HonsValue.fromSmallInt(num);
-    }
-
-    @Override
-    public @NotNull HonsValue symbolTag() {
-        return HonsValue.symbolTag;
-    }
-
     @NotNull
     public HonsValue cons(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         HonsCell cell = new HonsCell(fst, snd);
@@ -116,23 +99,6 @@ public class HonsHeap implements
             /* otherwise we have a hash collision! */
             cell.bumpObjectHash();
         } while (true);
-    }
-
-    public void dumpHeap(@NotNull PrintStream stream) {
-        dumpHeap(stream, false);
-    }
-    
-    public void dumpHeap(@NotNull PrintStream stream, boolean onlyWithMemoValues) {
-        stream.printf("HonsHeap.dumpHeap(size=%d,load=%d)%n", table.length, tableLoad);
-
-        for (int idx = 0; idx < table.length; idx++) {
-            var cell = table[idx];
-            if (cell != null && (!onlyWithMemoValues || cell.getMemoEval() != null)) {
-                stream.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
-                if (cell.getMemoEval() != null)
-                    stream.printf("  memoEval: %s%n", valueToString(cell.getMemoEval()));
-            }
-        }
     }
     
     public void validateHeap() {
@@ -174,8 +140,6 @@ public class HonsHeap implements
             
             /* Special cells are checked above, and do not have fst/snd values stored */
             if (!cell.toValue().isSpecial()) {
-//                var newCell = new HonsCell(cell.getFst(), cell.getSnd());
-//                var retrievedByCell = getCell(newCell.getObjectHash());
                 var retrievedByCell = getCell(cons(cell.getFst(), cell.getSnd()));
                 if (cell != retrievedByCell) {
                     System.err.printf("  failed by Cell at 0x%x: %s != %s%n", idx, cell, retrievedByCell);
@@ -188,12 +152,14 @@ public class HonsHeap implements
             System.err.printf("*** HEAP FAILED VALIDATION ***%n");
             System.err.printf("  Found %d broken cells%n%n", brokenCells.size());
             
+            /* create a temporary machine */
+            HonsMachine machine = new HonsMachine(this);
             for (var idx : brokenCells) {
                 var cell = table[idx];
-                System.err.printf("0x%x: %s%n  %s%n", idx, cell, valueToString(cell.toValue()));
+                System.err.printf("0x%x: %s%n  %s%n", idx, cell, PrettyPrinter.valueToString(machine, cell.toValue()));
             }
             
-            dumpHeap(System.err);
+            machine.dumpMachine(System.err);
             
             throw new HeapValidationError();
         } else {
@@ -201,7 +167,8 @@ public class HonsHeap implements
                 System.err.println("Heap validation completed successfully");
         }
     }
-    
+
+    @SuppressWarnings("UnusedReturnValue")
     @Contract("_ -> param1")
     public <V extends IIterateHeapVisitor> @NotNull V iterateHeap(@NotNull V visitor) {
         for (int idx = 0; idx < table.length; idx++) {
@@ -215,7 +182,7 @@ public class HonsHeap implements
 
     @NotNull
     public ConsPair<HonsValue> uncons(@NotNull HonsValue val) {
-        if (!val.isObjectHash())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("Cannot uncons not-cons: " + val);
         var cell = getCell(val);
         if (cell == null)
@@ -224,29 +191,25 @@ public class HonsHeap implements
     }
     
     public @NotNull Optional<HonsValue> getMemoEval(@NotNull HonsValue val) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             return Optional.empty();
         return Optional.ofNullable(getCell(val)).map(HonsCell::getMemoEval);
     }
     
     public void setMemoEval(@NotNull HonsValue val, @Nullable HonsValue evalResult) {
-        if (!val.isConsRef())
+        if (val.getType() != ValueType.CONS_REF)
             throw new IllegalArgumentException("can't setMemoEval if its not a ConsRef");
         var cell = getCell(val);
         if (cell == null)
             throw new IllegalStateException("can't find cell for ConsRef: " + val);
         cell.setMemoEval(evalResult);
     }
-    
-    /* This is an optimisation!
-     * symbols evaluate to themselves
-     */
-    /* Really, we shouldn't be evaluating symbols but short-circuiting elsewhere */
-//    @Override
-//    public @NotNull HonsValue makeSymbol(@NotNull HonsValue name) {
-//        var symbol = ISymbolMixin.super.makeSymbol(name);
-//        assert getCell(symbol) != null;
-//        getCell(symbol).setMemoEval(symbol);
-//        return symbol;
-//    }
+
+    public int getSize() {
+        return table.length;
+    }
+
+    public int getTableLoad() {
+        return tableLoad;
+    }
 }

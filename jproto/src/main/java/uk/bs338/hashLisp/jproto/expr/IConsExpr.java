@@ -17,16 +17,11 @@ public interface IConsExpr extends IExpr {
      */
     @Override
     default boolean isNormalForm() {
-        return fst().isSymbol() && fst().asSymbolExpr().isDataHead();
+        return fst().getType() == ExprType.SYMBOL && fst().asSymbolExpr().isDataHead();
     }
 
     @Override
-    default boolean isHeadNormalForm() {
-        return fst().isNormalForm();
-    }
-
-    @Override
-    default IConsExpr asConsExpr() {
+    default @NotNull IConsExpr asConsExpr() {
         return this;
     }
 }

@@ -5,17 +5,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.bs338.hashLisp.jproto.IReader;
 import uk.bs338.hashLisp.jproto.Utilities;
-import uk.bs338.hashLisp.jproto.hons.HonsHeap;
+import uk.bs338.hashLisp.jproto.hons.HonsMachine;
 import uk.bs338.hashLisp.jproto.reader.ReadResult;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedHeap;
 import uk.bs338.hashLisp.jproto.wrapped.WrappedValue;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PrintOnlyReaderTest {
+class DataReaderTest {
     WrappedHeap heap;
     MockReader<WrappedValue> mockReader;
-    PrintOnlyReader<WrappedValue> printOnlyReader;
+    DataReader<WrappedValue> dataReader;
     WrappedValue exampleValue;
     WrappedValue wrappedExampleValue;
     
@@ -37,25 +38,24 @@ class PrintOnlyReaderTest {
     }
     
     @BeforeEach void setUp() {
-        heap = WrappedHeap.wrap(new HonsHeap());
+        heap = WrappedHeap.wrap(new HonsMachine());
         mockReader = new MockReader<>();
-        printOnlyReader = new PrintOnlyReader<>(heap, mockReader);
+        dataReader = new DataReader<>(heap, mockReader);
         exampleValue = Utilities.makeList(heap, heap.makeSymbol("add"), heap.makeSmallInt(1), heap.makeSmallInt(2));
-        wrappedExampleValue = Utilities.makeList(heap, heap.makeSymbol("io-print!"),
-            Utilities.makeList(heap, heap.makeSymbol("quote"), exampleValue));
+        wrappedExampleValue = Utilities.makeList(heap, heap.makeSymbol("*data"), exampleValue);
         mockReader.setValue(exampleValue);
     }
 
     @Test
     void readSuccess() {
-        var result = printOnlyReader.read("success");
+        var result = dataReader.read("success");
         assertTrue(result.isSuccess());
         assertEquals(wrappedExampleValue, result.getValue());
     }
     
     @Test
     void readFailure() {
-        var result = printOnlyReader.read("failure");
+        var result = dataReader.read("failure");
         assertTrue(result.isFailure());
         assertEquals("failed", result.getFailureMessage());
     }

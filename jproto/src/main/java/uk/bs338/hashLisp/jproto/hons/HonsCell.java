@@ -20,13 +20,13 @@ public class HonsCell {
     public HonsCell(@NotNull HonsValue special)  {
         this.objectHash = special.toObjectHash();
         this.fst = this.snd = HonsValue.nil;
-        this.memoEval = null; /* XXX or nil? */
+        this.memoEval = null;
     }
 
     public HonsCell(@NotNull HonsValue fst, @NotNull HonsValue snd) {
         this.fst = fst;
         this.snd = snd;
-        this.memoEval = null; /* XXX or nil? maybe it evaluates to nil */
+        this.memoEval = null;
         calcObjectHash();
     }
     
@@ -39,12 +39,14 @@ public class HonsCell {
     private void calcObjectHash() {
         /* XXX sign bit */
         this.objectHash = hashFunction(fst.getValue(), snd.getValue()) & 0x3fffffff;
-        while (this.objectHash == 0)
+        if (this.objectHash == 0 || this.objectHash == 1)
             bumpObjectHash();
     }
 
     public void bumpObjectHash() {
-        this.objectHash = hashFunction(this.objectHash, 0) & 0x3fffffff;
+        do {
+            this.objectHash = hashFunction(this.objectHash, 0) & 0x3fffffff;
+        } while (this.objectHash == 0 || this.objectHash == 1);
     }
 
     public int getObjectHash() {
@@ -75,7 +77,6 @@ public class HonsCell {
         this.memoEval = memoEval;
     }
 
-    /* XXX should not implement hashCode and equals, because the Java semantics don't match... */
     @Override
     public int hashCode() {
         return this.objectHash;
